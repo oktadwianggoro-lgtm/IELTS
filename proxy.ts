@@ -8,6 +8,9 @@ const PUBLIC_PATHS = [
   "/verify-email",
   "/forgot-password",
   "/reset-password",
+  "/info-ielts",
+  "/sitemap.xml",
+  "/robots.txt",
 ];
 
 function isPublicPath(pathname: string): boolean {

@@ -34,6 +34,55 @@ async function main() {
 
   await seedBandConversionTable();
   await seedAchievementCatalog();
+  await seedOfficialResources();
+}
+
+/** Upsert by code — real, cited sources used on /info-ielts, each with a
+ * genuine verification date (checked today during Fase 14 development
+ * via WebSearch, not guessed). See docs/DECISIONS.md D-041. */
+async function seedOfficialResources() {
+  const VERIFIED_AT = new Date("2026-10-19");
+  const resources = [
+    {
+      code: "IELTS-ACADEMIC-FORMAT",
+      label: "IELTS Academic — format resmi",
+      url: "https://ielts.org/take-a-test/test-types/ielts-academic-test",
+      category: "format",
+    },
+    {
+      code: "IELTS-GT-FORMAT",
+      label: "IELTS General Training — format resmi",
+      url: "https://ielts.org/take-a-test/test-types/ielts-general-training-test",
+      category: "format",
+    },
+    {
+      code: "IELTS-TEST-FORMAT-BRITISH-COUNCIL",
+      label: "Struktur dan durasi tes IELTS (British Council)",
+      url: "https://takeielts.britishcouncil.org/take-ielts/test-format",
+      category: "format",
+    },
+    {
+      code: "IELTS-SCORING-DETAIL",
+      label: "Cara skor IELTS dihitung (ielts.org)",
+      url: "https://ielts.org/take-a-test/your-results/ielts-scoring-in-detail",
+      category: "scoring",
+    },
+    {
+      code: "IELTS-HOW-SCORED",
+      label: "How IELTS is scored (ielts.org)",
+      url: "https://ielts.org/for-test-takers/how-ielts-is-scored",
+      category: "scoring",
+    },
+  ];
+
+  for (const r of resources) {
+    await prisma.officialResource.upsert({
+      where: { code: r.code },
+      update: { label: r.label, url: r.url, category: r.category, verifiedAt: VERIFIED_AT },
+      create: { ...r, verifiedAt: VERIFIED_AT },
+    });
+  }
+  console.log(`[seed] Official resources ready: ${resources.length} links.`);
 }
 
 /** Upsert by code, never delete+recreate — unlike BandConversionTable,

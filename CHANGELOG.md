@@ -2,6 +2,38 @@
 
 Semua perubahan penting pada Success IELTS dicatat di sini, per fase pengembangan.
 
+## Fase 14 — Info IELTS (halaman publik)
+
+### Ditambahkan
+
+- **Halaman Info IELTS** (`/info-ielts`, publik — tidak perlu login) —
+  panduan independen: Academic vs General Training, format & durasi tes,
+  cara penilaian (4 kriteria Writing/Speaking + aturan pembulatan overall
+  band resmi), kalkulator estimasi overall band interaktif, FAQ (5 item),
+  glosarium istilah (8 item), dan tautan ke sumber resmi (ielts.org,
+  British Council) dengan tanggal verifikasi.
+- **Kalkulator Overall Band** (`components/info-ielts/band-calculator.tsx`)
+  — menerapkan rumus pembulatan resmi IELTS ke empat angka band yang
+  dimasukkan pengguna sendiri, murni di sisi klien (memakai ulang
+  `calculateOverallBand()` dari Fase 11).
+- Model baru `OfficialResource` — 5 tautan resmi di-seed dengan URL dan
+  tanggal verifikasi nyata (diverifikasi lewat WebSearch, bukan ditebak).
+- `app/sitemap.ts` dan `app/robots.ts` — hanya mendaftarkan rute yang
+  genuinely publik (`/`, `/info-ielts`, `/login`, `/register`), mengikuti
+  instruksi Master Prompt untuk tidak menerbitkan halaman tipis demi SEO.
+- `e2e/info-ielts.spec.ts` — akses anonim tanpa redirect ke login, isi
+  halaman (disclaimer, FAQ, tautan resmi terverifikasi), kebenaran rumus
+  kalkulator, dan `sitemap.xml`/`robots.txt` ter-serve dengan benar.
+
+### Catatan teknis (lihat D-041 untuk detail)
+
+- Next.js 16 mengganti konvensi `middleware.ts` menjadi `proxy.ts`.
+  Memindahkan sebuah halaman keluar dari grup route `(app)` (yang
+  mewajibkan login lewat layout-nya) TIDAK otomatis membuatnya publik —
+  `proxy.ts` punya `PUBLIC_PATHS` sendiri yang harus diupdate terpisah.
+  Ditemukan lewat E2E (`/info-ielts` dan `/sitemap.xml` sama-sama
+  ter-redirect ke login) sebelum sempat sampai ke production.
+
 ## Fase 13 — Panel Admin/Teacher lengkap
 
 ### Ditambahkan

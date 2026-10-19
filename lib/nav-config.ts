@@ -80,7 +80,7 @@ export const navGroups: NavGroup[] = [
   {
     key: "other",
     items: [
-      { href: "/info-ielts", key: "infoIelts", icon: Info, plannedPhase: "Fase 14" },
+      { href: "/info-ielts", key: "infoIelts", icon: Info },
       { href: "/profil", key: "profile", icon: UserRound, plannedPhase: "Fase 1" },
     ],
   },

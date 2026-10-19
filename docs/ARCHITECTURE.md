@@ -1,6 +1,6 @@
 # Arsitektur — Success IELTS
 
-Status: Fase 13 (Panel Admin/Teacher lengkap — test builder, audit log, manajemen pengguna, laporan soal).
+Status: Fase 14 (Info IELTS — halaman publik: panduan, kalkulator overall band, sitemap/robots).
 Dokumen ini akan diperluas pada setiap fase berikutnya.
 
 ## 1. Ringkasan
@@ -186,6 +186,9 @@ Sesuai instruksi "satu fase pada satu waktu":
   lihat §17 (test builder, audit log, manajemen pengguna, laporan soal,
   antrean review lintas-tipe; manajemen kelas/penugasan guru-siswa dan
   discrimination index sengaja ditunda — lihat D-040).
+- ~~Tidak ada halaman Info IELTS publik~~ — selesai Fase 14, lihat §18
+  (panduan, kalkulator overall band, FAQ, glosarium, tautan resmi,
+  sitemap.xml/robots.txt — lihat D-041).
 - Tidak ada scoring/AI feedback otomatis atas esai/speaking (butuh
   kredensial provider AI yang belum disediakan — lihat D-035/D-037).
 - Tidak ada Docker/deployment (Fase 17 Master Prompt).
@@ -629,7 +632,44 @@ Prompt §11:
   sebelumnya, ditunda utuh (bukan dibangun setengah) daripada dipaksakan
   dangkal.
 
-## 18. Menjalankan proyek secara lokal
+## 18. Info IELTS — halaman publik (Fase 14)
+
+Satu-satunya halaman konten selain landing page (`/`) dan auth
+(`/login`, `/register`, dst.) yang genuinely publik — tidak memerlukan
+login, dan dimaksudkan untuk diindeks mesin pencari (Master Prompt §16).
+
+- **`app/info-ielts/page.tsx`** — sengaja ditempatkan di root `app/`, DI
+  LUAR grup route `(app)` (yang layout-nya memanggil `requireUser()`) dan
+  `(admin)`. Header halaman memakai `getSession()` (bukan `requireUser()`)
+  untuk CTA yang sadar-auth ("Ke Dashboard" vs "Mulai Belajar Gratis")
+  tanpa memaksa login. Isi: Academic vs General Training, format & durasi
+  tes, cara penilaian (4 kriteria + aturan pembulatan overall band resmi),
+  kalkulator overall band, FAQ, glosarium, dan tautan resmi — semua
+  diparafrasekan dari sumber resmi, bukan disalin, dengan JSON-LD
+  `FAQPage` untuk SEO.
+- **`components/info-ielts/band-calculator.tsx`** — client component yang
+  memakai ulang `calculateOverallBand()` dari `lib/scoring/overall-band.ts`
+  (Fase 11) langsung di browser; fungsi itu sudah tanpa import
+  `server-only`, jadi tidak perlu round-trip server untuk sekadar
+  menerapkan rumus pembulatan ke empat angka yang sudah diketahui
+  pengguna.
+- **`OfficialResource`** (model baru) — tautan ke sumber resmi (ielts.org,
+  British Council), di-seed dengan `verifiedAt` yang sungguh-sungguh
+  diverifikasi (lihat D-041), bukan tanggal placeholder.
+- **`app/sitemap.ts`, `app/robots.ts`** — konvensi file Next.js, hanya
+  mendaftarkan rute yang genuinely publik; rute terautentikasi dan admin
+  sengaja dikecualikan (tidak ada gunanya untuk crawler, dan tidak boleh
+  terindeks).
+- **Perangkap arsitektural yang ditemukan di fase ini (lihat D-041):**
+  memindahkan sebuah halaman keluar dari grup `(app)` hanya melepaskannya
+  dari `requireUser()` di layout — itu TIDAK otomatis membuatnya publik.
+  Next.js 16 memakai konvensi `proxy.ts` (pengganti `middleware.ts`) yang
+  di proyek ini punya daftar `PUBLIC_PATHS` sendiri; path yang tidak ada
+  di daftar itu di-redirect ke login oleh `proxy.ts`, terlepas dari grup
+  route-nya. Setiap halaman publik baru WAJIB didaftarkan di DUA tempat:
+  struktur folder `app/` DAN `PUBLIC_PATHS` di `proxy.ts`.
+
+## 19. Menjalankan proyek secara lokal
 
 Lihat `README.md` untuk perintah lengkap. Ringkas:
 

@@ -1050,3 +1050,61 @@ docker-compose.dev.yml up -d` untuk pengembangan lokal, sesuai stack Master
   tempelan di fase ini. Discrimination index layak dihitung ulang begitu
   volume `QuestionAttempt` per soal cukup besar (Master Prompt sendiri
   tidak memberi angka pasti — perlu penilaian praktis saat datanya ada).
+
+## Fase 14
+
+### D-041: Info IELTS dipindah ke luar `(app)` agar benar-benar publik; `proxy.ts` ternyata butuh diupdate terpisah dari struktur route
+
+- **Keputusan:** Halaman `/info-ielts` (Master Prompt §16: panduan IELTS
+  independen — format, cara penilaian, kalkulator overall band, FAQ,
+  glosarium, tautan resmi) dipindah dari stub `app/(app)/info-ielts/page.tsx`
+  (yang mewarisi `requireUser()` dari layout grup `(app)`) ke
+  `app/info-ielts/page.tsx` di root `app/`, di luar grup route mana pun,
+  supaya pengunjung anonim dan crawler bisa mengaksesnya. Header halaman
+  pakai `getSession()` (bukan `requireUser()`) untuk CTA yang sadar-auth
+  tanpa memaksa login. `BandCalculator` memakai ulang
+  `calculateOverallBand()` dari `lib/scoring/overall-band.ts` (Fase 11) di
+  sisi klien murni — fungsi itu sudah tanpa import `server-only` sejak
+  awal, jadi tidak perlu round-trip server untuk sekadar menerapkan rumus
+  pembulatan resmi ke empat angka yang sudah diketahui pengguna. Lima
+  tautan resmi (`OfficialResource`, model baru) di-seed dengan URL nyata
+  (ielts.org, takeielts.britishcouncil.org) dan `verifiedAt` yang
+  sungguh-sungguh diverifikasi lewat WebSearch, bukan ditebak — konsisten
+  dengan `BandConversionTable` di Fase 11. `app/sitemap.ts` dan
+  `app/robots.ts` ditambahkan mengikuti konvensi file Next.js, hanya
+  mendaftarkan 4 rute yang genuinely publik (`/`, `/info-ielts`, `/login`,
+  `/register`) — bukan men-generate ribuan halaman tipis.
+- **Bug yang ditemukan lewat E2E, bukan lewat manual check (penting untuk
+  dicatat karena hampir lolos):** Setelah memindah halaman keluar dari
+  `(app)`, E2E awal (`e2e/info-ielts.spec.ts`) tetap gagal — `/info-ielts`
+  DAN `/sitemap.xml` sama-sama di-redirect ke `/login?callbackUrl=...`.
+  Root cause BUKAN di struktur route sama sekali: Next.js 16 mengganti
+  konvensi `middleware.ts` menjadi `proxy.ts` (nama file berbeda, perilaku
+  sama), dan `proxy.ts` proyek ini punya `PUBLIC_PATHS` sendiri yang
+  independen dari struktur folder `app/` — pathname yang tidak ada di
+  daftar itu otomatis di-redirect ke login oleh matcher `proxy.ts`,
+  terlepas dari apakah route-nya ada di grup `(app)` atau tidak. Memindah
+  sebuah page keluar dari grup `(app)` menghapus ketergantungannya pada
+  `requireUser()` di layout, tapi TIDAK otomatis mendaftarkannya sebagai
+  publik di `proxy.ts` — dua mekanisme gating yang terpisah dan harus
+  disinkronkan manual. Diperbaiki dengan menambah `/info-ielts`,
+  `/sitemap.xml`, `/robots.txt` ke `PUBLIC_PATHS`. Dua bug lanjutan di
+  spec-nya sendiri (bukan di aplikasi) juga ditemukan dan diperbaiki:
+  `getByText` tanpa `.first()` kena strict-mode violation karena
+  `<Disclaimer />` memang sengaja dirender dua kali (atas & bawah
+  halaman), dan assertion hasil kalkulator (`getByText("6.5")`) kena
+  strict-mode violation karena Base UI `Select` tetap merender opsi
+  dropdown yang tertutup ke DOM — diperbaiki dengan scoping
+  (`.first()`) dan `data-testid="band-calculator-result"` yang lebih
+  presisi daripada pencocokan teks umum.
+- **Alternatif dipertimbangkan:** Menjadikan `(app)` grup opt-in per
+  halaman (mis. flag `public: true` di layout) — ditolak, terlalu banyak
+  perubahan arsitektur untuk satu halaman publik; pola route-group yang
+  ada (publik di root, privat di `(app)`) sudah konsisten dipakai sejak
+  landing page Fase 1, jadi mengikuti pola itu lebih sederhana daripada
+  menciptakan mekanisme baru.
+- **Tinjau ulang:** Setiap halaman publik baru di masa depan WAJIB dicek
+  terhadap DUA tempat, bukan satu: (1) di luar grup `(app)`/`(admin)` di
+  struktur `app/`, DAN (2) ditambahkan ke `PUBLIC_PATHS` di `proxy.ts`.
+  Lupa salah satu akan lolos type-check dan lint tapi gagal diam-diam di
+  E2E atau production — seperti yang terjadi di fase ini.

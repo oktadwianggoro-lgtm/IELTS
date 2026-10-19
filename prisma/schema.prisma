@@ -1277,3 +1277,24 @@ model QuestionReport {
   @@index([status, createdAt])
   @@map("question_reports")
 }
+
+// ---------- Info IELTS public page (Fase 14) ----------
+
+/// Every dynamic fact on /info-ielts (test duration, format, result
+/// timing, etc.) links back to a row here instead of being hardcoded —
+/// "Jangan mengunci informasi yang mudah berubah tanpa tanggal
+/// verifikasi" (Master Prompt §2). Seeded (not yet admin-editable via
+/// UI — see D-041) from ielts.org/British Council sources with real
+/// verification dates.
+model OfficialResource {
+  id         String   @id @default(cuid())
+  code       String   @unique
+  label      String
+  url        String
+  category   String
+  verifiedAt DateTime
+  notes      String?
+  createdAt  DateTime @default(now())
+
+  @@map("official_resources")
+}
