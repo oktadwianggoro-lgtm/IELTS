@@ -50,3 +50,6 @@ next-env.d.ts
 # local agent/tooling state (not project content)
 /.claude/
 
+# Prisma generated client (regenerate with `npx prisma generate`)
+/generated/
+

@@ -1,9 +1,147 @@
-"use client";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { requireUser } from "@/lib/auth/rbac";
+import { prisma } from "@/lib/db";
+import {
+  DAILY_STUDY_MINUTES_LABEL,
+  LEARNING_GOAL_LABEL,
+  SKILL_LABEL,
+  TEST_TYPE_LABEL,
+} from "@/lib/validation/onboarding";
+import Link from "next/link";
 
-import { ComingSoon } from "@/components/coming-soon";
-import { useLocale } from "@/lib/i18n/locale-provider";
+const ROLE_LABEL: Record<string, string> = {
+  STUDENT: "Siswa",
+  TEACHER: "Guru",
+  ADMIN: "Admin",
+};
 
-export default function Page() {
-  const { t } = useLocale();
-  return <ComingSoon title={t.nav.profile} plannedPhase="Fase 1" />;
+export default async function ProfilePage() {
+  const sessionUser = await requireUser();
+  const user = await prisma.user.findUniqueOrThrow({
+    where: { id: sessionUser.id },
+    include: { profile: true, preference: true },
+  });
+
+  const onboardingDone = Boolean(user.profile?.onboardingCompletedAt);
+
+  return (
+    <div className="mx-auto w-full max-w-2xl space-y-6 p-4 sm:p-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Akun</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Nama</span>
+            <span className="font-medium">{user.name ?? "—"}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Email</span>
+            <span className="font-medium">{user.email}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Status email</span>
+            <Badge variant={user.emailVerified ? "secondary" : "outline"}>
+              {user.emailVerified ? "Terverifikasi" : "Belum diverifikasi"}
+            </Badge>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Peran</span>
+            <Badge variant="secondary">{ROLE_LABEL[user.role]}</Badge>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Tujuan belajar</CardTitle>
+          <CardDescription>
+            {onboardingDone
+              ? "Hasil onboarding Anda. Ubah kapan saja."
+              : "Anda belum melengkapi onboarding."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm">
+          {onboardingDone && user.profile ? (
+            <>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Tujuan</span>
+                <span className="font-medium">
+                  {user.profile.goal ? LEARNING_GOAL_LABEL[user.profile.goal] : "—"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Tipe tes</span>
+                <span className="font-medium">
+                  {user.profile.testType ? TEST_TYPE_LABEL[user.profile.testType] : "—"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Target overall band</span>
+                <span className="font-medium">
+                  {user.profile.targetOverallBand ?? "—"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Skill tersulit</span>
+                <span className="font-medium">
+                  {user.profile.hardestSkill ? SKILL_LABEL[user.profile.hardestSkill] : "—"}
+                </span>
+              </div>
+            </>
+          ) : null}
+          <Button
+            render={
+              <Link href="/onboarding">
+                {onboardingDone ? "Perbarui tujuan belajar" : "Lengkapi onboarding"}
+              </Link>
+            }
+            variant="outline"
+            size="sm"
+            className="mt-2"
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Preferensi belajar</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Durasi belajar harian</span>
+            <span className="font-medium">
+              {user.preference
+                ? DAILY_STUDY_MINUTES_LABEL[user.preference.dailyStudyMinutes]
+                : "—"}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Zona waktu</span>
+            <span className="font-medium">{user.preference?.timezone ?? "—"}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Pengingat</span>
+            <span className="font-medium">
+              {user.preference?.reminderEnabled
+                ? `Aktif, ${user.preference.reminderTime ?? ""}`
+                : "Nonaktif"}
+            </span>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Langganan</CardTitle>
+          <CardDescription>
+            Fitur premium dan pembayaran belum diaktifkan. Akan tersedia pada Fase 16 sesuai
+            Master Prompt, dengan status default nonaktif (PAYMENTS_ENABLED=false).
+          </CardDescription>
+        </CardHeader>
+      </Card>
+    </div>
+  );
 }

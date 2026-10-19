@@ -114,7 +114,125 @@ default yang wajar untuk dipilih, bukan satu jawaban tunggal. Format: **Keputusa
   saat itu nilai statis/caching untuk halaman non-personal (landing, Info IELTS)
   sudah jelas dan bisa diaktifkan ulang secara selektif per-route.
 
-### D-009: Hanya "Beranda" punya halaman nyata di Fase 0; 15 menu lain pakai stub "segera tersedia"
+## Fase 1
+
+### D-010: Prisma CLI/Client dipin ke `7.10.1` (stabil), bukan `8.0.0-rc` (dist-tag `latest`)
+
+- **Keputusan:** `npm install prisma @prisma/client` pada npm registry saat ini memberi
+  `prisma@latest` = `8.0.0-rc.23` (masih release candidate, belum GA) tetapi
+  `@prisma/client@latest` = `7.10.1` (stabil) — keduanya tidak match. Prisma 8
+  juga mengganti CLI sepenuhnya menjadi "Prisma Developer Platform" berbasis
+  Projects/Branches/`prisma deploy` ke cloud Prisma sendiri, yang tidak cocok
+  dengan target deployment VPS self-hosted (Fase 17). Kedua paket dipin ke
+  `7.10.1` (stabil, matched, CLI klasik `init/generate/migrate/db/studio`).
+- **Alasan:** Menghindari CLI yang belum GA dan terikat ke platform cloud pihak
+  ketiga, serta menghindari mismatch versi CLI vs Client runtime.
+- **Alternatif:** Memakai Prisma 8 RC dan workflow `prisma deploy` ke Prisma
+  Cloud — ditolak karena mengubah model deployment aplikasi secara signifikan
+  tanpa itu diminta, dan RC belum cocok untuk fondasi produksi.
+- **Tinjau ulang:** Saat Prisma 8 mencapai GA dan masih mendukung alur
+  self-hosted murni (CLI klasik `migrate`/`db` tanpa akun cloud wajib).
+
+### D-011: Prisma 7 mewajibkan driver adapter (`@prisma/adapter-pg`), `url` dipindah ke `prisma7.config.ts`
+
+- **Keputusan:** `prisma/schema.prisma` datasource hanya berisi
+  `provider = "postgresql"` (tanpa `url`). Connection string hidup di
+  `prisma7.config.ts` (dibaca CLI untuk migrate/studio) DAN di `lib/db.ts`
+  lewat `new PrismaPg({ connectionString: process.env.DATABASE_URL })` yang
+  diberikan ke `new PrismaClient({ adapter })`.
+- **Alasan:** Ini bukan pilihan kami — Prisma 7 CLI menolak schema dengan
+  `datasource.url` (`P1012`), dan `PrismaClient` runtime menolak diinstansiasi
+  tanpa `adapter` sama sekali ("A driver adapter is required to connect to
+  your database"), berlaku untuk generator klasik maupun generator baru.
+- **Tinjau ulang:** Tidak perlu — ini perilaku wajib Prisma 7, bukan pilihan
+  yang bisa dibalik tanpa downgrade major version.
+
+### D-012: Generator `prisma-client-js` (klasik) dipakai, bukan `prisma-client` (default baru Prisma 7)
+
+- **Keputusan:** `generator client { provider = "prisma-client-js" }` tanpa
+  `output` custom (generate ke lokasi default `node_modules/@prisma/client`).
+- **Alasan:** `@auth/prisma-adapter@2.11.3` (adapter Auth.js resmi untuk
+  Prisma) meng-import tipe `PrismaClient` langsung dari paket `"@prisma/client"`
+  secara hardcoded. Generator baru Prisma 7 (`prisma-client`) menulis ke folder
+  custom (misalnya `generated/prisma`) dengan bentuk client berbeda, yang tidak
+  cocok secara tipe dengan `@auth/prisma-adapter` tanpa type-cast paksa
+  (`as any`). Memakai generator klasik membuat `@prisma/client` ter-generate di
+  lokasi yang memang diharapkan adapter, tanpa workaround tipe yang rapuh.
+- **Alternatif:** Pakai generator baru + `PrismaAdapter(prisma as any)` —
+  ditolak karena menyembunyikan potensi mismatch struktural yang baru akan
+  ketahuan saat runtime, bukan saat type-check.
+- **Tinjau ulang:** Saat `@auth/prisma-adapter` resmi mendukung custom output
+  Prisma 7 (cek changelog paketnya sebelum upgrade).
+
+### D-013: Database lokal pakai Docker Compose (`docker-compose.dev.yml`), bukan SQLite
+
+- **Keputusan:** PostgreSQL 17 (Alpine) via `docker compose -f
+  docker-compose.dev.yml up -d` untuk pengembangan lokal, sesuai stack Master
+  Prompt §4 (bukan SQLite sebagai pengganti sementara).
+- **Alasan:** Docker Desktop tersedia dan berfungsi di mesin ini. Memakai
+  PostgreSQL sejak awal menghindari perbedaan perilaku tipe data/fungsi SQL
+  antara SQLite (dev) dan PostgreSQL (produksi) yang sering menimbulkan bug
+  tersembunyi saat migrasi.
+- **Tinjau ulang:** Tidak perlu di mesin dengan Docker. Jika suatu saat
+  dikerjakan di mesin tanpa Docker, perlu Postgres lokal alternatif (native
+  install) — catat di README jika terjadi.
+
+### D-014: Email verifikasi tidak memblokir login; provider email bersifat pluggable dengan fallback dev-log
+
+- **Keputusan:** Pengguna bisa login segera setelah registrasi meski email
+  belum diverifikasi; banner pengingat ditampilkan di app shell dengan opsi
+  kirim ulang. `lib/email/mailer.ts` mengirim email sungguhan hanya jika
+  `EMAIL_SERVER`/provider dikonfigurasi di env; jika tidak, isi email (termasuk
+  link verifikasi/reset password) di-log ke console server dalam mode
+  development agar alur tetap bisa diuji end-to-end tanpa kredensial SMTP asli.
+- **Alasan:** Master Prompt §4 mewajibkan verifikasi email tersedia, tapi juga
+  mewajibkan aplikasi tetap berjalan tanpa provider eksternal dikonfigurasi
+  (prinsip yang sama yang berlaku untuk provider AI). Memblokir login total
+  sebelum verifikasi akan mengunci semua pengujian lokal karena belum ada
+  provider email asli.
+- **Alternatif:** Memblokir login sampai email terverifikasi — dicatat sebagai
+  opsi yang bisa diaktifkan lewat flag nanti jika kebijakan produk berubah.
+- **Tinjau ulang:** Sebelum go-live produksi — putuskan provider email asli
+  (mis. Resend) dan evaluasi apakah login tetap boleh pra-verifikasi.
+
+### D-015: Onboarding tidak memblokir akses — nudge non-blocking, bukan redirect paksa
+
+- **Keputusan:** Middleware hanya memverifikasi "sudah login atau belum" dari
+  JWT (murah, jalan di Edge) dan TIDAK mengecek status onboarding. Status
+  `onboardingCompletedAt` dibaca langsung dari tabel `profiles` di server
+  component `(app)/layout.tsx` pada setiap request (bukan dari klaim JWT, agar
+  selalu akurat — lihat alasan staleness di bawah), lalu ditampilkan sebagai
+  banner "Lengkapi tujuan belajar Anda" di `AccountBanners` dengan tautan ke
+  `/onboarding`. Pengguna yang belum onboarding tetap bisa mengakses seluruh
+  `(app)/*` termasuk Beranda.
+- **Alasan:** Master Prompt §8.1 eksplisit meminta "Onboarding bertahap, tidak
+  terlalu panjang, dengan opsi melanjutkan nanti" — memblokir seluruh aplikasi
+  sampai onboarding selesai bertentangan langsung dengan "opsi melanjutkan
+  nanti". Halaman `/onboarding` sendiri juga punya tautan "Lewati, isi nanti"
+  di step pertama.
+- **Kenapa dibaca dari DB, bukan JWT:** JWT (strategi session yang dipakai
+  karena Credentials provider) hanya di-re-sign saat login/refresh eksplisit,
+  sehingga menyimpan status onboarding di JWT akan basi begitu pengguna
+  menyelesaikan onboarding di tengah sesi yang sama, membuat banner tidak
+  hilang meski sudah selesai — kecuality kita memaksa refresh token, yang
+  menambah kerumitan tanpa manfaat besar pada tahap ini.
+- **Tinjau ulang:** Jika query profil per-request terbukti jadi bottleneck
+  performa nyata, pertimbangkan cache pendek atau klaim JWT yang di-refresh
+  via `update()` NextAuth.
+
+### D-016: `role` tetap jadi kolom enum di `User`, bukan tabel `Role` terpisah
+
+- **Keputusan:** Master Prompt §13 menyebut `Role` sebagai salah satu model.
+  Di Fase 1, ini diimplementasikan sebagai `enum Role { STUDENT TEACHER ADMIN }`
+  + kolom `role` pada `User`, bukan tabel relasi many-to-many terpisah.
+- **Alasan:** Tiga peran tetap dan saling eksklusif (satu pengguna = satu
+  peran) sesuai seluruh penjelasan RBAC di Master Prompt; tabel `Role`
+  terpisah hanya diperlukan untuk multi-role-per-user atau peran dinamis yang
+  dikonfigurasi admin, yang tidak diminta.
+- **Tinjau ulang:** Jika kebutuhan multi-role-per-user atau peran kustom
+  muncul (mis. "guru sekaligus admin kelas tertentu"), migrasi ke tabel relasi.
+
+### D-017: Hanya "Beranda" punya halaman nyata di Fase 0; 15 menu lain pakai stub "segera tersedia"
 
 - **Keputusan:** Semua item navigasi di `lib/nav-config.ts` punya route yang benar
   (bisa diklik dan berpindah halaman), tapi hanya `/dashboard` berisi konten nyata.
