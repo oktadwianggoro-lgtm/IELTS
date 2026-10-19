@@ -40,16 +40,18 @@ model User {
   preference          UserPreference?
   passwordResetTokens PasswordResetToken[]
 
-  reviewedLessons    Lesson[]           @relation("LessonReviewedBy")
-  createdQuestions   Question[]         @relation("QuestionCreatedBy")
-  reviewedQuestions  Question[]         @relation("QuestionReviewedBy")
-  bookmarks          Bookmark[]
-  notes              Note[]
-  lessonProgress     LessonProgress[]
-  diagnosticResults  DiagnosticResult[]
-  studyPlans         StudyPlan[]
-  questionAttempts   QuestionAttempt[]
-  mistakeBookEntries MistakeBookEntry[]
+  reviewedLessons           Lesson[]           @relation("LessonReviewedBy")
+  createdQuestions          Question[]         @relation("QuestionCreatedBy")
+  reviewedQuestions         Question[]         @relation("QuestionReviewedBy")
+  createdListeningPassages  ListeningPassage[] @relation("ListeningPassageCreatedBy")
+  reviewedListeningPassages ListeningPassage[] @relation("ListeningPassageReviewedBy")
+  bookmarks                 Bookmark[]
+  notes                     Note[]
+  lessonProgress            LessonProgress[]
+  diagnosticResults         DiagnosticResult[]
+  studyPlans                StudyPlan[]
+  questionAttempts          QuestionAttempt[]
+  mistakeBookEntries        MistakeBookEntry[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -372,10 +374,12 @@ model LessonTopic {
 /// Speaking tasks are free-response and get their own models in Fase 9-10
 /// rather than being forced through `options`/`answerKey`.
 model Question {
-  id       String  @id @default(cuid())
-  code     String  @unique
-  lessonId String?
-  lesson   Lesson? @relation(fields: [lessonId], references: [id], onDelete: SetNull)
+  id                 String            @id @default(cuid())
+  code               String            @unique
+  lessonId           String?
+  lesson             Lesson?           @relation(fields: [lessonId], references: [id], onDelete: SetNull)
+  listeningPassageId String?
+  listeningPassage   ListeningPassage? @relation(fields: [listeningPassageId], references: [id], onDelete: SetNull)
 
   type            QuestionType
   skill           SkillArea
@@ -413,6 +417,7 @@ model Question {
   lastUpdatedAt DateTime @updatedAt
 
   @@index([lessonId])
+  @@index([listeningPassageId])
   @@index([reviewStatus])
   @@map("questions")
 }
@@ -606,6 +611,7 @@ model StudyPlanItem {
 enum AttemptSource {
   ADAPTIVE_PRACTICE
   MISTAKE_REVIEW
+  LISTENING_PRACTICE
 }
 
 /// Master Prompt §8.10: "Pengguna bisa menandai alasan error" — a fixed set
@@ -672,4 +678,54 @@ model MistakeBookEntry {
   @@unique([userId, questionId])
   @@index([userId, nextReviewAt])
   @@map("mistake_book_entries")
+}
+
+// ---------- Listening Lab (Fase 7) ----------
+
+enum ListeningSection {
+  SECTION_1
+  SECTION_2
+  SECTION_3
+  SECTION_4
+}
+
+/// One audio passage with its questions. `script` doubles as both the
+/// original TTS production script AND the transcript revealed to students
+/// after they check their answers (Master Prompt §8.5) — stored as
+/// structured turns `[{ speaker, text }]` rather than a flat string so the
+/// player can render speaker labels.
+model ListeningPassage {
+  id         String           @id @default(cuid())
+  code       String           @unique
+  title      String
+  section    ListeningSection
+  level      PedagogicalLevel
+  /// Free-text accent tag (e.g. "British", "Australian") per §8.5's
+  /// "accent/difficulty tags" — not an enum since IELTS doesn't standardize
+  /// this list and new accents may be added without a migration.
+  accent     String
+  difficulty Int              @default(3)
+
+  /// Path under /public, e.g. "/audio/listening/starter-l-001.wav".
+  audioUrl        String
+  durationSeconds Int
+  script          Json
+  sourceNotes     String?
+
+  questions Question[]
+
+  contentVersion Int           @default(1)
+  reviewStatus   ContentStatus @default(DRAFT)
+  sourceType     String        @default("original")
+  createdById    String?
+  createdBy      User?         @relation("ListeningPassageCreatedBy", fields: [createdById], references: [id])
+  reviewedById   String?
+  reviewedBy     User?         @relation("ListeningPassageReviewedBy", fields: [reviewedById], references: [id])
+  reviewedAt     DateTime?
+
+  createdAt     DateTime @default(now())
+  lastUpdatedAt DateTime @updatedAt
+
+  @@index([reviewStatus])
+  @@map("listening_passages")
 }

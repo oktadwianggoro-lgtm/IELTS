@@ -3,10 +3,12 @@ import { join, relative } from "node:path";
 import {
   coursePathFileSchema,
   lessonFileSchema,
+  listeningPassageFileSchema,
   moduleFileSchema,
   topicRegistrySchema,
   type CoursePathFile,
   type LessonFile,
+  type ListeningPassageFile,
   type ModuleFile,
   type TopicFile,
 } from "./schema";
@@ -20,6 +22,7 @@ export type LoadedContent = {
   coursePaths: CoursePathFile[];
   modules: ModuleFile[];
   lessons: LessonFile[];
+  listeningPassages: ListeningPassageFile[];
 };
 
 function walkJsonFiles(dir: string): string[] {
@@ -208,7 +211,56 @@ export function loadContent(contentRoot: string): LoadedContent {
     }
   }
 
-  // global question code uniqueness across all lessons
+  // ---- listening passages ----
+  const listeningPassages: ListeningPassageFile[] = [];
+  const listeningFilesByCode = new Map<string, string>();
+  for (const file of walkJsonFiles(join(contentRoot, "listening"))) {
+    const parsed = listeningPassageFileSchema.safeParse(readJson(file));
+    if (!parsed.success) {
+      errors.push({
+        file: rel(file),
+        message: parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; "),
+      });
+      continue;
+    }
+    const passage = parsed.data;
+    listeningPassages.push(passage);
+
+    if (listeningFilesByCode.has(passage.code)) {
+      errors.push({
+        file: rel(file),
+        message: `Kode listening passage duplikat "${passage.code}" (juga di ${listeningFilesByCode.get(passage.code)})`,
+      });
+    }
+    listeningFilesByCode.set(passage.code, rel(file));
+
+    const questionCodes = new Set<string>();
+    for (const q of passage.questions) {
+      if (questionCodes.has(q.code)) {
+        errors.push({
+          file: rel(file),
+          message: `Kode question duplikat dalam passage ini: ${q.code}`,
+        });
+      }
+      questionCodes.add(q.code);
+      for (const topicCode of q.topics) {
+        if (!topicCodes.has(topicCode)) {
+          errors.push({
+            file: rel(file),
+            message: `Question ${q.code}: topic "${topicCode}" tidak terdaftar di content/topics.json`,
+          });
+        }
+      }
+    }
+  }
+  const dupPassageCodes = listeningPassages
+    .map((p) => p.code)
+    .filter((c, i, arr) => arr.indexOf(c) !== i);
+  for (const code of new Set(dupPassageCodes)) {
+    errors.push({ file: "listening/", message: `Kode listening passage duplikat: ${code}` });
+  }
+
+  // global question code uniqueness across all lessons AND listening passages
   const allQuestionCodes = new Map<string, string>();
   for (const lesson of lessons) {
     for (const q of lesson.questions) {
@@ -216,12 +268,32 @@ export function loadContent(contentRoot: string): LoadedContent {
       if (existing && existing !== lesson.code) {
         errors.push({
           file: lessonFilesByCode.get(lesson.code) ?? lesson.code,
-          message: `Kode question "${q.code}" dipakai juga di lesson "${existing}"`,
+          message: `Kode question "${q.code}" dipakai juga di "${existing}"`,
         });
       }
       allQuestionCodes.set(q.code, lesson.code);
     }
   }
+  for (const passage of listeningPassages) {
+    for (const q of passage.questions) {
+      const existing = allQuestionCodes.get(q.code);
+      if (existing && existing !== passage.code) {
+        errors.push({
+          file: listeningFilesByCode.get(passage.code) ?? passage.code,
+          message: `Kode question "${q.code}" dipakai juga di "${existing}"`,
+        });
+      }
+      allQuestionCodes.set(q.code, passage.code);
+    }
+  }
 
-  return { ok: errors.length === 0, errors, topics, coursePaths, modules, lessons };
+  return {
+    ok: errors.length === 0,
+    errors,
+    topics,
+    coursePaths,
+    modules,
+    lessons,
+    listeningPassages,
+  };
 }

@@ -1,0 +1,145 @@
+{
+  "code": "LISTENING-S1-001",
+  "title": "Joining Riverside Library",
+  "section": "SECTION_1",
+  "level": "STARTER",
+  "accent": "American (synthesized)",
+  "difficulty": 1,
+  "audioFile": "listening-s1-001-library-registration.wav",
+  "durationSeconds": 86,
+  "sourceNotes": "Naskah dan audio orisinal tim Success IELTS (disintesis lewat text-to-speech), tidak diambil dari buku atau tes resmi manapun. Lihat docs/DECISIONS.md untuk catatan soal sumber audio.",
+  "script": [
+    {
+      "speaker": "Receptionist",
+      "text": "Good morning, Riverside Public Library. How can I help you?"
+    },
+    {
+      "speaker": "Caller",
+      "text": "Hi there. I'd like to join the library. What do I need to do?"
+    },
+    {
+      "speaker": "Receptionist",
+      "text": "Sure, I can help with that right now. Could I start with your full name?"
+    },
+    {
+      "speaker": "Caller",
+      "text": "Yes, it's Marcus Webb. That's spelled W, E, B, B."
+    },
+    {
+      "speaker": "Receptionist",
+      "text": "Thank you. And what's your home address?"
+    },
+    {
+      "speaker": "Caller",
+      "text": "I live at 42 Elm Street, in Greenfield."
+    },
+    {
+      "speaker": "Receptionist",
+      "text": "Is that the area just outside the city centre?"
+    },
+    {
+      "speaker": "Caller",
+      "text": "That's right, about two miles west of the centre."
+    },
+    {
+      "speaker": "Receptionist",
+      "text": "Great. Could you also give me the postcode for Greenfield?"
+    },
+    {
+      "speaker": "Caller",
+      "text": "Of course, it's G R four two one."
+    },
+    {
+      "speaker": "Receptionist",
+      "text": "Perfect. Now, we offer two types of membership. Standard membership is free, and lets you borrow books. Premium membership costs twenty dollars a year, and also lets you borrow D V Ds."
+    },
+    {
+      "speaker": "Caller",
+      "text": "I think Standard will be enough for me, thanks."
+    },
+    {
+      "speaker": "Receptionist",
+      "text": "No problem at all. Your card will be ready for collection after three o'clock this afternoon."
+    },
+    {
+      "speaker": "Caller",
+      "text": "Wonderful, thank you so much for your help."
+    },
+    {
+      "speaker": "Receptionist",
+      "text": "You're very welcome. Have a great day."
+    }
+  ],
+  "questions": [
+    {
+      "code": "LISTENING-S1-001-Q1",
+      "type": "GAP_FILL",
+      "difficulty": 1,
+      "prompt": {
+        "text": "Family name: Marcus ____",
+        "instructions": "Tulis nama belakang penelepon persis seperti dieja dalam rekaman."
+      },
+      "answerKey": "Webb",
+      "acceptedAnswers": ["webb"],
+      "explanation": "Penelepon mengeja namanya: \"W, E, B, B\" setelah menyebut \"Marcus Webb\".",
+      "topics": ["everyday-services"],
+      "estimatedSeconds": 30
+    },
+    {
+      "code": "LISTENING-S1-001-Q2",
+      "type": "SHORT_ANSWER",
+      "difficulty": 1,
+      "prompt": {
+        "text": "What is the caller's street address?",
+        "instructions": "Tulis jawaban singkat."
+      },
+      "answerKey": "42 Elm Street",
+      "acceptedAnswers": ["Elm Street", "42 elm street", "elm street"],
+      "explanation": "Penelepon berkata \"I live at 42 Elm Street, in Greenfield.\"",
+      "topics": ["everyday-services"],
+      "estimatedSeconds": 30
+    },
+    {
+      "code": "LISTENING-S1-001-Q3",
+      "type": "GAP_FILL",
+      "difficulty": 2,
+      "prompt": {
+        "text": "Postcode: GR ____",
+        "instructions": "Tulis tiga digit angka yang disebutkan."
+      },
+      "answerKey": "421",
+      "explanation": "Penelepon menyebutkan postcode-nya \"G R four two one\", yaitu GR421.",
+      "topics": ["everyday-services"],
+      "estimatedSeconds": 30
+    },
+    {
+      "code": "LISTENING-S1-001-Q4",
+      "type": "MULTIPLE_CHOICE",
+      "difficulty": 1,
+      "prompt": { "text": "Which membership does Marcus choose?" },
+      "options": [
+        { "id": "A", "text": "Standard membership" },
+        { "id": "B", "text": "Premium membership" },
+        { "id": "C", "text": "He doesn't choose one yet" }
+      ],
+      "answerKey": "A",
+      "explanation": "Marcus berkata \"I think Standard will be enough for me, thanks.\"",
+      "topics": ["everyday-services"],
+      "estimatedSeconds": 25
+    },
+    {
+      "code": "LISTENING-S1-001-Q5",
+      "type": "SHORT_ANSWER",
+      "difficulty": 2,
+      "prompt": {
+        "text": "What time can Marcus collect his library card?",
+        "instructions": "Tulis jawaban singkat dalam bahasa Inggris."
+      },
+      "answerKey": "three o'clock",
+      "acceptedAnswers": ["3 o'clock", "after three o'clock", "three", "3:00", "3pm", "3 pm"],
+      "explanation": "Resepsionis berkata kartunya siap diambil \"after three o'clock this afternoon.\"",
+      "topics": ["everyday-services"],
+      "estimatedSeconds": 30
+    }
+  ]
+}

@@ -2,6 +2,65 @@
 
 Semua perubahan penting pada Success IELTS dicatat di sini, per fase pengembangan.
 
+## Fase 7 — Listening Lab
+
+### Ditambahkan
+
+- `/listening-lab` (katalog per Section 1-4, jujur menampilkan "Segera
+  tersedia" untuk section yang belum berisi konten) dan
+  `/listening-lab/[passageCode]` (pemutar audio + soal), dengan toggle
+  mode latihan (replay bebas, transkrip terbuka setelah menjawab) dan mode
+  ujian (satu kali putar, transkrip tidak pernah dikirim server sama
+  sekali, bukan cuma disembunyikan di client).
+- Model baru: `ListeningPassage` (audio + naskah terstruktur per giliran
+  bicara), `Question.listeningPassageId` (FK opsional).
+- 2 listening passage orisinal dengan audio sungguhan: "Joining Riverside
+  Library" (Section 1, form completion) dan "Planning a Renewable Energy
+  Presentation" (Section 3, diskusi akademik) — naskah ditulis sendiri,
+  audio disintesis lewat Windows SAPI text-to-speech (lihat D-030 untuk
+  alasan lengkap memilih TTS atas merekam/melisensikan audio pihak
+  ketiga, dan trade-off yang diterima).
+- `content/listening/*.json` + skema Zod baru (`listeningPassageFileSchema`)
+  dan `scripts/content/generate-listening-audio.ps1` (skrip authoring
+  satu-kali, bukan bagian runtime).
+- `/admin/content` dan CMS review-nya diperluas untuk Listening Passage
+  lewat alur editorial yang sama persis dengan Lesson, termasuk cascade
+  status ke soal miliknya saat publish/archive (mengikuti pola D-024 agar
+  tidak mengulang bug yang sama untuk tipe konten baru).
+- Tidak ada renderer/grader soal baru — `gradeAnswer()` (Fase 3) dan
+  `QuestionInput` (Fase 5) langsung dipakai ulang untuk seluruh tipe soal
+  Listening yang didukung.
+- `e2e/listening-lab.spec.ts`: katalog, alur latihan penuh dengan
+  verifikasi bahwa transkrip tidak pernah ada di HTML sebelum diperiksa,
+  mode ujian (satu kali putar + transkrip tidak pernah bocor), dan
+  integrasi dengan Buku Kesalahan.
+
+### Catatan — cakupan yang sengaja belum dibangun
+
+- Tipe soal "plan/map/diagram labelling" dari Master Prompt §8.5 belum
+  diimplementasikan — butuh UI berbasis gambar/koordinat yang di luar
+  cakupan phase ini; soal Listening saat ini memakai tipe yang sudah ada
+  (multiple choice, matching, gap-fill, short answer).
+- Hanya Section 1 dan Section 3 yang punya konten; Section 2 dan 4
+  ditampilkan jujur sebagai "Segera tersedia", bukan disembunyikan.
+- Audio berformat WAV mentah (bukan MP3/Opus terkompresi) karena tidak ada
+  `ffmpeg`/encoder di environment ini — perlu ditranskode saat Fase 17
+  menambah pipeline build, atau saat jumlah passage bertambah signifikan.
+
+### Bug ditemukan dan diperbaiki (lewat investigasi test E2E yang gagal tidak konsisten)
+
+- Menilai kartu review TERAKHIR di Buku Kesalahan (Fase 6) mengganti
+  seluruh sesi review dengan pesan "Tidak ada review yang jatuh tempo"
+  generik, menghapus layar "Review selesai" yang seharusnya dilihat
+  pengguna. Penyebab: `rateMistakeReviewAction` memanggil
+  `revalidatePath("/buku-kesalahan")` di setiap kartu supaya counter
+  header live-update, tapi itu memicu Next.js me-refresh ulang seluruh
+  halaman — begitu due-count server menjadi 0 pada kartu terakhir, React
+  meng-unmount komponen session dan state "selesai"-nya hilang. Diperbaiki
+  dengan menghapus `revalidatePath` tersebut (counter header jadi tidak
+  live-update selama sesi, trade-off yang jauh lebih baik daripada
+  merusak layar penyelesaian). Detail lengkap: `docs/DECISIONS.md` D-032.
+
 ## Fase 6 — Practice engine adaptif dan Buku Kesalahan
 
 ### Ditambahkan

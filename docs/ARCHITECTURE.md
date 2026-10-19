@@ -1,7 +1,7 @@
 # Arsitektur — Success IELTS
 
-Status: Fase 6 (practice engine adaptif + Buku Kesalahan dengan spaced
-repetition). Dokumen ini akan diperluas pada setiap fase berikutnya.
+Status: Fase 7 (Listening Lab — audio asli, mode latihan/ujian). Dokumen
+ini akan diperluas pada setiap fase berikutnya.
 
 ## 1. Ringkasan
 
@@ -161,6 +161,9 @@ Sesuai instruksi "satu fase pada satu waktu":
 - ~~Tidak ada diagnostic test/rencana belajar~~ — selesai Fase 5, lihat §10.
 - ~~Tidak ada practice engine lintas-lesson / Buku Kesalahan dengan spaced
   repetition~~ — selesai Fase 6, lihat §10.
+- ~~Tidak ada Listening Lab~~ — selesai Fase 7, lihat §11 (hanya Section 1 &
+  3 yang sudah terisi konten; Section 2 & 4 kosong secara jujur, "Segera
+  tersedia" — dan belum ada tipe soal plan/map/diagram labelling).
 - Tidak ada scoring/AI feedback (Fase 9–11).
 - Tidak ada Docker/deployment (Fase 17).
 
@@ -302,7 +305,48 @@ tetap `reviewCount: 0`), bukan dari build yang lolos. Diperbaiki dengan
 men-snapshot daftar kartu ke state lokal sekali saat sesi review dimulai.
 Detail lengkap dan regression test: D-028.
 
-## 11. Menjalankan proyek secara lokal
+## 11. Listening Lab (Fase 7)
+
+`/listening-lab` (katalog per Section 1-4) → `/listening-lab/[passageCode]`
+(player + soal). Model baru: `ListeningPassage` (audio + naskah terstruktur
+`script: [{speaker, text}]`), `Question.listeningPassageId` (FK opsional,
+soal listening tidak terikat lesson/module).
+
+- **Audio:** disintesis lewat Windows SAPI TTS dari naskah orisinal, bukan
+  rekaman manusia atau aset berlisensi pihak ketiga — lihat D-030 untuk
+  alasan lengkap dan trade-off yang diterima (format WAV mentah, logat
+  "American (synthesized)" apa adanya, bukan diklaim British/Australian).
+  `scripts/content/generate-listening-audio.ps1` adalah skrip authoring
+  satu-kali (bukan bagian runtime aplikasi) yang membaca `content/listening/*.json`
+  dan menulis `public/audio/listening/*.wav`.
+- **Reuse, bukan renderer baru:** sama seperti Fase 6, tidak ada
+  grader/renderer soal baru — `gradeAnswer()` (Fase 3) dan `QuestionInput`
+  (Fase 5) sudah menangani seluruh tipe soal Listening yang didukung
+  (multiple choice, matching, gap-fill, short answer). Tipe soal
+  "plan/map/diagram labelling" dari Master Prompt §8.5 SENGAJA belum
+  diimplementasikan — butuh UI berbasis gambar/koordinat yang belum ada,
+  bukan oversight; akan menyusul saat ada kebutuhan konten nyata untuk itu.
+- **Soal Listening dikecualikan dari pool generik:** `/latihan-harian` dan
+  diagnostic test memfilter `listeningPassageId: null` — soal Listening
+  butuh konteks audio yang baru diputar, tidak masuk akal muncul di kartu
+  latihan generik tanpa pemutar. Lihat D-031.
+- **Mode latihan vs mode ujian:** `ListeningPassagePlayer` punya toggle
+  client-side. Mode latihan: `<audio controls>` native (replay bebas,
+  aksesibel lewat kontrol browser bawaan). Mode ujian: satu tombol "Putar
+  Audio (satu kali)" yang terkunci setelah diklik, tanpa kontrol ulang.
+  Transkrip HANYA pernah dikirim server ke client setelah jawaban diperiksa
+  DAN hanya untuk mode latihan — mode ujian tidak pernah menerima transkrip
+  dalam response sama sekali (bukan disembunyikan di client), konsisten
+  dengan prinsip D-021. Lihat D-031 untuk detail dan alasan.
+- **CMS:** `/admin/content` dan `/admin/content/[code]` diperluas untuk
+  me-list dan me-review `ListeningPassage` lewat alur editorial yang SAMA
+  persis dengan Lesson (`StatusTransitionButtons` digeneralisasi menerima
+  `onTransition` sebagai prop) — termasuk cascade status ke
+  `Question.reviewStatus` miliknya saat publish/archive, mengikuti pola
+  D-024 secara eksplisit supaya tidak mengulang bug yang sama untuk tipe
+  konten baru.
+
+## 12. Menjalankan proyek secara lokal
 
 Lihat `README.md` untuk perintah lengkap. Ringkas:
 

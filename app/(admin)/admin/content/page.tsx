@@ -23,13 +23,19 @@ const STATUS_LABEL: Record<string, string> = {
 export default async function AdminContentListPage() {
   await requireRole(["ADMIN", "TEACHER"]);
 
-  const lessons = await prisma.lesson.findMany({
-    orderBy: [{ level: "asc" }, { order: "asc" }],
-    include: {
-      module: { include: { coursePath: true } },
-      _count: { select: { questions: true } },
-    },
-  });
+  const [lessons, listeningPassages] = await Promise.all([
+    prisma.lesson.findMany({
+      orderBy: [{ level: "asc" }, { order: "asc" }],
+      include: {
+        module: { include: { coursePath: true } },
+        _count: { select: { questions: true } },
+      },
+    }),
+    prisma.listeningPassage.findMany({
+      orderBy: [{ section: "asc" }, { title: "asc" }],
+      include: { _count: { select: { questions: true } } },
+    }),
+  ]);
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -59,6 +65,35 @@ export default async function AdminContentListPage() {
                 </div>
                 <Badge variant={STATUS_VARIANT[lesson.reviewStatus] ?? "outline"}>
                   {STATUS_LABEL[lesson.reviewStatus] ?? lesson.reviewStatus}
+                </Badge>
+              </Link>
+            ))
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Listening Passages</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-1">
+          {listeningPassages.length === 0 ? (
+            <p className="text-muted-foreground text-sm">Belum ada listening passage.</p>
+          ) : (
+            listeningPassages.map((p) => (
+              <Link
+                key={p.id}
+                href={`/admin/content/${p.code}`}
+                className="border-border hover:border-brand-navy flex flex-wrap items-center justify-between gap-2 rounded-md border p-3 text-sm"
+              >
+                <div>
+                  <p className="font-medium">{p.title}</p>
+                  <p className="text-muted-foreground text-xs">
+                    {p.code} · {p.section} · {p._count.questions} soal · v{p.contentVersion}
+                  </p>
+                </div>
+                <Badge variant={STATUS_VARIANT[p.reviewStatus] ?? "outline"}>
+                  {STATUS_LABEL[p.reviewStatus] ?? p.reviewStatus}
                 </Badge>
               </Link>
             ))

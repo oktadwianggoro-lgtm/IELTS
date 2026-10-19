@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
-import { transitionLessonStatusAction } from "@/app/(admin)/admin/content/[code]/actions";
+import type { ContentActionState } from "@/app/(admin)/admin/content/[code]/actions";
 import type { ContentStatus } from "@prisma/client";
 
 const ACTIONS: Record<
@@ -23,11 +23,13 @@ const ACTIONS: Record<
 };
 
 export function StatusTransitionButtons({
-  lessonCode,
+  code,
   currentStatus,
+  onTransition,
 }: {
-  lessonCode: string;
+  code: string;
   currentStatus: ContentStatus;
+  onTransition: (code: string, targetStatus: ContentStatus) => Promise<ContentActionState>;
 }) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -47,7 +49,7 @@ export function StatusTransitionButtons({
             onClick={() => {
               setError(null);
               startTransition(async () => {
-                const result = await transitionLessonStatusAction(lessonCode, action.to);
+                const result = await onTransition(code, action.to);
                 if (result?.error) setError(result.error);
               });
             }}

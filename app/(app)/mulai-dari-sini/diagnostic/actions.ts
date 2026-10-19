@@ -12,7 +12,10 @@ const QUESTIONS_PER_GROUP = 2;
  * the same question set instead of a new random sample each time. */
 export async function sampleDiagnosticQuestions() {
   const published = await prisma.question.findMany({
-    where: { reviewStatus: "PUBLISHED" },
+    // Listening questions need their passage's audio for context — a
+    // generic text-only card can't present them meaningfully, so they're
+    // scoped to the Listening Lab only (see docs/DECISIONS.md D-030).
+    where: { reviewStatus: "PUBLISHED", listeningPassageId: null },
     orderBy: { code: "asc" },
   });
 

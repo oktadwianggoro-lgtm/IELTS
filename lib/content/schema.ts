@@ -25,6 +25,7 @@ export const questionTypes = [
   "ERROR_CORRECTION",
   "SUMMARY_COMPLETION",
 ] as const;
+export const listeningSections = ["SECTION_1", "SECTION_2", "SECTION_3", "SECTION_4"] as const;
 
 const codePattern = /^[A-Z][A-Z0-9]*(?:[-_][A-Z0-9]+)*$/;
 const codeSchema = z
@@ -195,3 +196,28 @@ export const moduleFileSchema = z.object({
   order: z.number().int().nonnegative(),
 });
 export type ModuleFile = z.infer<typeof moduleFileSchema>;
+
+const listeningScriptTurnSchema = z.object({
+  speaker: z.string().min(1),
+  text: z.string().min(1),
+});
+
+/** A listening question's `skill`/`level` always resolve from the passage
+ * (unlike lesson questions, which can override the parent lesson's) — a
+ * question only exists in the context of the one passage that produced it. */
+export const listeningPassageFileSchema = z.object({
+  code: codeSchema,
+  title: z.string().min(3),
+  section: z.enum(listeningSections),
+  level: z.enum(pedagogicalLevels),
+  accent: z.string().min(1),
+  difficulty: z.number().int().min(1).max(5).default(3),
+  /** Filename only, relative to public/audio/listening/ — not a full path,
+   * so content JSON stays portable across environments. */
+  audioFile: z.string().min(1),
+  durationSeconds: z.number().int().positive(),
+  script: z.array(listeningScriptTurnSchema).min(1),
+  sourceNotes: z.string().optional(),
+  questions: z.array(questionSchema).min(3, "Minimal 3 soal per listening passage"),
+});
+export type ListeningPassageFile = z.infer<typeof listeningPassageFileSchema>;

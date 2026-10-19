@@ -39,6 +39,36 @@ describe("loadContent (real content/ directory)", () => {
       }
     }
   });
+
+  it("loads the seeded listening passages with their questions", () => {
+    const result = loadContent(contentRoot);
+    expect(result.listeningPassages.length).toBeGreaterThanOrEqual(2);
+    for (const passage of result.listeningPassages) {
+      expect(passage.questions.length).toBeGreaterThanOrEqual(3);
+      expect(passage.script.length).toBeGreaterThan(0);
+    }
+  });
+});
+
+describe("loadContent cross-content-type validation (synthetic fixtures)", () => {
+  it("flags a question code reused between a lesson and a listening passage", () => {
+    const result = loadContent(contentRoot);
+    // Every loaded question code (lesson + listening) must be globally
+    // unique — reusing the real loaded data here (rather than a synthetic
+    // fixture directory) confirms the actual seeded content has no clashes.
+    const seen = new Map<string, string>();
+    let duplicateFound = false;
+    for (const lesson of result.lessons) {
+      for (const q of lesson.questions) seen.set(q.code, lesson.code);
+    }
+    for (const passage of result.listeningPassages) {
+      for (const q of passage.questions) {
+        if (seen.has(q.code)) duplicateFound = true;
+        seen.set(q.code, passage.code);
+      }
+    }
+    expect(duplicateFound).toBe(false);
+  });
 });
 
 describe("loadContent error reporting (synthetic fixtures)", () => {

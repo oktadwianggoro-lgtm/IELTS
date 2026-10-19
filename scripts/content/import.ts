@@ -31,6 +31,7 @@ async function main() {
   const moduleCounts: Counts = { created: 0, updated: 0 };
   const lessonCounts: Counts = { created: 0, updated: 0 };
   const questionCounts: Counts = { created: 0, updated: 0 };
+  const listeningPassageCounts: Counts = { created: 0, updated: 0 };
 
   // ---- topics ----
   const topicIdByCode = new Map<string, string>();
@@ -169,6 +170,62 @@ async function main() {
     }
   }
 
+  // ---- listening passages (+ their own questions) ----
+  for (const p of result.listeningPassages) {
+    const existing = await prisma.listeningPassage.findUnique({ where: { code: p.code } });
+    const data = {
+      title: p.title,
+      section: p.section,
+      level: p.level,
+      accent: p.accent,
+      difficulty: p.difficulty,
+      audioUrl: `/audio/listening/${p.audioFile}`,
+      durationSeconds: p.durationSeconds,
+      script: p.script,
+      sourceNotes: p.sourceNotes,
+    };
+    const row = existing
+      ? await prisma.listeningPassage.update({
+          where: { code: p.code },
+          data: { ...data, contentVersion: { increment: 1 } },
+        })
+      : await prisma.listeningPassage.create({ data: { ...data, code: p.code } });
+    bump(listeningPassageCounts, !existing);
+
+    for (const q of p.questions) {
+      const existingQ = await prisma.question.findUnique({ where: { code: q.code } });
+      const qData = {
+        type: q.type,
+        skill: q.skill ?? ("LISTENING" as const),
+        level: q.level ?? p.level,
+        targetBandRange: q.targetBandRange,
+        difficulty: q.difficulty,
+        prompt: q.prompt,
+        options: q.options ?? undefined,
+        answerKey: q.answerKey,
+        acceptedAnswers: q.acceptedAnswers ?? undefined,
+        explanation: q.explanation,
+        estimatedSeconds: q.estimatedSeconds,
+        sourceType: q.sourceType,
+        listeningPassageId: row.id,
+      };
+      const qRow = existingQ
+        ? await prisma.question.update({
+            where: { code: q.code },
+            data: { ...qData, contentVersion: { increment: 1 } },
+          })
+        : await prisma.question.create({ data: { ...qData, code: q.code } });
+      bump(questionCounts, !existingQ);
+
+      await prisma.questionTopic.deleteMany({ where: { questionId: qRow.id } });
+      for (const topicCode of q.topics) {
+        await prisma.questionTopic.create({
+          data: { questionId: qRow.id, topicId: topicIdByCode.get(topicCode)! },
+        });
+      }
+    }
+  }
+
   const summary = (label: string, c: Counts) =>
     `  ${label}: ${c.created} baru, ${c.updated} diperbarui`;
   console.log("[content:import] Selesai.");
@@ -177,6 +234,7 @@ async function main() {
   console.log(summary("Modules", moduleCounts));
   console.log(summary("Lessons", lessonCounts));
   console.log(summary("Questions", questionCounts));
+  console.log(summary("Listening passages", listeningPassageCounts));
   console.log(
     "\nSemua konten yang baru dibuat/diperbarui berstatus DRAFT. Gunakan CMS admin untuk meninjau dan menerbitkan.",
   );

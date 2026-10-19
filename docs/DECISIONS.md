@@ -518,3 +518,107 @@ docker-compose.dev.yml up -d` untuk pengembangan lokal, sesuai stack Master
   setiap soal selalu datang dari satu lesson.
 - **Tinjau ulang:** Tidak perlu — ini konsisten dengan desain
   `Question.lessonId` yang sudah ada sejak Fase 2.
+
+## Fase 7
+
+### D-030: Audio listening disintesis lewat Windows SAPI TTS, bukan direkam atau diambil dari sumber berlisensi pihak ketiga
+
+- **Keputusan:** `scripts/content/generate-listening-audio.ps1` membaca
+  naskah orisinal dari `content/listening/*.json` (field `script`, array
+  giliran bicara per speaker) dan men-generate file `.wav` lewat
+  `System.Speech.Synthesis.SpeechSynthesizer` bawaan Windows — dua suara
+  berbeda (`Microsoft David Desktop`, `Microsoft Zira Desktop`) dipetakan
+  bergantian per speaker yang berbeda dalam satu passage, sepenuhnya
+  offline, tanpa API key atau lisensi pihak ketiga.
+- **Alasan:** Master Prompt §8.5 mewajibkan "Semua audio/script harus
+  orisinal atau memiliki lisensi yang jelas." Merekam audio manusia asli
+  atau melisensikan aset pihak ketiga berada di luar kapabilitas agent ini
+  untuk dieksekusi secara otonom. TTS dari naskah yang 100% ditulis sendiri
+  memenuhi syarat "orisinal" secara jujur (bukan rekaman asli manusia, tapi
+  juga bukan hasil plagiarisme/lisensi tak jelas) — ini didokumentasikan
+  terbuka, bukan disembunyikan sebagai audio "profesional".
+- **Konsekuensi yang diterima:** Audio terdengar jelas sintetis (robotic),
+  bukan native speaker asli, dan hanya tersedia logat Amerika (dua suara
+  SAPI yang terpasang). `ListeningPassage.accent` diisi jujur sebagai
+  "American (synthesized)", bukan mengklaim logat Inggris/Australia yang
+  sebenarnya tidak match dengan suara yang dipakai.
+- **Format file:** WAV (PCM) mentah, bukan MP3/Opus terkompresi — tidak ada
+  `ffmpeg` atau encoder di environment ini. File jadi besar (~44KB/detik,
+  ~3-4.5MB per passage 1.5 menit) — dapat diterima untuk tahap ini, tapi
+  perlu ditranskode saat Fase 17 (deployment) menambah pipeline build
+  dengan `ffmpeg`, atau saat jumlah passage bertambah signifikan di Fase 18.
+- **Tinjau ulang:** Jika tim mendapat akses ke voice actor sungguhan atau
+  layanan TTS premium (mis. neural TTS cloud) dengan lisensi jelas, ganti
+  audio existing secara bertahap — struktur `script` (JSON terstruktur per
+  giliran bicara) tidak perlu berubah, hanya `audioFile` yang diganti.
+
+### D-031: Soal Listening dikecualikan dari pool Latihan Harian/diagnostic umum; transkrip hanya bocor setelah checking, dan tidak pernah di mode ujian
+
+- **Keputusan:** `sampleDiagnosticQuestions()` dan `/latihan-harian`'s
+  kandidat soal memfilter `listeningPassageId: null`, mengecualikan seluruh
+  soal Listening dari pool generik. `checkListeningAnswersAction` hanya
+  mengembalikan `script` (transkrip) setelah jawaban diperiksa, dan HANYA
+  jika `mode === "practice"` — mode ujian tidak pernah menerima transkrip
+  dari server sama sekali, bukan hanya disembunyikan di client.
+- **Alasan (exclusion):** Soal Listening butuh konteks audio yang baru
+  diputar untuk masuk akal; menampilkannya di kartu latihan generik tanpa
+  pemutar audio (atau tanpa audio yang baru didengar) akan membingungkan
+  dan tidak adil dinilai.
+- **Alasan (transkrip server-side gating per mode):** Konsisten dengan
+  D-021 — jangan percaya client untuk menyembunyikan sesuatu yang
+  sensitif; mode ujian harus benar-benar tidak pernah menerima transkrip
+  dalam response, bukan menerimanya lalu disembunyikan via CSS/state, yang
+  bisa dilihat lewat DevTools.
+- **Tinjau ulang:** Jika Fase 11 (tryout) mengimpor soal Listening ke dalam
+  blueprint ujian resmi, filter `listeningPassageId: null` di
+  Latihan Harian/diagnostic TETAP relevan (soal listening masih butuh
+  audio), tapi exam-mode tryout akan punya alurnya sendiri yang terpisah
+  dari toggle mode di komponen ini.
+
+### D-032: Bug ditemukan lewat investigasi test E2E: menilai kartu review TERAKHIR di Buku Kesalahan mengganti seluruh sesi dengan empty state, menghapus layar "Review selesai"
+
+- **Bug:** `rateMistakeReviewAction` memanggil `revalidatePath("/buku-kesalahan")`
+  setelah setiap penilaian, supaya counter "X soal siap direview hari ini"
+  di header halaman ikut update live (perilaku ini sengaja dan berhasil
+  diverifikasi secara visual di Fase 6). Tapi `revalidatePath` dari sebuah
+  Server Action yang dipanggil di dalam `startTransition` otomatis memicu
+  Next.js me-refresh ulang seluruh RSC payload rute saat ini — termasuk
+  kondisi `reviewItems.length === 0 ? <empty-state> : <MistakeReviewSession>`
+  di `app/(app)/buku-kesalahan/page.tsx`. Begitu kartu due TERAKHIR
+  dinilai, query due-count server menjadi 0 pada refresh berikutnya, dan
+  React meng-unmount `MistakeReviewSession` (termasuk state "Review
+  selesai" internalnya) lalu memasang `<empty-state>` sebagai gantinya —
+  pengguna yang baru saja menyelesaikan SEMUA review tidak pernah melihat
+  ringkasan selesainya sendiri, malah melihat pesan "Tidak ada review yang
+  jatuh tempo hari ini" yang generik dan tidak relevan dengan yang baru
+  mereka lakukan.
+- **Cara ditemukan:** `e2e/practice-mistake-book.spec.ts`'s test "none are
+  silently skipped" gagal secara TIDAK konsisten dengan gejala yang
+  membingungkan (kadang gagal di kartu pertama, kadang di tengah, pesan
+  error berbeda-beda). Tiga pendekatan Playwright yang berbeda
+  (`.or()`, polling manual, `Promise.race` dengan `waitFor` native) SEMUA
+  gagal dengan cara yang sama, yang justru menjadi petunjuk kuat ini BUKAN
+  masalah timing/query Playwright — screenshot langsung di titik gagal
+  akhirnya mengonfirmasi: halaman menampilkan "0 soal siap direview" alih-
+  alih kartu soal ATAU layar "Review selesai". Query database terhadap
+  SELURUH entri user menunjukkan semua entri sudah `reviewCount: 1`
+  (berhasil dinilai) — bug-nya ada di state TRANSISI SETELAH kartu
+  terakhir, bukan di proses penilaian itu sendiri.
+- **Perbaikan:** `revalidatePath("/buku-kesalahan")` dihapus dari
+  `rateMistakeReviewAction`. Trade-off yang diterima: counter "X soal siap
+  direview" di header tidak lagi update live selama satu sesi review
+  berjalan (tetap menunjukkan angka dari saat halaman pertama dimuat),
+  baru benar-benar fresh saat pengguna mengunjungi ulang halaman. Ini jauh
+  lebih baik daripada counter live yang justru merusak layar penyelesaian
+  sesi.
+- **Pelajaran:** Pola yang sama seperti D-028 tapi satu langkah lebih jauh
+  — D-028 adalah tentang ANTREAN di dalam komponen yang berubah; D-032
+  adalah tentang KOMPONEN ITU SENDIRI yang di-unmount oleh parent Server
+  Component akibat `revalidatePath` yang dipanggil TERLALU SERING (per
+  kartu, bukan per sesi). Keduanya menunjukkan pola berulang: fitur "live
+  update" yang nyaman butuh dipikirkan efeknya di BATAS transisi (array
+  kosong↔tidak kosong, status terakhir↔selesai), bukan hanya kasus umum.
+- **Tinjau ulang:** Jika suatu saat counter live di header benar-benar
+  dibutuhkan, pertimbangkan `useOptimistic`/state lokal di
+  `MistakeReviewSession` untuk counter itu sendiri (dihitung dari progres
+  klien), bukan `revalidatePath` yang mengganti seluruh subtree server.

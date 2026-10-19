@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/auth/rbac";
 import { prisma } from "@/lib/db";
 import { describeExpectedAnswer, gradeAnswer } from "@/lib/content/grade-answer";
@@ -57,8 +56,20 @@ export async function checkMistakeReviewAction(
   };
 }
 
-/** Applies the SM-2 update for one review (see lib/srs/sm2.ts) and
- * reschedules the card's `nextReviewAt`. */
+/**
+ * Applies the SM-2 update for one review (see lib/srs/sm2.ts) and
+ * reschedules the card's `nextReviewAt`.
+ *
+ * Deliberately does NOT `revalidatePath("/buku-kesalahan")`. That used to
+ * live-update the page's "X soal siap direview" counter after every rating,
+ * but it also forces the Server Component to re-render mid-session — once
+ * the user rates their LAST due card, the server's own due-count hits
+ * zero, and the page's `reviewItems.length === 0` branch swaps the entire
+ * `MistakeReviewSession` (destroying its "Review selesai" completion
+ * state) for the generic "Tidak ada review" empty state, so the user never
+ * sees their own completion summary. Letting the header counter go stale
+ * until the next real visit is the smaller tradeoff — see D-032.
+ */
 export async function rateMistakeReviewAction(entryId: string, quality: SM2Quality): Promise<void> {
   const user = await requireUser();
 
@@ -84,6 +95,4 @@ export async function rateMistakeReviewAction(entryId: string, quality: SM2Quali
       reviewCount: { increment: 1 },
     },
   });
-
-  revalidatePath("/buku-kesalahan");
 }

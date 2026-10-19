@@ -1,0 +1,148 @@
+{
+  "code": "LISTENING-S3-001",
+  "title": "Planning a Renewable Energy Presentation",
+  "section": "SECTION_3",
+  "level": "A2",
+  "accent": "American (synthesized)",
+  "difficulty": 3,
+  "audioFile": "listening-s3-001-presentation-planning.wav",
+  "durationSeconds": 103,
+  "sourceNotes": "Naskah dan audio orisinal tim Success IELTS (disintesis lewat text-to-speech), tidak diambil dari buku atau tes resmi manapun. Lihat docs/DECISIONS.md untuk catatan soal sumber audio.",
+  "script": [
+    {
+      "speaker": "Tutor",
+      "text": "Come in. So, how is the preparation going for your presentation on renewable energy?"
+    },
+    {
+      "speaker": "Student",
+      "text": "It's going well, thank you. We've decided to focus on three types of energy: solar, wind, and hydro power."
+    },
+    {
+      "speaker": "Tutor",
+      "text": "That sounds like a good range. Who in your group is working on which topic?"
+    },
+    {
+      "speaker": "Student",
+      "text": "I'm covering solar power myself. My teammate Daniel is researching wind energy, and Priya is looking at hydro power."
+    },
+    {
+      "speaker": "Tutor",
+      "text": "Good. And how long is each person's section expected to be?"
+    },
+    {
+      "speaker": "Student",
+      "text": "We're planning about five minutes each, so fifteen minutes in total, plus five minutes for questions at the end."
+    },
+    {
+      "speaker": "Tutor",
+      "text": "That's a sensible structure. Have you decided on your main source for the solar power section?"
+    },
+    {
+      "speaker": "Student",
+      "text": "Yes, I'm using a report from the International Energy Agency published last year."
+    },
+    {
+      "speaker": "Tutor",
+      "text": "Excellent choice, that's a reliable source. One suggestion — try to include at least one real example, like a country that uses a lot of solar power."
+    },
+    {
+      "speaker": "Student",
+      "text": "That's a great idea. I was thinking of using Germany as an example."
+    },
+    {
+      "speaker": "Tutor",
+      "text": "Perfect. When is the presentation due?"
+    },
+    {
+      "speaker": "Student",
+      "text": "It's on the fifteenth of next month, in the afternoon session."
+    },
+    {
+      "speaker": "Tutor",
+      "text": "Alright, make sure to send me your slides at least three days before, so I can give feedback."
+    },
+    {
+      "speaker": "Student",
+      "text": "Of course, I'll send them by the twelfth then."
+    },
+    {
+      "speaker": "Tutor",
+      "text": "Sounds good. Good luck with the rest of the preparation."
+    }
+  ],
+  "questions": [
+    {
+      "code": "LISTENING-S3-001-Q1",
+      "type": "MULTIPLE_CHOICE",
+      "difficulty": 2,
+      "prompt": { "text": "Who is researching wind energy?" },
+      "options": [
+        { "id": "A", "text": "The student herself" },
+        { "id": "B", "text": "Daniel" },
+        { "id": "C", "text": "Priya" }
+      ],
+      "answerKey": "B",
+      "explanation": "Mahasiswi berkata \"Daniel is researching wind energy, and Priya is looking at hydro power.\"",
+      "topics": ["academic-discussion"],
+      "estimatedSeconds": 30
+    },
+    {
+      "code": "LISTENING-S3-001-Q2",
+      "type": "MATCHING",
+      "difficulty": 2,
+      "prompt": {
+        "text": "Match Priya with the topic she is researching.",
+        "instructions": "Pilih satu topik yang sesuai."
+      },
+      "options": [
+        { "id": "A", "text": "Solar power" },
+        { "id": "B", "text": "Wind energy" },
+        { "id": "C", "text": "Hydro power" }
+      ],
+      "answerKey": "C",
+      "explanation": "Priya meneliti \"hydro power\" sesuai yang disebutkan mahasiswi.",
+      "topics": ["academic-discussion"],
+      "estimatedSeconds": 30
+    },
+    {
+      "code": "LISTENING-S3-001-Q3",
+      "type": "SHORT_ANSWER",
+      "difficulty": 3,
+      "prompt": {
+        "text": "What is the total length of the presentation, including the question session?"
+      },
+      "answerKey": "20 minutes",
+      "acceptedAnswers": ["twenty minutes", "20 minute", "twenty minute"],
+      "explanation": "Lima belas menit presentasi ditambah lima menit sesi tanya-jawab sama dengan dua puluh menit total.",
+      "topics": ["academic-discussion"],
+      "estimatedSeconds": 35
+    },
+    {
+      "code": "LISTENING-S3-001-Q4",
+      "type": "GAP_FILL",
+      "difficulty": 2,
+      "prompt": {
+        "text": "Example country for the solar power section: ____"
+      },
+      "answerKey": "Germany",
+      "acceptedAnswers": ["germany"],
+      "explanation": "Mahasiswi berkata dia berencana menggunakan Jerman (\"Germany\") sebagai contoh negara.",
+      "topics": ["academic-discussion"],
+      "estimatedSeconds": 25
+    },
+    {
+      "code": "LISTENING-S3-001-Q5",
+      "type": "SHORT_ANSWER",
+      "difficulty": 3,
+      "prompt": {
+        "text": "By what date will the student send her slides to the tutor?",
+        "instructions": "Jawab dengan tanggal yang disebutkan dalam rekaman."
+      },
+      "answerKey": "the twelfth",
+      "acceptedAnswers": ["twelfth", "12th", "the 12th"],
+      "explanation": "Mahasiswi berkata \"I'll send them by the twelfth then.\"",
+      "topics": ["academic-discussion"],
+      "estimatedSeconds": 30
+    }
+  ]
+}

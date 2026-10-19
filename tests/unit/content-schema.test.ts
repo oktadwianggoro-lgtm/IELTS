@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { lessonFileSchema, questionSchema } from "@/lib/content/schema";
+import { lessonFileSchema, listeningPassageFileSchema, questionSchema } from "@/lib/content/schema";
 
 const validQuestion = {
   code: "Q1-TEST",
@@ -141,5 +141,61 @@ describe("lessonFileSchema", () => {
       { label: "IELTS official", url: "https://ielts.org", verifiedAt: "2026-10-19" },
     ];
     expect(lessonFileSchema.safeParse(lesson).success).toBe(true);
+  });
+});
+
+function minimalListeningPassage(overrides: Record<string, unknown> = {}) {
+  return {
+    code: "TEST-LISTENING-001",
+    title: "A valid test passage",
+    section: "SECTION_1" as const,
+    level: "STARTER" as const,
+    accent: "American (synthesized)",
+    audioFile: "test-passage.wav",
+    durationSeconds: 60,
+    script: [
+      { speaker: "A", text: "Hello." },
+      { speaker: "B", text: "Hi there." },
+    ],
+    questions: Array.from({ length: 3 }, (_, i) => ({ ...validQuestion, code: `LQ${i + 1}-TEST` })),
+    ...overrides,
+  };
+}
+
+describe("listeningPassageFileSchema", () => {
+  it("accepts a fully valid minimal listening passage", () => {
+    const result = listeningPassageFileSchema.safeParse(minimalListeningPassage());
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects a passage with fewer than 3 questions", () => {
+    const passage = minimalListeningPassage();
+    passage.questions = passage.questions.slice(0, 2);
+    expect(listeningPassageFileSchema.safeParse(passage).success).toBe(false);
+  });
+
+  it("rejects a passage with an empty script", () => {
+    const result = listeningPassageFileSchema.safeParse(minimalListeningPassage({ script: [] }));
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects a script turn missing speaker or text", () => {
+    const result = listeningPassageFileSchema.safeParse(
+      minimalListeningPassage({ script: [{ speaker: "A" }] }),
+    );
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects an invalid section value", () => {
+    const result = listeningPassageFileSchema.safeParse(
+      minimalListeningPassage({ section: "SECTION_5" }),
+    );
+    expect(result.success).toBe(false);
+  });
+
+  it("defaults difficulty to 3 when omitted", () => {
+    const result = listeningPassageFileSchema.safeParse(minimalListeningPassage());
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.difficulty).toBe(3);
   });
 });

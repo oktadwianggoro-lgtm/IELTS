@@ -1,1 +1,5 @@
-[{ "code": "personal-information", "name": "Personal Information", "skill": null }]
+[
+  { "code": "personal-information", "name": "Personal Information", "skill": null },
+  { "code": "everyday-services", "name": "Everyday Services", "skill": null },
+  { "code": "academic-discussion", "name": "Academic Discussion", "skill": null }
+]

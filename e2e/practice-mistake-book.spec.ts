@@ -12,8 +12,22 @@ test.afterAll(async () => {
 });
 
 /** Answers whatever practice/review card is currently showing, generically
- * (exact correctness isn't the point — the engine's wiring is). */
+ * (exact correctness isn't the point — the engine's wiring is).
+ *
+ * Waits for *some* question UI first before branching on which specific
+ * shape it is. Each one-card-at-a-time flow (practice session, mistake
+ * review) remounts a fresh card right after this runs for the previous one
+ * — branching straight off three independent, non-retrying `.isVisible()`
+ * checks could run a beat before React commits the next card, see none of
+ * them, and fall through to `.fill("Jawaban Anda")`, which then retries
+ * against the wrong selector for up to 30s if the real next card turns out
+ * to be a radiogroup or ORDERING input. */
 async function fillCurrentCard(page: Page) {
+  await page
+    .locator('[role="radiogroup"], input[placeholder]')
+    .first()
+    .waitFor({ state: "visible", timeout: 10_000 });
+
   const radioGroup = page.locator('[role="radiogroup"]').first();
   if (await radioGroup.isVisible().catch(() => false)) {
     await radioGroup.locator('[role="radio"]').first().click();
@@ -92,6 +106,12 @@ test.describe("Buku Kesalahan (mistake book) review", () => {
   test("reviewing every due card updates all of them — none are silently skipped", async ({
     page,
   }) => {
+    // Reviewing 10-15 cards back-to-back is slower than the default 30s
+    // budget — see docs/DECISIONS.md D-032 for the real bug this test
+    // caught (rating the last due card used to swap the whole review
+    // session out for the page's empty state, destroying the completion
+    // screen) and its fix.
+    test.setTimeout(60_000);
     const email = await registerAndLandOnDashboard(page, "mistake-review-no-skip");
 
     await page.goto("/latihan-harian");
@@ -113,16 +133,25 @@ test.describe("Buku Kesalahan (mistake book) review", () => {
     let reviewed = 0;
     const cap = dueBefore.length + 3;
     while (reviewed < cap) {
-      const hasRadio = await page
-        .locator('[role="radiogroup"]')
-        .first()
-        .isVisible()
-        .catch(() => false);
-      const hasInput = await page
-        .getByPlaceholder("Jawaban Anda")
-        .isVisible()
-        .catch(() => false);
-      if (!hasRadio && !hasInput) break;
+      // Advancing a review card awaits `rateMistakeReviewAction` (a real
+      // network round-trip) before the next card or the "Review selesai"
+      // screen renders — an instant, non-retrying `.isVisible()` check here
+      // could run inside that gap and see neither, breaking the loop one
+      // card early, same bug class as the ORDERING-placeholder miss this
+      // loop used to have (see fillCurrentCard's comment). Race two native
+      // `waitFor`s (DOM-mutation-aware, unlike a manual isVisible() poll)
+      // instead of a single `.or()` check so a false negative at any one
+      // instant doesn't end the loop.
+      const questionUi = page.locator('[role="radiogroup"], input[placeholder]').first();
+      const doneScreen = page.getByText("Review selesai", { exact: true });
+      const settled = await Promise.race([
+        questionUi.waitFor({ state: "visible", timeout: 15_000 }).then(() => "question" as const),
+        doneScreen.waitFor({ state: "visible", timeout: 15_000 }).then(() => "done" as const),
+      ]).catch(() => null);
+      if (settled === null) {
+        throw new Error("Neither a question card nor the done screen appeared within 15s");
+      }
+      if (settled === "done") break;
 
       await fillCurrentCard(page);
       await page.getByRole("button", { name: "Periksa Jawaban" }).click();

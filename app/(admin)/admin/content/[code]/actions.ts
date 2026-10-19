@@ -9,7 +9,9 @@ type Transition = { to: ContentStatus; allowedRoles: Role[] };
 
 /** Server-side source of truth for the editorial workflow — the UI only
  * shows buttons that match this, but every transition is re-checked here
- * regardless of what the client sent. */
+ * regardless of what the client sent. Shared by both `Lesson` and
+ * `ListeningPassage` (Fase 7) since both go through the identical
+ * DRAFT→IN_REVIEW→APPROVED→PUBLISHED(/ARCHIVED) workflow. */
 const TRANSITIONS: Record<ContentStatus, Transition[]> = {
   DRAFT: [{ to: "IN_REVIEW", allowedRoles: ["TEACHER", "ADMIN"] }],
   IN_REVIEW: [
@@ -69,6 +71,52 @@ export async function transitionLessonStatusAction(
   ]);
 
   revalidatePath(`/admin/content/${lessonCode}`);
+  revalidatePath("/admin/content");
+  return null;
+}
+
+export async function transitionListeningPassageStatusAction(
+  passageCode: string,
+  targetStatus: ContentStatus,
+): Promise<ContentActionState> {
+  const user = await requireRole(["ADMIN", "TEACHER"]);
+
+  const passage = await prisma.listeningPassage.findUnique({ where: { code: passageCode } });
+  if (!passage) return { error: "Listening passage tidak ditemukan." };
+
+  const allowed = TRANSITIONS[passage.reviewStatus].find((t) => t.to === targetStatus);
+  if (!allowed) {
+    return { error: `Tidak bisa pindah dari ${passage.reviewStatus} ke ${targetStatus}.` };
+  }
+  if (!allowed.allowedRoles.includes(user.role)) {
+    return { error: "Anda tidak punya izin untuk tindakan ini." };
+  }
+
+  const isReviewDecision = targetStatus === "APPROVED" || targetStatus === "PUBLISHED";
+
+  // Same cascade rationale as transitionLessonStatusAction above (see
+  // D-024): a passage's questions must follow its PUBLISHED/ARCHIVED status
+  // or the Listening Lab silently shows "no questions" for a passage that
+  // looks published.
+  await prisma.$transaction([
+    prisma.listeningPassage.update({
+      where: { code: passageCode },
+      data: {
+        reviewStatus: targetStatus,
+        ...(isReviewDecision ? { reviewedById: user.id, reviewedAt: new Date() } : {}),
+      },
+    }),
+    ...(targetStatus === "PUBLISHED" || targetStatus === "ARCHIVED"
+      ? [
+          prisma.question.updateMany({
+            where: { listeningPassageId: passage.id },
+            data: { reviewStatus: targetStatus },
+          }),
+        ]
+      : []),
+  ]);
+
+  revalidatePath(`/admin/content/${passageCode}`);
   revalidatePath("/admin/content");
   return null;
 }
