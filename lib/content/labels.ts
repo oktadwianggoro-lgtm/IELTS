@@ -4,6 +4,7 @@ import type {
   PedagogicalLevel,
   ReadingExamType,
   SkillArea,
+  WritingTaskType,
 } from "@prisma/client";
 
 export const PEDAGOGICAL_LEVEL_LABEL: Record<PedagogicalLevel, string> = {
@@ -36,6 +37,12 @@ export const LISTENING_SECTION_LABEL: Record<ListeningSection, string> = {
 export const READING_EXAM_TYPE_LABEL: Record<ReadingExamType, string> = {
   ACADEMIC: "Academic",
   GENERAL_TRAINING: "General Training",
+};
+
+export const WRITING_TASK_TYPE_LABEL: Record<WritingTaskType, string> = {
+  TASK1_ACADEMIC: "Task 1 — Academic",
+  TASK1_GENERAL_TRAINING: "Task 1 — General Training",
+  TASK2: "Task 2 — Essay",
 };
 
 export const ERROR_REASON_LABEL: Record<ErrorReason, string> = {

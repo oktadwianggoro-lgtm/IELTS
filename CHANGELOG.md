@@ -2,6 +2,71 @@
 
 Semua perubahan penting pada Success IELTS dicatat di sini, per fase pengembangan.
 
+## Fase 9 — Writing Lab
+
+### Ditambahkan
+
+- `/writing-lab` (katalog per Task 1 Academic/Task 1 General Training/Task 2) dan `/writing-lab/[taskCode]` (workspace outline + jawaban, timer
+  pengingat, autosave ter-debounce, hint batas kata minimum) dengan
+  self-assessment checklist dan contoh jawaban yang hanya terbuka setelah
+  submit.
+- Model baru: `WritingTask` (prompt, `visualData` tabel untuk Task 1
+  Academic, `minWords`, `suggestedMinutes`, `sampleAnswer`,
+  `checklistItems`, alur editorial DRAFT→PUBLISHED yang sama dengan
+  konten lain) dan `WritingSubmission` (outline, body, wordCount,
+  `draftHistory` JSON, status DRAFT/SUBMITTED, `selfAssessment`).
+- 3 writing task orisinal dengan contoh jawaban dan checklist
+  self-assessment orisinal (bukan rubrik IELTS resmi yang disalin):
+  "Internet Access in Four Countries" (Task 1 Academic, tabel data),
+  "Complaint Letter About a Late and Damaged Delivery" (Task 1 GT), dan
+  "Remote Work: Permanent Home-Working vs. Full-Time Office Return"
+  (Task 2).
+- `content/writing/*.json` + skema Zod baru (`writingTaskFileSchema`),
+  termasuk validasi silang: `visualData` wajib ada JIKA DAN HANYA JIKA
+  `taskType` adalah `TASK1_ACADEMIC`.
+- `lib/content/word-count.ts` — util hitung kata bersama, dipakai Writing
+  Lab dan Reading Lab (menggantikan definisi duplikat Reading Lab sendiri).
+- `/admin/content` diperluas dengan kartu "Writing Tasks" dan alur
+  editorial yang sama dengan tipe konten lain (tanpa cascade ke
+  `Question.reviewStatus` — `WritingTask` tidak punya baris Question
+  bersarang, ini soal esai bebas yang tidak digradasi otomatis).
+- `e2e/writing-lab.spec.ts`: katalog, alur submit lengkap dengan verifikasi
+  contoh jawaban tidak pernah bocor sebelum submit, hint batas kata
+  minimum tidak memblokir submit, persistensi self-assessment setelah
+  reload, dan "Tulis Lagi" memulai attempt baru.
+
+### Bug ditemukan & diperbaiki (lihat D-035, D-036 untuk detail)
+
+- **D-035:** `submitWritingAction` membaca body jawaban dari DB (hasil
+  autosave ter-debounce 1500ms) bukan dari client — klik Submit dalam
+  waktu <1500ms setelah mengetik membuat submit ditolak secara silent
+  ("Tulisan masih kosong"). Diperbaiki: aksi menerima outline/body
+  langsung dari client dan menyimpannya dalam satu update bersama transisi
+  status; error submit sekarang ditampilkan ke pengguna, tidak dibuang diam-diam.
+- **D-036:** Sign-out (`signOutAction`) memakai soft client-router redirect,
+  yang tidak membatalkan prefetch sidebar yang sedang in-flight — response
+  prefetch itu (membawa Set-Cookie refresh session Auth.js v5 untuk
+  strategi jwt) kadang mendarat SETELAH Set-Cookie penghapus sign-out,
+  menghidupkan kembali session yang baru saja di-logout. Ini TERNYATA bug
+  produk nyata di balik flake `auth.spec.ts` "full happy path" yang
+  sebelumnya (D-032) salah disimpulkan sebagai karakteristik lingkungan
+  test lokal. Diperbaiki: sign-out sekarang hard-navigate
+  (`window.location.href`), bukan push — mengurangi tingkat kegagalan dari
+  ~60-70% menjadi ~10% pada pengujian stres 10× berturut-turut (risiko
+  residual diterima, didokumentasikan di D-036, penghilangan total butuh
+  revocation list yang masuk cakupan Fase 17).
+
+### Catatan — lingkup yang sengaja dipersempit
+
+- Belum ada feedback AI otomatis atas esai (band score, saran perbaikan
+  per kalimat) — butuh kredensial API eksternal yang belum disediakan
+  pengguna. Checklist self-assessment dan contoh jawaban adalah
+  pengganti jujur untuk fase ini, bukan simulasi feedback AI yang dipalsukan.
+- Self-assessment adalah refleksi mandiri pengguna (checkbox), bukan
+  penilaian otomatis atau skor resmi IELTS — ditampilkan jelas di UI.
+- Hanya 1 task per kategori (Task 1 AC, Task 1 GT, Task 2); perluasan
+  konten lebih lanjut adalah pekerjaan berkelanjutan Fase 18.
+
 ## Fase 8 — Reading Lab
 
 ### Ditambahkan

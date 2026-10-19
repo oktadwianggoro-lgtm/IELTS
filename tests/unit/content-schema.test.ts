@@ -4,6 +4,7 @@ import {
   listeningPassageFileSchema,
   questionSchema,
   readingPassageFileSchema,
+  writingTaskFileSchema,
 } from "@/lib/content/schema";
 
 const validQuestion = {
@@ -261,5 +262,75 @@ describe("readingPassageFileSchema", () => {
     });
     const result = readingPassageFileSchema.safeParse(passage);
     expect(result.success).toBe(true);
+  });
+});
+
+function minimalWritingTask(overrides: Record<string, unknown> = {}) {
+  return {
+    code: "TEST-WRITING-001",
+    title: "A valid test writing task",
+    taskType: "TASK2" as const,
+    level: "B1" as const,
+    prompt: "This is a sufficiently long test prompt for the writing task.",
+    minWords: 250,
+    suggestedMinutes: 40,
+    sampleAnswer:
+      "This is a sufficiently long sample answer used only for schema validation purposes, not real content.",
+    checklistItems: [
+      "Checklist item one",
+      "Checklist item two",
+      "Checklist item three",
+      "Checklist item four",
+    ],
+    ...overrides,
+  };
+}
+
+describe("writingTaskFileSchema", () => {
+  it("accepts a fully valid minimal writing task (TASK2, no visualData)", () => {
+    const result = writingTaskFileSchema.safeParse(minimalWritingTask());
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects a task with fewer than 4 checklist items", () => {
+    const task = minimalWritingTask();
+    task.checklistItems = task.checklistItems.slice(0, 3);
+    expect(writingTaskFileSchema.safeParse(task).success).toBe(false);
+  });
+
+  it("rejects a prompt that is too short", () => {
+    const result = writingTaskFileSchema.safeParse(minimalWritingTask({ prompt: "Too short" }));
+    expect(result.success).toBe(false);
+  });
+
+  it("requires visualData for TASK1_ACADEMIC", () => {
+    const result = writingTaskFileSchema.safeParse(
+      minimalWritingTask({ taskType: "TASK1_ACADEMIC" }),
+    );
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts TASK1_ACADEMIC with a valid table visualData", () => {
+    const result = writingTaskFileSchema.safeParse(
+      minimalWritingTask({
+        taskType: "TASK1_ACADEMIC",
+        visualData: { type: "table", headers: ["Year", "Value"], rows: [["2020", "10"]] },
+      }),
+    );
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects TASK2 with a visualData set (only TASK1_ACADEMIC uses it)", () => {
+    const result = writingTaskFileSchema.safeParse(
+      minimalWritingTask({
+        visualData: { type: "table", headers: ["A"], rows: [["1"]] },
+      }),
+    );
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects an invalid taskType value", () => {
+    const result = writingTaskFileSchema.safeParse(minimalWritingTask({ taskType: "TASK3" }));
+    expect(result.success).toBe(false);
   });
 });

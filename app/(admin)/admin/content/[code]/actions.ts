@@ -166,3 +166,37 @@ export async function transitionReadingPassageStatusAction(
   revalidatePath("/admin/content");
   return null;
 }
+
+export async function transitionWritingTaskStatusAction(
+  taskCode: string,
+  targetStatus: ContentStatus,
+): Promise<ContentActionState> {
+  const user = await requireRole(["ADMIN", "TEACHER"]);
+
+  const task = await prisma.writingTask.findUnique({ where: { code: taskCode } });
+  if (!task) return { error: "Writing task tidak ditemukan." };
+
+  const allowed = TRANSITIONS[task.reviewStatus].find((t) => t.to === targetStatus);
+  if (!allowed) {
+    return { error: `Tidak bisa pindah dari ${task.reviewStatus} ke ${targetStatus}.` };
+  }
+  if (!allowed.allowedRoles.includes(user.role)) {
+    return { error: "Anda tidak punya izin untuk tindakan ini." };
+  }
+
+  const isReviewDecision = targetStatus === "APPROVED" || targetStatus === "PUBLISHED";
+
+  // No nested `Question` cascade needed here (unlike Lesson/Listening/
+  // Reading) — a WritingTask is free-response and has no Question rows.
+  await prisma.writingTask.update({
+    where: { code: taskCode },
+    data: {
+      reviewStatus: targetStatus,
+      ...(isReviewDecision ? { reviewedById: user.id, reviewedAt: new Date() } : {}),
+    },
+  });
+
+  revalidatePath(`/admin/content/${taskCode}`);
+  revalidatePath("/admin/content");
+  return null;
+}

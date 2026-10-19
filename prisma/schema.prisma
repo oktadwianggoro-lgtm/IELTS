@@ -40,13 +40,16 @@ model User {
   preference          UserPreference?
   passwordResetTokens PasswordResetToken[]
 
-  reviewedLessons           Lesson[]           @relation("LessonReviewedBy")
-  createdQuestions          Question[]         @relation("QuestionCreatedBy")
-  reviewedQuestions         Question[]         @relation("QuestionReviewedBy")
-  createdListeningPassages  ListeningPassage[] @relation("ListeningPassageCreatedBy")
-  reviewedListeningPassages ListeningPassage[] @relation("ListeningPassageReviewedBy")
-  createdReadingPassages    ReadingPassage[]   @relation("ReadingPassageCreatedBy")
-  reviewedReadingPassages   ReadingPassage[]   @relation("ReadingPassageReviewedBy")
+  reviewedLessons           Lesson[]            @relation("LessonReviewedBy")
+  createdQuestions          Question[]          @relation("QuestionCreatedBy")
+  reviewedQuestions         Question[]          @relation("QuestionReviewedBy")
+  createdListeningPassages  ListeningPassage[]  @relation("ListeningPassageCreatedBy")
+  reviewedListeningPassages ListeningPassage[]  @relation("ListeningPassageReviewedBy")
+  createdReadingPassages    ReadingPassage[]    @relation("ReadingPassageCreatedBy")
+  reviewedReadingPassages   ReadingPassage[]    @relation("ReadingPassageReviewedBy")
+  createdWritingTasks       WritingTask[]       @relation("WritingTaskCreatedBy")
+  reviewedWritingTasks      WritingTask[]       @relation("WritingTaskReviewedBy")
+  writingSubmissions        WritingSubmission[]
   bookmarks                 Bookmark[]
   notes                     Note[]
   lessonProgress            LessonProgress[]
@@ -784,4 +787,91 @@ model ReadingPassage {
 
   @@index([reviewStatus])
   @@map("reading_passages")
+}
+
+// ---------- Writing Lab (Fase 9) ----------
+
+enum WritingTaskType {
+  TASK1_ACADEMIC
+  TASK1_GENERAL_TRAINING
+  TASK2
+}
+
+enum WritingSubmissionStatus {
+  DRAFT
+  SUBMITTED
+}
+
+/// `sampleAnswer` and `checklistItems` are never sent to the client before
+/// a submission reaches SUBMITTED status (same D-021 principle as answer
+/// keys) — see WritingLabActions.
+model WritingTask {
+  id       String           @id @default(cuid())
+  code     String           @unique
+  title    String
+  taskType WritingTaskType
+  level    PedagogicalLevel
+
+  prompt     String
+  /// Structured data for TASK1_ACADEMIC only, e.g.
+  /// { type: "table", headers: [...], rows: [[...]] }. Null for Task 1 GT
+  /// (letter scenario) and Task 2 (essay prompt), which need no visual.
+  visualData Json?
+
+  minWords         Int
+  suggestedMinutes Int
+
+  /// Original sample answer, revealed only after the student submits.
+  sampleAnswer   String
+  /// Self-assessment prompts covering the four IELTS writing criteria
+  /// (Task Response/Achievement, Coherence & Cohesion, Lexical Resource,
+  /// Grammatical Range & Accuracy) — own wording, not copied rubric text.
+  /// Self-reflection only; never turned into a derived score.
+  checklistItems Json
+
+  submissions WritingSubmission[]
+
+  contentVersion Int           @default(1)
+  reviewStatus   ContentStatus @default(DRAFT)
+  sourceType     String        @default("original")
+  sourceNotes    String?
+  createdById    String?
+  createdBy      User?         @relation("WritingTaskCreatedBy", fields: [createdById], references: [id])
+  reviewedById   String?
+  reviewedBy     User?         @relation("WritingTaskReviewedBy", fields: [reviewedById], references: [id])
+  reviewedAt     DateTime?
+
+  createdAt     DateTime @default(now())
+  lastUpdatedAt DateTime @updatedAt
+
+  @@index([reviewStatus])
+  @@map("writing_tasks")
+}
+
+/// One attempt at a WritingTask. A new row is created each time a student
+/// starts the task (rather than resuming one shared draft forever) so past
+/// attempts stay visible as real history once SUBMITTED.
+model WritingSubmission {
+  id            String      @id @default(cuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  writingTaskId String
+  writingTask   WritingTask @relation(fields: [writingTaskId], references: [id], onDelete: Cascade)
+
+  outline      String @default("")
+  body         String @default("")
+  wordCount    Int    @default(0)
+  /// [{ body, wordCount, savedAt }], most recent first — autosave history.
+  draftHistory Json   @default("[]")
+
+  status         WritingSubmissionStatus @default(DRAFT)
+  /// { taskResponse: bool, coherence: bool, lexical: bool, grammar: bool }
+  selfAssessment Json?
+
+  submittedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([userId, writingTaskId])
+  @@map("writing_submissions")
 }

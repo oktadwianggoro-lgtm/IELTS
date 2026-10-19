@@ -1,0 +1,27 @@
+{
+  "code": "WRITING-TASK1-AC-001",
+  "title": "Internet Access in Four Countries (2015–2023)",
+  "taskType": "TASK1_ACADEMIC",
+  "level": "B1",
+  "sourceNotes": "Data dan naskah orisinal tim Success IELTS, tidak diambil dari buku atau tes resmi manapun.",
+  "prompt": "The table below shows the percentage of households with internet access in four countries between 2015 and 2023.\n\nSummarise the information by selecting and reporting the main features, and make comparisons where relevant.\n\nWrite at least 150 words.",
+  "visualData": {
+    "type": "table",
+    "headers": ["Country", "2015", "2019", "2023"],
+    "rows": [
+      ["Indonesia", "22%", "48%", "71%"],
+      ["Brazil", "51%", "67%", "84%"],
+      ["Kenya", "9%", "23%", "41%"],
+      ["Germany", "88%", "94%", "97%"]
+    ]
+  },
+  "minWords": 150,
+  "suggestedMinutes": 20,
+  "sampleAnswer": "The table shows the proportion of households with internet access in Indonesia, Brazil, Kenya, and Germany at three points between 2015 and 2023.\n\nOverall, internet access increased in all four countries over the period, although the starting points and rates of growth varied considerably. Germany had by far the highest level of access throughout, rising only slightly from an already high 88% in 2015 to 97% in 2023, since there was little room left for further growth.\n\nIn contrast, Kenya started from the lowest base, with just 9% of households connected in 2015. Despite this, it saw the fastest relative growth of any country shown, more than quadrupling to 41% by 2023. Indonesia followed a similar pattern, more than tripling from 22% to 71% over the same period, overtaking Brazil's growth rate although remaining behind Brazil in absolute terms.\n\nBrazil showed steady, consistent growth throughout, moving from 51% in 2015 to 84% in 2023, and remained the second-highest of the four countries at every point measured. By 2023, the gap between the highest and lowest countries had narrowed somewhat compared with 2015, though it remained substantial, with Germany's figure still more than double that of Kenya.",
+  "checklistItems": [
+    "Task Achievement: Apakah saya menyebutkan tren utama dan membuat perbandingan antar negara, bukan sekadar menyalin ulang semua angka satu per satu?",
+    "Coherence & Cohesion: Apakah paragraf saya tersusun logis (ringkasan umum, lalu detail per negara) dengan kata penghubung yang jelas?",
+    "Lexical Resource: Apakah saya menggunakan variasi kata untuk 'meningkat' (increase, rise, grow) dan 'menurun', bukan mengulang kata yang sama terus-menerus?",
+    "Grammatical Range & Accuracy: Apakah saya menggunakan kalimat perbandingan (higher than, more than double, the lowest) dengan tata bahasa yang tepat?"
+  ]
+}

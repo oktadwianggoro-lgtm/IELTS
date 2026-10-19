@@ -8,6 +8,7 @@ import {
   transitionLessonStatusAction,
   transitionListeningPassageStatusAction,
   transitionReadingPassageStatusAction,
+  transitionWritingTaskStatusAction,
 } from "./actions";
 import { requireRole } from "@/lib/auth/rbac";
 import { prisma } from "@/lib/db";
@@ -241,67 +242,174 @@ export default async function AdminContentDetailPage({
     },
   });
 
-  if (!readingPassage) notFound();
+  if (readingPassage) {
+    const paragraphs = readingPassage.paragraphs as { label: string; text: string }[];
 
-  const paragraphs = readingPassage.paragraphs as { label: string; text: string }[];
+    return (
+      <div className="mx-auto max-w-3xl space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex flex-wrap items-center gap-2">
+              {readingPassage.code}
+              <Badge>
+                {STATUS_LABEL[readingPassage.reviewStatus] ?? readingPassage.reviewStatus}
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <div className="text-muted-foreground grid grid-cols-2 gap-2">
+              <p>Exam type: {readingPassage.examType}</p>
+              <p>Level: {PEDAGOGICAL_LEVEL_LABEL[readingPassage.level]}</p>
+              <p>Topik: {readingPassage.topic}</p>
+              <p>Jumlah kata: {readingPassage.wordCount}</p>
+              <p>Versi konten: {readingPassage.contentVersion}</p>
+              <p>Terakhir diperbarui: {readingPassage.lastUpdatedAt.toLocaleString("id-ID")}</p>
+              {readingPassage.reviewedBy ? (
+                <p className="col-span-2">
+                  Ditinjau oleh: {readingPassage.reviewedBy.name ?? readingPassage.reviewedBy.email}{" "}
+                  pada {readingPassage.reviewedAt?.toLocaleString("id-ID")}
+                </p>
+              ) : null}
+              {readingPassage.sourceNotes ? (
+                <p className="col-span-2">Catatan sumber: {readingPassage.sourceNotes}</p>
+              ) : null}
+            </div>
+            <Separator />
+            <StatusTransitionButtons
+              code={readingPassage.code}
+              currentStatus={readingPassage.reviewStatus}
+              onTransition={transitionReadingPassageStatusAction}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Passage</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            {paragraphs.map((p) => (
+              <p key={p.label}>
+                <span className="font-medium">{p.label}.</span> {p.text}
+              </p>
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Soal ({readingPassage.questions.length})</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <QuestionListPreview questions={readingPassage.questions} />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const writingTask = await prisma.writingTask.findUnique({
+    where: { code },
+    include: { reviewedBy: { select: { name: true, email: true } } },
+  });
+
+  if (!writingTask) notFound();
+
+  const visualData = writingTask.visualData as {
+    type: "table";
+    headers: string[];
+    rows: string[][];
+  } | null;
+  const checklistItems = writingTask.checklistItems as string[];
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex flex-wrap items-center gap-2">
-            {readingPassage.code}
-            <Badge>
-              {STATUS_LABEL[readingPassage.reviewStatus] ?? readingPassage.reviewStatus}
-            </Badge>
+            {writingTask.code}
+            <Badge>{STATUS_LABEL[writingTask.reviewStatus] ?? writingTask.reviewStatus}</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           <div className="text-muted-foreground grid grid-cols-2 gap-2">
-            <p>Exam type: {readingPassage.examType}</p>
-            <p>Level: {PEDAGOGICAL_LEVEL_LABEL[readingPassage.level]}</p>
-            <p>Topik: {readingPassage.topic}</p>
-            <p>Jumlah kata: {readingPassage.wordCount}</p>
-            <p>Versi konten: {readingPassage.contentVersion}</p>
-            <p>Terakhir diperbarui: {readingPassage.lastUpdatedAt.toLocaleString("id-ID")}</p>
-            {readingPassage.reviewedBy ? (
+            <p>Task type: {writingTask.taskType}</p>
+            <p>Level: {PEDAGOGICAL_LEVEL_LABEL[writingTask.level]}</p>
+            <p>Min. kata: {writingTask.minWords}</p>
+            <p>Durasi disarankan: {writingTask.suggestedMinutes} menit</p>
+            <p>Versi konten: {writingTask.contentVersion}</p>
+            <p>Terakhir diperbarui: {writingTask.lastUpdatedAt.toLocaleString("id-ID")}</p>
+            {writingTask.reviewedBy ? (
               <p className="col-span-2">
-                Ditinjau oleh: {readingPassage.reviewedBy.name ?? readingPassage.reviewedBy.email}{" "}
-                pada {readingPassage.reviewedAt?.toLocaleString("id-ID")}
+                Ditinjau oleh: {writingTask.reviewedBy.name ?? writingTask.reviewedBy.email} pada{" "}
+                {writingTask.reviewedAt?.toLocaleString("id-ID")}
               </p>
             ) : null}
-            {readingPassage.sourceNotes ? (
-              <p className="col-span-2">Catatan sumber: {readingPassage.sourceNotes}</p>
+            {writingTask.sourceNotes ? (
+              <p className="col-span-2">Catatan sumber: {writingTask.sourceNotes}</p>
             ) : null}
           </div>
           <Separator />
           <StatusTransitionButtons
-            code={readingPassage.code}
-            currentStatus={readingPassage.reviewStatus}
-            onTransition={transitionReadingPassageStatusAction}
+            code={writingTask.code}
+            currentStatus={writingTask.reviewStatus}
+            onTransition={transitionWritingTaskStatusAction}
           />
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Passage</CardTitle>
+          <CardTitle className="text-base">Prompt</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3 text-sm">
-          {paragraphs.map((p) => (
-            <p key={p.label}>
-              <span className="font-medium">{p.label}.</span> {p.text}
-            </p>
-          ))}
+        <CardContent className="space-y-3 text-sm whitespace-pre-line">
+          {writingTask.prompt}
+          {visualData ? (
+            <table className="mt-3 w-full border-collapse text-sm">
+              <thead>
+                <tr>
+                  {visualData.headers.map((h) => (
+                    <th key={h} className="border-border border p-2 text-left">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {visualData.rows.map((row, i) => (
+                  <tr key={i}>
+                    {row.map((cell, j) => (
+                      <td key={j} className="border-border border p-2">
+                        {cell}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : null}
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Soal ({readingPassage.questions.length})</CardTitle>
+          <CardTitle className="text-base">Sample Answer</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <QuestionListPreview questions={readingPassage.questions} />
+        <CardContent className="space-y-3 text-sm whitespace-pre-line">
+          {writingTask.sampleAnswer}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Checklist Self-Assessment</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ul className="list-disc space-y-1 pl-5 text-sm">
+            {checklistItems.map((item, i) => (
+              <li key={i}>{item}</li>
+            ))}
+          </ul>
         </CardContent>
       </Card>
     </div>

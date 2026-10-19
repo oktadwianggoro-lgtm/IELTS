@@ -1,0 +1,17 @@
+{
+  "code": "WRITING-TASK1-GT-001",
+  "title": "Complaint Letter About a Late and Damaged Delivery",
+  "taskType": "TASK1_GENERAL_TRAINING",
+  "level": "A2",
+  "sourceNotes": "Naskah orisinal tim Success IELTS, tidak diambil dari buku atau tes resmi manapun.",
+  "prompt": "You recently ordered a piece of furniture online, but it arrived two weeks late and slightly damaged.\n\nWrite a letter to the company. In your letter:\n- explain what you ordered and when\n- describe the problem with the delivery\n- say what you would like the company to do\n\nWrite at least 150 words. You do NOT need to write your own address. Begin your letter 'Dear Sir or Madam,'",
+  "minWords": 150,
+  "suggestedMinutes": 20,
+  "sampleAnswer": "Dear Sir or Madam,\n\nI am writing to complain about a recent order I made on your website. I ordered a wooden bookshelf (order number 48213) on the 2nd of this month, and the confirmation email stated that it would arrive within five working days.\n\nUnfortunately, the item did not arrive until two weeks after the order date, with no explanation or update provided during that time. When it finally arrived, I discovered that one of the side panels had a long crack, and two of the shelf supports were missing from the box entirely. I have attached photographs of the damage for your reference.\n\nAs a result of this experience, I would like to request a full replacement of the damaged panel and the missing parts, sent at no additional cost and with priority shipping this time. If a quick replacement is not possible, I would instead like a full refund, including the original delivery charge, since the product cannot currently be assembled.\n\nI would appreciate a response within the next five working days. I have been a loyal customer for several years and hope this matter can be resolved satisfactorily.\n\nYours faithfully,\nA. Customer",
+  "checklistItems": [
+    "Task Achievement: Apakah saya menjawab SEMUA tiga poin instruksi (barang & tanggal pesan, masalah pengiriman, permintaan solusi)?",
+    "Coherence & Cohesion: Apakah setiap poin saya tulis dalam paragraf terpisah dengan alur yang jelas dari awal sampai akhir surat?",
+    "Lexical Resource: Apakah nada bahasa saya formal dan konsisten (Dear Sir or Madam ... Yours faithfully), sesuai gaya surat resmi?",
+    "Grammatical Range & Accuracy: Apakah saya menggunakan bentuk lampau (ordered, arrived) dan kalimat permintaan yang sopan (I would like to request) dengan benar?"
+  ]
+}

@@ -33,6 +33,7 @@ async function main() {
   const questionCounts: Counts = { created: 0, updated: 0 };
   const listeningPassageCounts: Counts = { created: 0, updated: 0 };
   const readingPassageCounts: Counts = { created: 0, updated: 0 };
+  const writingTaskCounts: Counts = { created: 0, updated: 0 };
 
   // ---- topics ----
   const topicIdByCode = new Map<string, string>();
@@ -287,6 +288,33 @@ async function main() {
     }
   }
 
+  // ---- writing tasks ----
+  for (const t of result.writingTasks) {
+    const existing = await prisma.writingTask.findUnique({ where: { code: t.code } });
+    const data = {
+      title: t.title,
+      taskType: t.taskType,
+      level: t.level,
+      prompt: t.prompt,
+      visualData: t.visualData ?? undefined,
+      minWords: t.minWords,
+      suggestedMinutes: t.suggestedMinutes,
+      sampleAnswer: t.sampleAnswer,
+      checklistItems: t.checklistItems,
+      sourceNotes: t.sourceNotes,
+    };
+    if (existing) {
+      await prisma.writingTask.update({
+        where: { code: t.code },
+        data: { ...data, contentVersion: { increment: 1 } },
+      });
+      bump(writingTaskCounts, false);
+    } else {
+      await prisma.writingTask.create({ data: { ...data, code: t.code } });
+      bump(writingTaskCounts, true);
+    }
+  }
+
   const summary = (label: string, c: Counts) =>
     `  ${label}: ${c.created} baru, ${c.updated} diperbarui`;
   console.log("[content:import] Selesai.");
@@ -297,6 +325,7 @@ async function main() {
   console.log(summary("Questions", questionCounts));
   console.log(summary("Listening passages", listeningPassageCounts));
   console.log(summary("Reading passages", readingPassageCounts));
+  console.log(summary("Writing tasks", writingTaskCounts));
   console.log(
     "\nSemua konten yang baru dibuat/diperbarui berstatus DRAFT. Gunakan CMS admin untuk meninjau dan menerbitkan.",
   );

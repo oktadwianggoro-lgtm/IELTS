@@ -14,6 +14,7 @@ import {
   type ReadingQuestionResult,
 } from "@/app/(app)/reading-lab/[passageCode]/actions";
 import { cn } from "@/lib/utils";
+import { countWords as wordCount } from "@/lib/content/word-count";
 
 const TIME_BUDGET_SECONDS = 20 * 60;
 
@@ -24,11 +25,6 @@ function formatTime(totalSeconds: number): string {
   const m = Math.floor(totalSeconds / 60);
   const s = totalSeconds % 60;
   return `${m}:${s.toString().padStart(2, "0")}`;
-}
-
-function wordCount(text: string): number {
-  const trimmed = text.trim();
-  return trimmed.length === 0 ? 0 : trimmed.split(/\s+/).length;
 }
 
 function loadDraft(passageCode: string): Record<string, string> {

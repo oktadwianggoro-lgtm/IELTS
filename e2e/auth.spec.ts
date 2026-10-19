@@ -2,7 +2,7 @@ import "dotenv/config";
 import { test, expect } from "@playwright/test";
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { uniqueEmail, register, skipOnboarding } from "./helpers";
+import { uniqueEmail, register, skipOnboarding, signOut } from "./helpers";
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
@@ -43,8 +43,7 @@ test.describe("register, onboarding, sign out, sign in", () => {
     await expect(page.getByText(/email anda belum diverifikasi/i)).toBeVisible();
 
     // Sign out
-    await page.getByRole("button", { name: "Keluar" }).click();
-    await expect(page).toHaveURL(/\/$/);
+    await signOut(page);
 
     // Protected route now redirects again
     await page.goto("/dashboard");
@@ -72,7 +71,7 @@ test.describe("register, onboarding, sign out, sign in", () => {
     const email = uniqueEmail("wrongpw");
     await register(page, email, "Password123");
     await skipOnboarding(page);
-    await page.getByRole("button", { name: "Keluar" }).click();
+    await signOut(page);
 
     await page.goto("/login");
     await page.getByLabel("Email").fill(email);
@@ -87,7 +86,7 @@ test.describe("register, onboarding, sign out, sign in", () => {
     const email = uniqueEmail("dupe");
     await register(page, email, "Password123");
     await skipOnboarding(page);
-    await page.getByRole("button", { name: "Keluar" }).click();
+    await signOut(page);
 
     await register(page, email, "AnotherPass1");
     await expect(page.getByText(/email sudah terdaftar/i)).toBeVisible();
@@ -129,7 +128,7 @@ test.describe("forgot / reset password", () => {
 
     await register(page, email, oldPassword);
     await skipOnboarding(page);
-    await page.getByRole("button", { name: "Keluar" }).click();
+    await signOut(page);
 
     await page.goto("/forgot-password");
     await page.getByLabel("Email").fill(email);

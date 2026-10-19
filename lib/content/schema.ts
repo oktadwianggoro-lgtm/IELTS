@@ -250,3 +250,47 @@ export const readingPassageFileSchema = z.object({
   questions: z.array(questionSchema).min(5, "Minimal 5 soal per reading passage"),
 });
 export type ReadingPassageFile = z.infer<typeof readingPassageFileSchema>;
+
+export const writingTaskTypes = ["TASK1_ACADEMIC", "TASK1_GENERAL_TRAINING", "TASK2"] as const;
+
+const writingTableVisualSchema = z.object({
+  type: z.literal("table"),
+  headers: z.array(z.string().min(1)).min(1),
+  rows: z.array(z.array(z.string())).min(1),
+});
+
+export const writingTaskFileSchema = z
+  .object({
+    code: codeSchema,
+    title: z.string().min(3),
+    taskType: z.enum(writingTaskTypes),
+    level: z.enum(pedagogicalLevels),
+    prompt: z.string().min(20, "Prompt terlalu pendek"),
+    /** Only meaningful for TASK1_ACADEMIC (table/chart data) — other task
+     * types have no visual. */
+    visualData: writingTableVisualSchema.optional(),
+    minWords: z.number().int().positive(),
+    suggestedMinutes: z.number().int().positive(),
+    sampleAnswer: z.string().min(50, "Sample answer terlalu pendek"),
+    /** Self-assessment prompts for the four IELTS writing criteria — own
+     * wording, never copied official rubric text. */
+    checklistItems: z.array(z.string().min(5)).min(4),
+    sourceNotes: z.string().optional(),
+  })
+  .superRefine((t, ctx) => {
+    if (t.taskType === "TASK1_ACADEMIC" && !t.visualData) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["visualData"],
+        message: "TASK1_ACADEMIC butuh visualData (tabel/chart)",
+      });
+    }
+    if (t.taskType !== "TASK1_ACADEMIC" && t.visualData) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["visualData"],
+        message: `${t.taskType} tidak menggunakan visualData`,
+      });
+    }
+  });
+export type WritingTaskFile = z.infer<typeof writingTaskFileSchema>;

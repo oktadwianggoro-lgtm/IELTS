@@ -23,7 +23,7 @@ const STATUS_LABEL: Record<string, string> = {
 export default async function AdminContentListPage() {
   await requireRole(["ADMIN", "TEACHER"]);
 
-  const [lessons, listeningPassages, readingPassages] = await Promise.all([
+  const [lessons, listeningPassages, readingPassages, writingTasks] = await Promise.all([
     prisma.lesson.findMany({
       orderBy: [{ level: "asc" }, { order: "asc" }],
       include: {
@@ -38,6 +38,9 @@ export default async function AdminContentListPage() {
     prisma.readingPassage.findMany({
       orderBy: [{ examType: "asc" }, { title: "asc" }],
       include: { _count: { select: { questions: true } } },
+    }),
+    prisma.writingTask.findMany({
+      orderBy: [{ taskType: "asc" }, { title: "asc" }],
     }),
   ]);
 
@@ -127,6 +130,35 @@ export default async function AdminContentListPage() {
                 </div>
                 <Badge variant={STATUS_VARIANT[p.reviewStatus] ?? "outline"}>
                   {STATUS_LABEL[p.reviewStatus] ?? p.reviewStatus}
+                </Badge>
+              </Link>
+            ))
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Writing Tasks</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-1">
+          {writingTasks.length === 0 ? (
+            <p className="text-muted-foreground text-sm">Belum ada writing task.</p>
+          ) : (
+            writingTasks.map((t) => (
+              <Link
+                key={t.id}
+                href={`/admin/content/${t.code}`}
+                className="border-border hover:border-brand-navy flex flex-wrap items-center justify-between gap-2 rounded-md border p-3 text-sm"
+              >
+                <div>
+                  <p className="font-medium">{t.title}</p>
+                  <p className="text-muted-foreground text-xs">
+                    {t.code} · {t.taskType} · v{t.contentVersion}
+                  </p>
+                </div>
+                <Badge variant={STATUS_VARIANT[t.reviewStatus] ?? "outline"}>
+                  {STATUS_LABEL[t.reviewStatus] ?? t.reviewStatus}
                 </Badge>
               </Link>
             ))

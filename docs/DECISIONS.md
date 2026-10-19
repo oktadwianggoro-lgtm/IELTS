@@ -689,3 +689,100 @@ docker-compose.dev.yml up -d` untuk pengembangan lokal, sesuai stack Master
   resmi, filter exclusion TETAP relevan, tapi alur ujian sungguhan akan
   punya sistemnya sendiri (timer tegas, auto-submit, larangan melihat
   evidence sebelum submit seluruh section) terpisah dari toggle sederhana ini.
+
+## Fase 9
+
+### D-035: Bug ditemukan lewat E2E: `submitWritingAction` membaca body jawaban dari DB (bukan dari client), gagal silent jika diklik sebelum autosave debounce selesai
+
+- **Bug:** `WritingTaskWorkspace` meng-autosave outline/body dengan debounce
+  1500ms (`scheduleSave`). `handleSubmit` memanggil
+  `submitWritingAction(submission.id)` HANYA dengan ID — aksi ini lalu
+  membaca `submission.body` dari DB untuk validasi "tidak boleh kosong".
+  Jika pengguna mengklik Submit dalam waktu <1500ms setelah mengetik
+  (sangat realistis — autosave adalah convenience, bukan sesuatu yang
+  pengguna sadar harus ditunggu), DB masih punya body KOSONG dari saat
+  draft dibuat. Aksi menolak submit dengan error "Tulisan masih kosong",
+  dan `handleSubmit`'s `.then()` membuang error itu begitu saja
+  (`if ("error" in result) return;`) tanpa pesan apa pun ke pengguna —
+  dari sudut pandang pengguna, tombol Submit tampak tidak melakukan apa-apa.
+- **Cara ditemukan:** `e2e/writing-lab.spec.ts` — 3 dari 5 test gagal
+  dengan gejala identik ("Self-Assessment" tidak pernah muncul setelah
+  klik Submit). Dicurigai lebih dulu kemungkinan race test-side (tombol
+  ambigu, dll), tapi investigasi langsung (script Playwright terpisah yang
+  mencatat semua request/response POST) menunjukkan response aksi submit
+  SELALU `{"error": "Tulisan masih kosong — tidak ada yang bisa disubmit."}`
+  — persis karena test mengisi textarea lalu langsung klik Submit, sama
+  seperti perilaku realistis pengguna yang mengetik cepat.
+- **Perbaikan:** `submitWritingAction(submissionId, outline, body)` sekarang
+  menerima isi saat ini langsung dari client dan menyimpannya (outline,
+  body, wordCount) dalam SATU update yang sama dengan transisi status ke
+  SUBMITTED — tidak lagi bergantung pada autosave yang sudah "mendarat" di
+  DB. `handleSubmit` juga membatalkan timer autosave yang masih pending
+  sebelum submit (mencegah race balik: autosave basi menimpa body yang
+  baru disubmit) dan sekarang menampilkan `submitError` ke pengguna jika
+  aksi gagal, bukan membuangnya diam-diam.
+- **Pelajaran:** Pola yang sama dengan D-028/D-032 — "sumber kebenaran"
+  yang diasumsikan sudah sinkron (di sini: autosave vs. isi textarea saat
+  ini) ternyata punya jendela waktu nyata di mana keduanya berbeda, dan
+  aksi server memilih sumber yang salah. Kapan pun sebuah Server Action
+  menerima HANYA sebuah ID dan membaca state mutable dari DB alih-alih
+  menerima state itu langsung dari pemanggil, pertimbangkan apakah ada
+  autosave/debounce yang membuat DB tersebut berpotensi basi.
+
+### D-036: Sign-out memakai hard navigation (bukan soft client-router push) — race lama "full happy path" di D-032 ternyata bug produk nyata, bukan sekadar flake lingkungan
+
+- **Bug (mengoreksi catatan D-032):** D-032 mencatat `auth.spec.ts`'s "full
+  happy path" kadang time-out/gagal saat webServer baru mulai dari nol, dan
+  menyimpulkan ini "karakteristik lingkungan test lokal, bukan bug produk".
+  Investigasi ulang di Fase 9 (dipicu oleh kebutuhan menjalankan ulang
+  seluruh suite E2E) membuktikan kesimpulan itu SALAH: ini bug produk nyata
+  di alur sign-out. `signOutAction` memanggil `signOut({ redirectTo: "/" })`
+  dari Server Action — ini sebuah REDIRECT HALUS (client-router push), yang
+  TIDAK membatalkan request yang sedang in-flight. Dashboard (dan sidebar
+  nav-nya) memicu banyak prefetch `<Link>` otomatis ke rute lain yang
+  sedang terautentikasi; Auth.js v5 untuk strategi `"jwt"` RE-SIGN cookie
+  session pada SETIAP pemanggilan `auth()` (termasuk dari request prefetch
+  ini), tanpa throttle `updateAge` untuk strategi jwt. Jika salah satu
+  response prefetch ini (yang membawa Set-Cookie yang me-refresh session
+  lama) tiba di browser SETELAH Set-Cookie penghapus dari sign-out, cookie
+  session "dihidupkan kembali" — pengguna yang baru saja klik "Keluar"
+  tetap terautentikasi.
+- **Cara ditemukan:** Mengulang test yang sama 8-10× berturut-turut (bukan
+  sekali) pada server yang BARU di-build (`npm run build && npm run start`
+  dari nol — kondisi di mana Playwright paling sering menjalankannya)
+  mereproduksi kegagalan ~60-70% dari percobaan — jauh dari acak. Instrumentasi
+  langsung (mencatat `page.context().cookies()` sebelum/sesudah klik
+  "Keluar", dan header `set-cookie` tiap response POST via
+  `response.allHeaders()`) menunjukkan `authjs.session-token` kadang MASIH
+  ada setelah sign-out, dengan nilai yang sama seperti sebelumnya — bukan
+  resign baru, melainkan cookie lama yang tidak pernah terhapus karena
+  ditimpa balik oleh response prefetch yang lebih lambat.
+- **Perbaikan:** `SignOutButton` (`components/layout/sign-out-button.tsx`,
+  dipakai di `SiteHeader` dan admin layout) memanggil `signOutAction()` —
+  yang sekarang memanggil `signOut({ redirect: false })`, hanya menghapus
+  cookie tanpa redirect — lalu melakukan `window.location.href = "/"` secara
+  manual. Hard navigation membuat browser membatalkan request in-flight
+  dari dokumen lama (termasuk prefetch yang sedang berjalan), jauh
+  mengurangi jendela race. Helper E2E baru `signOut(page)` di
+  `e2e/helpers.ts` menunggu URL benar-benar `/` sebelum test melanjutkan,
+  dipakai di semua 4 titik klik "Keluar" di `auth.spec.ts` — tanpa ini,
+  `page.goto()` milik test sendiri bisa bertabrakan dengan hard navigation
+  kita (`net::ERR_ABORTED`).
+- **Risiko residual (diterima, bukan dihilangkan total):** Re-sign cookie
+  session pada setiap `auth()` adalah desain Auth.js v5 yang disengaja
+  (sliding session — tetap login selama aktif, tanpa refresh-token
+  terpisah), bukan sesuatu yang bisa dimatikan lewat config sederhana tanpa
+  membangun mekanisme revocation list sendiri. Hard navigation memperkecil
+  jendela race secara drastis (diverifikasi: ~60-70% → ~10% kegagalan pada
+  10× percobaan berturut-turut tanpa jeda sama sekali) tapi tidak membuatnya
+  nol — masih ada jendela milidetik antara response sign-out mendarat dan
+  browser benar-benar membatalkan request lain. Penghilangan total butuh
+  token versioning/revocation check di callback `jwt` (cek field seperti
+  `invalidatedAt` terhadap DB) — pekerjaan yang lebih cocok masuk Fase 17
+  (security hardening) daripada dipaksakan di sini.
+- **Pelajaran:** Flake yang "sudah diketahui" dan didokumentasikan sebagai
+  environment-only (D-032's catatan tambahan) TETAP layak diinvestigasi
+  ulang kalau kesempatan muncul (di sini: kebutuhan menjalankan ulang
+  seluruh suite) — keputusan "tidak dikejar lebih jauh karena effort tidak
+  proporsional" dari fase sebelumnya adalah penilaian pada saat itu, bukan
+  fakta permanen, dan di sini ternyata salah.

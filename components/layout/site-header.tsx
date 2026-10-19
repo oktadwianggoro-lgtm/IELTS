@@ -4,10 +4,8 @@ import { Logo } from "@/components/layout/logo";
 import { LanguageToggle } from "@/components/language-toggle";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { useLocale } from "@/lib/i18n/locale-provider";
-import { signOutAction } from "@/lib/auth/sign-out";
-import { LogOut } from "lucide-react";
+import { SignOutButton } from "@/components/layout/sign-out-button";
 
 type HeaderUser = { name: string | null; email: string; image: string | null };
 
@@ -37,11 +35,7 @@ export function SiteHeader({ user }: { user?: HeaderUser }) {
             <span className="hidden max-w-[10rem] truncate text-sm font-medium sm:inline">
               {user.name ?? user.email}
             </span>
-            <form action={signOutAction}>
-              <Button type="submit" variant="ghost" size="icon" aria-label="Keluar" title="Keluar">
-                <LogOut className="h-4 w-4" />
-              </Button>
-            </form>
+            <SignOutButton />
           </div>
         ) : null}
       </div>

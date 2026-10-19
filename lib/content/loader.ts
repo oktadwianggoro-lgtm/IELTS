@@ -7,12 +7,14 @@ import {
   moduleFileSchema,
   readingPassageFileSchema,
   topicRegistrySchema,
+  writingTaskFileSchema,
   type CoursePathFile,
   type LessonFile,
   type ListeningPassageFile,
   type ModuleFile,
   type ReadingPassageFile,
   type TopicFile,
+  type WritingTaskFile,
 } from "./schema";
 
 export type ContentError = { file: string; message: string };
@@ -26,6 +28,7 @@ export type LoadedContent = {
   lessons: LessonFile[];
   listeningPassages: ListeningPassageFile[];
   readingPassages: ReadingPassageFile[];
+  writingTasks: WritingTaskFile[];
 };
 
 function walkJsonFiles(dir: string): string[] {
@@ -365,6 +368,31 @@ export function loadContent(contentRoot: string): LoadedContent {
     }
   }
 
+  // ---- writing tasks ----
+  // Free-response, never graded via `Question`/`gradeAnswer`, so writing
+  // task codes live in their own namespace — no cross-check against
+  // `allQuestionCodes` needed, just duplicate-detection among themselves.
+  const writingTasks: WritingTaskFile[] = [];
+  const dupWritingTaskCodes = new Set<string>();
+  for (const file of walkJsonFiles(join(contentRoot, "writing"))) {
+    const parsed = writingTaskFileSchema.safeParse(readJson(file));
+    if (!parsed.success) {
+      errors.push({
+        file: rel(file),
+        message: parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; "),
+      });
+      continue;
+    }
+    const task = parsed.data;
+    if (writingTasks.some((t) => t.code === task.code)) {
+      dupWritingTaskCodes.add(task.code);
+    }
+    writingTasks.push(task);
+  }
+  for (const code of dupWritingTaskCodes) {
+    errors.push({ file: "writing/", message: `Kode writing task duplikat: ${code}` });
+  }
+
   return {
     ok: errors.length === 0,
     errors,
@@ -374,5 +402,6 @@ export function loadContent(contentRoot: string): LoadedContent {
     lessons,
     listeningPassages,
     readingPassages,
+    writingTasks,
   };
 }

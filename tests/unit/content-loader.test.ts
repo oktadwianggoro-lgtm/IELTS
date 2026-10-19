@@ -58,6 +58,20 @@ describe("loadContent (real content/ directory)", () => {
     }
   });
 
+  it("loads the seeded writing tasks, with TASK1_ACADEMIC carrying visualData and others not", () => {
+    const result = loadContent(contentRoot);
+    expect(result.writingTasks.length).toBeGreaterThanOrEqual(3);
+    for (const task of result.writingTasks) {
+      expect(task.sampleAnswer.length).toBeGreaterThan(0);
+      expect(task.checklistItems.length).toBeGreaterThanOrEqual(4);
+      if (task.taskType === "TASK1_ACADEMIC") {
+        expect(task.visualData).toBeDefined();
+      } else {
+        expect(task.visualData).toBeUndefined();
+      }
+    }
+  });
+
   it("resolves every MATCHING question's single-letter options to a real paragraph label", () => {
     const result = loadContent(contentRoot);
     for (const passage of result.readingPassages) {

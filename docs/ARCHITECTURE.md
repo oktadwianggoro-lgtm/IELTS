@@ -1,6 +1,6 @@
 # Arsitektur — Success IELTS
 
-Status: Fase 8 (Reading Lab — passage, navigator, evidence-based review).
+Status: Fase 9 (Writing Lab — outline/jawaban, self-assessment, contoh jawaban).
 Dokumen ini akan diperluas pada setiap fase berikutnya.
 
 ## 1. Ringkasan
@@ -167,7 +167,10 @@ Sesuai instruksi "satu fase pada satu waktu":
 - ~~Tidak ada Reading Lab~~ — selesai Fase 8, lihat §12 (hanya 1 passage
   Academic & 1 passage General Training; highlight per-paragraf, bukan
   rentang teks bebas; timer tampilan-saja, bukan auto-submit — lihat D-033).
-- Tidak ada scoring/AI feedback (Fase 9–11).
+- ~~Tidak ada Writing Lab~~ — selesai Fase 9, lihat §13 (hanya 1 task per
+  kategori; self-assessment checklist + contoh jawaban, bukan feedback AI
+  otomatis — belum ada kredensial API eksternal untuk itu).
+- Tidak ada scoring/AI feedback otomatis atas esai/speaking (Fase 10–11).
 - Tidak ada Docker/deployment (Fase 17).
 
 ## 8. Pipeline konten (Fase 2)
@@ -393,7 +396,44 @@ bebas).
   lewat alur editorial yang identik dengan Lesson dan Listening Passage,
   termasuk cascade status ke soal miliknya saat publish/archive.
 
-## 13. Menjalankan proyek secara lokal
+## 13. Writing Lab (Fase 9)
+
+`/writing-lab` (katalog per Task 1 Academic/Task 1 General Training/Task 2) → `/writing-lab/[taskCode]` (workspace outline + jawaban). Model baru:
+`WritingTask` (prompt, `visualData` tabel untuk Task 1 Academic,
+`minWords`, `suggestedMinutes`, `sampleAnswer`, `checklistItems`, alur
+editorial yang sama dengan tipe konten lain) dan `WritingSubmission`
+(`outline`, `body`, `wordCount`, `draftHistory` JSON, `status`
+DRAFT/SUBMITTED, `selfAssessment`).
+
+- **Bukan soal ber-grade, bukan `Question` bersarang:** berbeda dari
+  Lesson/Listening/Reading, `WritingTask` tidak punya baris `Question`
+  anak — ini esai bebas yang dinilai lewat refleksi mandiri (self-
+  assessment checklist), bukan `gradeAnswer()`. Transisi status editorial
+  karena itu tidak perlu cascade ke status soal anak (tidak ada).
+- **`WritingTaskWorkspace`** (`components/writing/`): outline opsional +
+  jawaban, hint batas kata minimum (tidak memblokir submit — band rendah
+  dengan jawaban pendek tetap valid untuk dinilai), autosave ter-debounce
+  1500ms, timer pengingat tampilan-saja.
+- **Submit mengirim konten langsung, tidak membaca dari autosave DB** —
+  lihat D-035: versi awal membaca `body` dari DB (hasil autosave), yang
+  bisa basi/kosong jika pengguna submit sebelum debounce 1500ms selesai.
+  `submitWritingAction(submissionId, outline, body)` sekarang menerima
+  konten saat ini langsung dari client dan menyimpannya dalam satu update
+  bersama transisi ke SUBMITTED.
+- **Contoh jawaban + checklist self-assessment hanya terbuka setelah
+  submit** — prinsip D-021/D-034 yang sama: `revealedSampleAnswer`/
+  `revealedChecklist` di server component HANYA diisi jika submission
+  terbaru pengguna untuk task tersebut sudah `SUBMITTED`.
+- **"Tulis Lagi"** membuat `WritingSubmission` baru (attempt baru), bukan
+  reset submission lama — riwayat attempt sebelumnya tetap tersimpan.
+- **CMS:** `/admin/content` diperluas dengan kartu "Writing Tasks", alur
+  editorial identik dengan tipe konten lain (tanpa cascade soal, lihat di
+  atas).
+- **`lib/content/word-count.ts`** — util hitung kata bersama antara
+  Writing Lab dan Reading Lab (sebelumnya Reading Lab punya definisi
+  duplikat sendiri, disatukan di fase ini).
+
+## 14. Menjalankan proyek secara lokal
 
 Lihat `README.md` untuk perintah lengkap. Ringkas:
 

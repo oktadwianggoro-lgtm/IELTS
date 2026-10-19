@@ -8,7 +8,7 @@ const lessonQuestionCount = result.lessons.reduce((n, l) => n + l.questions.leng
 const listeningQuestionCount = result.listeningPassages.reduce((n, p) => n + p.questions.length, 0);
 const readingQuestionCount = result.readingPassages.reduce((n, p) => n + p.questions.length, 0);
 console.log(
-  `[content:validate] ${result.coursePaths.length} course path(s), ${result.modules.length} module(s), ${result.lessons.length} lesson(s), ${lessonQuestionCount} lesson question(s), ${result.listeningPassages.length} listening passage(s), ${listeningQuestionCount} listening question(s), ${result.readingPassages.length} reading passage(s), ${readingQuestionCount} reading question(s), ${result.topics.length} topic(s) terbaca.`,
+  `[content:validate] ${result.coursePaths.length} course path(s), ${result.modules.length} module(s), ${result.lessons.length} lesson(s), ${lessonQuestionCount} lesson question(s), ${result.listeningPassages.length} listening passage(s), ${listeningQuestionCount} listening question(s), ${result.readingPassages.length} reading passage(s), ${readingQuestionCount} reading question(s), ${result.writingTasks.length} writing task(s), ${result.topics.length} topic(s) terbaca.`,
 );
 
 if (result.ok) {
