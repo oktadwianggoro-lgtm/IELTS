@@ -95,7 +95,11 @@
 
   --brand-navy: #1e3a6b;
   --brand-navy-foreground: #ffffff;
-  --brand-teal: #14968c;
+  /* Darkened from #14968c (Fase 15) — the original only hit 3.63:1 against
+     white, below WCAG AA's 4.5:1 for normal text (found by the axe-core E2E
+     scan, e.g. the "IELTS" logo text). This value hits ~5.56:1 both as teal
+     text on white AND as white text on a teal background. */
+  --brand-teal: #0b756c;
   --brand-teal-foreground: #ffffff;
   --brand-amber: #d99a1f;
   --brand-amber-foreground: #1a1203;

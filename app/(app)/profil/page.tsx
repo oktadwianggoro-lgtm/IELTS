@@ -2,6 +2,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { NotificationSettingsForm } from "@/components/profil/notification-settings-form";
+import { DeleteAccountButton } from "@/components/profil/delete-account-button";
+import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth/rbac";
 import { prisma } from "@/lib/db";
 import {
@@ -20,10 +22,17 @@ const ROLE_LABEL: Record<string, string> = {
 
 export default async function ProfilePage() {
   const sessionUser = await requireUser();
-  const user = await prisma.user.findUniqueOrThrow({
+  // Not findUniqueOrThrow — a still-valid session whose user row is already
+  // gone is a real, reachable state (e.g. Next re-renders this route as part
+  // of completing deleteAccountAction, using the request's original session,
+  // right after that same action deleted the row), not an error to crash on.
+  const user = await prisma.user.findUnique({
     where: { id: sessionUser.id },
     include: { profile: true, preference: true },
   });
+  if (!user) {
+    redirect("/");
+  }
 
   const onboardingDone = Boolean(user.profile?.onboardingCompletedAt);
 
@@ -138,8 +147,26 @@ export default async function ProfilePage() {
               streakRiskReminderEnabled: user.preference?.streakRiskReminderEnabled ?? true,
               leaderboardOptIn: user.preference?.leaderboardOptIn ?? false,
               leaderboardAlias: user.preference?.leaderboardAlias ?? null,
+              analyticsOptOut: user.preference?.analyticsOptOut ?? false,
             }}
           />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Data Saya</CardTitle>
+          <CardDescription>
+            Lihat{" "}
+            <Link href="/privasi" className="text-brand-navy underline underline-offset-2">
+              Kebijakan Privasi
+            </Link>{" "}
+            untuk detail lengkap data apa yang disimpan. Menghapus akun bersifat permanen dan tidak
+            bisa dibatalkan.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <DeleteAccountButton email={user.email} />
         </CardContent>
       </Card>
 

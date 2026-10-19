@@ -68,6 +68,7 @@ model User {
   auditLogs                 AuditLog[]
   reportedQuestions         QuestionReport[]     @relation("QuestionReportReportedBy")
   resolvedQuestionReports   QuestionReport[]     @relation("QuestionReportResolvedBy")
+  analyticsEvents           AnalyticsEvent[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -220,10 +221,38 @@ model UserPreference {
   leaderboardOptIn Boolean @default(false)
   leaderboardAlias String?
 
+  /// Fase 15 — opt out of the first-party page-view analytics in
+  /// lib/analytics/track.ts. Off (false) by default matches what's
+  /// disclosed in /privasi: anonymous, no third-party script, and this
+  /// toggle plus the DNT header are both honored before any row is written.
+  analyticsOptOut Boolean @default(false)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("user_preferences")
+}
+
+/// First-party, privacy-respecting page-view analytics (Fase 15). No
+/// third-party script, no IP address, no user agent. `anonymousId` is a
+/// random id the client keeps in localStorage (not a cross-site cookie),
+/// generated once per browser — see lib/analytics/track.ts. `userId` is set
+/// only when the viewer is signed in and never exposed outside /admin.
+model AnalyticsEvent {
+  id          String   @id @default(cuid())
+  anonymousId String
+  userId      String?
+  /// Kept on delete (SetNull, not Cascade) so aggregate counts survive a
+  /// user deleting their account — that account's events become anonymous
+  /// rather than disappearing, which is itself the privacy-correct behavior.
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  eventName   String
+  path        String
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([path])
+  @@map("analytics_events")
 }
 
 /// Catalog of earnable badges — criteria are evaluated in code

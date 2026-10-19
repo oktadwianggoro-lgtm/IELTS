@@ -7,7 +7,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: ["/", "/info-ielts", "/login", "/register"],
+        allow: ["/", "/info-ielts", "/privasi", "/login", "/register"],
         // Authenticated app routes and admin have nothing for a crawler
         // and shouldn't be indexed even if a crawler somehow reaches them.
         disallow: ["/dashboard", "/admin", "/api"],

@@ -102,7 +102,10 @@ export default function LandingPage() {
       </main>
 
       <footer className="border-border text-muted-foreground border-t px-4 py-6 text-center text-xs sm:px-6">
-        © {new Date().getFullYear()} Success IELTS
+        © {new Date().getFullYear()} Success IELTS ·{" "}
+        <Link href="/privasi" className="underline underline-offset-2">
+          Kebijakan Privasi
+        </Link>
       </footer>
     </div>
   );

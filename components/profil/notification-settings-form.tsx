@@ -122,6 +122,21 @@ export function NotificationSettingsForm({ initial }: { initial: NotificationSet
         </div>
       ) : null}
 
+      <div className="flex items-center justify-between gap-2">
+        <div>
+          <Label htmlFor="analyticsOptOut">Analitik penggunaan</Label>
+          <p className="text-muted-foreground text-xs">
+            Kunjungan halaman dicatat anonim untuk perbaikan aplikasi (lihat Kebijakan Privasi).
+            Matikan untuk berhenti sepenuhnya.
+          </p>
+        </div>
+        <Switch
+          id="analyticsOptOut"
+          checked={!settings.analyticsOptOut}
+          onCheckedChange={(checked) => update("analyticsOptOut", checked !== true)}
+        />
+      </div>
+
       {error ? <p className="text-destructive text-sm">{error}</p> : null}
       {message ? <p className="text-success text-sm">{message}</p> : null}
 

@@ -2,6 +2,50 @@
 
 Semua perubahan penting pada Success IELTS dicatat di sini, per fase pengembangan.
 
+## Fase 15 — PWA, aksesibilitas, analitik, dan privasi
+
+### Ditambahkan
+
+- **PWA installable** — `app/manifest.ts`, ikon asli dirender saat request
+  (`app/icon-192`, `app/icon-512` lewat `next/og`), dan `public/sw.js` yang
+  HANYA meng-cache shell publik (landing, Info IELTS, Privasi, login,
+  register, offline) plus aset statis content-hashed. Dashboard, semua Lab,
+  Tryout, admin, dan `/api/*` sengaja TIDAK di-cache — data itu harus selalu
+  live (lihat D-042).
+- **Scan aksesibilitas otomatis** — `e2e/accessibility.spec.ts` (axe-core,
+  WCAG 2 A/AA) pada halaman publik + dashboard. Menemukan dan memperbaiki dua
+  bug nyata: kontras warna `--brand-teal` di bawah ambang AA, dan kalkulator
+  band yang comboboxnya tidak punya accessible name.
+- **Analitik penggunaan first-party** — `AnalyticsEvent` (model baru): page
+  view anonim, tanpa IP/user agent, tanpa script pihak ketiga. Menghormati
+  header `DNT` dan toggle `analyticsOptOut` di `/profil`. `/admin/analytics`
+  (ADMIN-only) menampilkan agregat asli: total page view, pengunjung unik,
+  tren 14 hari, halaman teratas.
+- **Halaman Kebijakan Privasi** (`/privasi`, publik) — data apa yang
+  dikumpulkan, berapa lama, dan hak pengguna. Fitur substantif: "Hapus Akun"
+  di `/profil` menghapus baris `User` secara permanen (ditolak dengan pesan
+  jelas jika masih memiliki konten yang dibuat/ditinjau).
+- `e2e/pwa-privacy-analytics.spec.ts` — manifest/ikon/service worker/offline
+  ter-serve dengan benar, halaman privasi, toggle opt-out analitik, hapus
+  akun menghapus baris DB dan sign-out, dashboard admin analitik ADMIN-only.
+
+### Diperbaiki — regresi nyata pada sign-out (lihat D-042 untuk kronologi lengkap)
+
+- Menambahkan page-view tracker ke root layout ternyata memperbesar race
+  sign-out yang sudah terdokumentasi (D-036) dari ~10% menjadi ~60-87%.
+  Akar masalahnya: Server Action yang mengubah status autentikasi
+  (`signOutAction`, dan `deleteAccountAction` yang baru dibuat fase ini)
+  POST ke rute halaman saat ini, memicu Next.js me-render-ulang halaman itu
+  dengan cookies lama sebagai bagian dari respons yang sama — satu respons
+  HTTP berisi dua `Set-Cookie` yang berlawanan. Diperbaiki dengan mengganti
+  keduanya jadi Route Handler murni (`app/api/auth-signout`,
+  `app/api/account/delete`), dipanggil lewat `fetch()` biasa. Diverifikasi
+  empiris: rate gagal turun dari ~60-87% kembali ke ~25-30%, sesuai baseline
+  D-036 yang sudah diterima.
+- `proxy.ts`'s matcher sekarang juga mengecualikan `manifest.webmanifest`,
+  `icon-192`, `icon-512`, dan `sw.js` — aset yang diambil otomatis oleh
+  browser di setiap navigasi, sama seperti `favicon.ico`.
+
 ## Fase 14 — Info IELTS (halaman publik)
 
 ### Ditambahkan

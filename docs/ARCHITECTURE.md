@@ -1,6 +1,6 @@
 # Arsitektur — Success IELTS
 
-Status: Fase 14 (Info IELTS — halaman publik: panduan, kalkulator overall band, sitemap/robots).
+Status: Fase 15 (PWA installable, scan aksesibilitas, analitik first-party, Kebijakan Privasi + hapus akun).
 Dokumen ini akan diperluas pada setiap fase berikutnya.
 
 ## 1. Ringkasan
@@ -189,6 +189,11 @@ Sesuai instruksi "satu fase pada satu waktu":
 - ~~Tidak ada halaman Info IELTS publik~~ — selesai Fase 14, lihat §18
   (panduan, kalkulator overall band, FAQ, glosarium, tautan resmi,
   sitemap.xml/robots.txt — lihat D-041).
+- ~~Bukan PWA; tidak ada scan aksesibilitas otomatis; tidak ada analitik;
+  tidak ada Kebijakan Privasi/kontrol data mandiri~~ — selesai Fase 15,
+  lihat §19 (PWA installable dengan lingkup offline sengaja dipersempit;
+  axe-core WCAG 2 A/AA; analitik first-party anonim dengan opt-out;
+  halaman Privasi + hapus akun mandiri — lihat D-042).
 - Tidak ada scoring/AI feedback otomatis atas esai/speaking (butuh
   kredensial provider AI yang belum disediakan — lihat D-035/D-037).
 - Tidak ada Docker/deployment (Fase 17 Master Prompt).
@@ -669,7 +674,66 @@ login, dan dimaksudkan untuk diindeks mesin pencari (Master Prompt §16).
   route-nya. Setiap halaman publik baru WAJIB didaftarkan di DUA tempat:
   struktur folder `app/` DAN `PUBLIC_PATHS` di `proxy.ts`.
 
-## 19. Menjalankan proyek secara lokal
+## 19. PWA, aksesibilitas, analitik, dan privasi (Fase 15)
+
+- **PWA (lingkup sengaja dipersempit)** — `app/manifest.ts` (konvensi file
+  Next.js, sama seperti `sitemap.ts`/`robots.ts`), ikon dirender saat
+  request via `next/og`'s `ImageResponse` (`app/icon-192`, `app/icon-512`,
+  logika bersama di `lib/pwa/app-icon.tsx`) — bukan file PNG placeholder.
+  `public/sw.js` HANYA meng-cache shell publik (`/`, `/info-ielts`,
+  `/privasi`, `/login`, `/register`, `/offline`) plus `_next/static/*`
+  (content-hashed, aman di-cache selamanya). Dashboard, semua Lab, Tryout,
+  admin, dan `/api/*` SENGAJA TIDAK pernah di-cache atau dapat fallback
+  offline — data itu harus selalu live (Tryout butuh `deadlineAt`
+  server-authoritative, D-038; dashboard/submission basi lebih menyesatkan
+  daripada membantu). Ini "installable + fallback offline jujur untuk
+  shell publik", bukan offline-first penuh.
+- **Aksesibilitas** — `e2e/accessibility.spec.ts` men-scan axe-core (WCAG 2
+  A/AA, pelanggaran impact critical/serious) di halaman publik + dashboard,
+  bukan audit manual penuh di semua halaman. Menemukan dan memperbaiki dua
+  bug nyata: `--brand-teal` di bawah ambang kontras AA (diperbaiki di level
+  token di `globals.css`, bukan ditambal satu komponen), dan
+  `BandCalculator`'s combobox tanpa accessible name (Label tidak
+  ter-`htmlFor`-kan — lihat D-042).
+- **Analitik first-party** — `AnalyticsEvent` (model baru) + `lib/analytics/
+  track.ts` (`recordPageView`, dipanggil dari `app/api/analytics/track/
+  route.ts`, SENGAJA Route Handler bukan Server Action — lihat alasan di
+  bawah). `components/analytics/page-view-tracker.tsx` di root layout
+  mengirim `fetch()` per navigasi. Anonim secara default (`anonymousId` di
+  localStorage, bukan cookie), menghormati header `DNT` dan toggle
+  `UserPreference.analyticsOptOut`. `/admin/analytics` (ADMIN-only,
+  `lib/analytics/stats.ts`) menampilkan agregat asli dengan honest-empty-
+  state, konsisten dengan dashboard Fase 12.
+- **Privasi** — `/privasi` (halaman publik, struktur paralel dengan
+  `/info-ielts`) + "Hapus Akun" di `/profil`
+  (`app/api/account/delete/route.ts`) yang benar-benar menghapus baris
+  `User` (ditolak dengan pesan jelas jika FK content-authorship masih
+  mengacu ke akun itu — lihat D-042). `AnalyticsEvent.userId` pakai
+  `onDelete: SetNull`, bukan Cascade, supaya event teranonimkan bukan ikut
+  terhapus saat akun dihapus.
+- **Regresi sign-out yang ditemukan dan diperbaiki di fase ini (lihat D-042
+  untuk kronologi investigasi lengkap):** Server Action yang mengubah
+  status autentikasi (`signOutAction` lama, dan `deleteAccountAction` yang
+  sempat dibuat fase ini) POST ke rute HALAMAN SAAT INI, memicu Next.js
+  me-render-ulang halaman itu dengan cookies lama sebagai bagian dari
+  respons yang sama persis — menghasilkan dua `Set-Cookie` yang berlawanan
+  dalam satu respons dan menghidupkan kembali sesi yang baru saja
+  di-sign-out (memperbesar race D-036 dari ~10% ke ~60-87% secara
+  terukur). Diperbaiki dengan memindahkan KEDUA aksi itu ke Route Handler
+  murni (`app/api/auth-signout`, `app/api/account/delete`), dipanggil
+  lewat `fetch()` — pola yang sama seperti `app/api/speaking-recordings/
+  [id]/route.ts` sejak Fase 10 (Route Handler + `getSession()` + respons
+  JSON manual, bukan Server Action) untuk endpoint yang tidak boleh memicu
+  render ulang halaman. Setiap Server Action baru di masa depan yang (a)
+  mengubah state autentikasi DAN (b) dipanggil dari halaman ber-sesi WAJIB
+  memakai pola Route Handler ini, bukan "use server" langsung.
+- **`proxy.ts` matcher** — sekarang juga mengecualikan `manifest.webmanifest`,
+  `icon-192`, `icon-512`, `sw.js` (alasan sama seperti `favicon.ico`:
+  browser mengambilnya otomatis di setiap navigasi, jadi membiarkannya
+  ter-match proxy akan memicu `auth()` wrapper NextAuth pada setiap
+  halaman tanpa perlu).
+
+## 20. Menjalankan proyek secara lokal
 
 Lihat `README.md` untuk perintah lengkap. Ringkas:
 

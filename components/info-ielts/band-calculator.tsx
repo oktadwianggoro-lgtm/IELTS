@@ -55,9 +55,9 @@ export function BandCalculator() {
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {SKILLS.map((s) => (
           <div key={s.key} className="space-y-1">
-            <Label>{s.label}</Label>
+            <Label htmlFor={`band-${s.key}`}>{s.label}</Label>
             <Select value={bands[s.key]} onValueChange={(v) => update(s.key, v)}>
-              <SelectTrigger className="w-full">
+              <SelectTrigger id={`band-${s.key}`} className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

@@ -11,6 +11,7 @@ export type NotificationSettingsInput = {
   streakRiskReminderEnabled: boolean;
   leaderboardOptIn: boolean;
   leaderboardAlias: string | null;
+  analyticsOptOut: boolean;
 };
 
 export async function updateNotificationSettingsAction(
@@ -34,6 +35,7 @@ export async function updateNotificationSettingsAction(
       streakRiskReminderEnabled: input.streakRiskReminderEnabled,
       leaderboardOptIn: input.leaderboardOptIn,
       leaderboardAlias: input.leaderboardAlias?.trim() || null,
+      analyticsOptOut: input.analyticsOptOut,
     },
     create: {
       userId: user.id,
@@ -43,6 +45,7 @@ export async function updateNotificationSettingsAction(
       streakRiskReminderEnabled: input.streakRiskReminderEnabled,
       leaderboardOptIn: input.leaderboardOptIn,
       leaderboardAlias: input.leaderboardAlias?.trim() || null,
+      analyticsOptOut: input.analyticsOptOut,
     },
   });
 

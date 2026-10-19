@@ -1,8 +1,10 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { LocaleProvider } from "@/lib/i18n/locale-provider";
 import { getServerLocale } from "@/lib/i18n/get-locale";
+import { PageViewTracker } from "@/components/analytics/page-view-tracker";
+import { RegisterServiceWorker } from "@/components/pwa/register-sw";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -25,6 +27,10 @@ export const metadata: Metadata = {
     "Success IELTS adalah platform belajar IELTS independen dari dasar hingga mahir: Listening, Reading, Writing, Speaking, Grammar, dan Vocabulary dalam satu jalur belajar.",
 };
 
+export const viewport: Viewport = {
+  themeColor: "#1e3a6b",
+};
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const locale = await getServerLocale();
 
@@ -43,6 +49,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         >
           <LocaleProvider initialLocale={locale}>{children}</LocaleProvider>
         </ThemeProvider>
+        <PageViewTracker />
+        <RegisterServiceWorker />
       </body>
     </html>
   );

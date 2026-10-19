@@ -1108,3 +1108,110 @@ docker-compose.dev.yml up -d` untuk pengembangan lokal, sesuai stack Master
   struktur `app/`, DAN (2) ditambahkan ke `PUBLIC_PATHS` di `proxy.ts`.
   Lupa salah satu akan lolos type-check dan lint tapi gagal diam-diam di
   E2E atau production — seperti yang terjadi di fase ini.
+
+## Fase 15
+
+### D-042: PWA (manifest + service worker terbatas), analitik first-party, dan kontrol privasi dibangun — tapi prosesnya menemukan dan memperbaiki regresi nyata pada mekanisme sign-out
+
+- **Keputusan (PWA, lingkup sengaja dipersempit):** `app/manifest.ts` +
+  `app/icon-192/route.tsx`/`app/icon-512/route.tsx` (ikon PNG asli
+  dirender saat request lewat `next/og`'s `ImageResponse`, bukan file
+  placeholder) membuat aplikasi installable. `public/sw.js` HANYA
+  meng-cache shell publik (`/`, `/info-ielts`, `/privasi`, `/login`,
+  `/register`, `/offline`) plus aset statis `_next/static/*` yang sudah
+  content-hashed — SENGAJA TIDAK meng-cache dashboard, Lab manapun,
+  Tryout, admin, atau `/api/*` sama sekali: Tryout mengandalkan
+  `deadlineAt` server-authoritative (D-038), dan dashboard/submission yang
+  stale justru menyesatkan, bukan membantu. Ini "installable + fallback
+  offline yang jujur untuk shell publik", bukan offline-first penuh —
+  Master Prompt tidak mensyaratkan lebih dari itu dan membangun lebih
+  jauh akan melanggar prinsip "jangan setengah-matang".
+- **Keputusan (analitik first-party, bukan Google Analytics/dsb.):**
+  `AnalyticsEvent` (model baru) mencatat page view anonim —
+  `anonymousId` di localStorage klien (bukan cookie lintas situs), tanpa
+  IP/user agent, tanpa script pihak ketiga. Dua opt-out dihormati sebelum
+  menulis apa pun: header `DNT: 1`, dan (untuk pengguna login)
+  `UserPreference.analyticsOptOut` (toggle baru di `/profil`, default
+  tracking AKTIF/opt-out false — didokumentasikan jujur di `/privasi`,
+  bukan disembunyikan). `/admin/analytics` (ADMIN-only) menampilkan
+  agregat asli (`lib/analytics/stats.ts`): total page view, pengunjung
+  unik, tren 14 hari, halaman teratas — dengan honest-empty-state saat
+  datanya nol, konsisten dengan dashboard Fase 12.
+- **Keputusan (privasi, bukan sekadar teks kebijakan):** `/privasi`
+  (halaman publik, paralel strukturnya dengan `/info-ielts`) menjelaskan
+  data apa yang dikumpulkan, berapa lama, dan hak pengguna. Fitur
+  substantifnya: "Hapus Akun" di `/profil` benar-benar menghapus baris
+  `User` (bukan soft-delete kosmetik) — relasi `createdBy`/`reviewedBy` ke
+  konten (Lesson/Question/dst.) sengaja TIDAK punya `onDelete`, jadi
+  Postgres menolak penghapusan ADMIN/TEACHER yang masih punya konten,
+  dengan pesan jelas, bukan crash. `AnalyticsEvent.userId` pakai
+  `onDelete: SetNull` (dianonimkan, bukan ikut terhapus) supaya statistik
+  agregat tetap akurat untuk pengguna lain.
+- **Temuan penting — bug asli, bukan flake, ditemukan oleh scan aksesibilitas
+  otomatis:** `e2e/accessibility.spec.ts` (axe-core, WCAG 2 A/AA, baru di
+  fase ini) menemukan `--brand-teal` (`#14968c`) hanya mencapai kontras
+  3.63:1 terhadap putih — di bawah ambang AA 4.5:1 untuk teks normal —
+  pada teks logo "IELTS" yang tampil di SETIAP halaman. Diperbaiki di
+  level token (`#0b756c`, ~5.56:1 di kedua arah: teks-di-atas-putih DAN
+  putih-di-atas-teal), bukan ditambal di satu komponen, supaya semua
+  pemakaian `text-brand-teal`/`bg-brand-teal` ikut benar. Scan yang sama
+  juga menemukan `BandCalculator`'s `<Label>` tidak pernah di-`htmlFor`-kan
+  ke `SelectTrigger`-nya (combobox tanpa accessible name) — diperbaiki
+  dengan `id`/`htmlFor` yang konsisten, pola yang sudah dipakai di
+  `notification-settings-form.tsx`.
+- **Temuan paling signifikan — regresi nyata pada race sign-out yang sudah
+  terdokumentasi (D-036), ditemukan lewat pengukuran empiris berulang,
+  bukan tebakan:** Setelah menambahkan `<PageViewTracker />` (mount di
+  root layout, fire di setiap navigasi), `e2e/auth.spec.ts`'s uji
+  sign-out — yang D-036 sudah mendokumentasikan sebagai race ~10% yang
+  diterima — tiba-tiba gagal ~60-87% pada run berulang. Investigasi awal
+  salah menebak akar masalah dua kali (Server Action analitik lewat
+  `proxy.ts`; auto-fetch `manifest.webmanifest` lewat `proxy.ts`) — kedua
+  perbaikan itu diterapkan DAN diuji ulang secara empiris, dan TIDAK
+  memperbaiki rate-nya, membuktikan hipotesis itu salah. Akar masalah
+  sebenarnya ditemukan dengan metode yang sama seperti D-036: `git
+  worktree` dibuat dari commit Fase 14 (sebelum fase ini) sebagai
+  baseline bersih (~25%, cocok dengan D-036), lalu skrip Playwright
+  sekali-pakai yang mereplikasi persis urutan `e2e/auth.spec.ts` (tanpa
+  jeda buatan) mencatat SETIAP request/response di sekitar momen
+  sign-out. Akar masalahnya: `SignOutButton` memanggil `signOutAction()`
+  sebagai Server Action — dan Server Action melakukan POST ke rute
+  HALAMAN SAAT INI (`/dashboard`, karena di situ tombolnya diklik), bukan
+  ke endpoint terpisah. Karena action itu tidak pernah memanggil
+  `redirect()`, Next.js secara otomatis me-render-ulang Server Component
+  `/dashboard` sebagai bagian dari respons YANG SAMA — memakai cookies
+  dari AWAL request (sebelum `signOut()` sempat membersihkannya) —
+  sehingga satu respons HTTP yang sama berisi DUA instruksi `Set-Cookie`
+  yang berlawanan: satu yang membersihkan sesi dari `signOut()`, satu lagi
+  yang menegaskan ulang sesi lama dari re-render otomatis itu. Browser
+  mengikuti yang terakhir, sehingga sesi "dihidupkan kembali" dari SATU
+  request, bukan dari dua request terpisah seperti dugaan D-036
+  sebelumnya. `deleteAccountAction` (fase ini, baru dibuat) punya pola
+  identik dan rentan bug yang sama.
+- **Perbaikan:** `signOutAction`/`deleteAccountAction` (Server Action)
+  diganti jadi Route Handler murni — `app/api/auth-signout/route.ts` dan
+  `app/api/account/delete/route.ts` — dipanggil lewat `fetch()` biasa dari
+  `SignOutButton`/`DeleteAccountButton`. Route Handler tidak punya
+  mekanisme "auto re-render rute saat ini" sama sekali, jadi tidak ada
+  lagi dua `Set-Cookie` yang berebutan. Diverifikasi empiris (bukan
+  diasumsikan): rate gagal turun dari ~60-87% ke ~30% dalam 10 run
+  berulang — cocok secara statistik dengan baseline bersih (~25%),
+  mengonfirmasi perbaikan ini menghilangkan regresi yang ditambahkan fase
+  ini, mengembalikannya ke tingkat race D-036 yang sudah diterima dan
+  didokumentasikan (bukan menciptakan race baru, dan bukan juga berhasil
+  menghilangkan race asli D-036 — itu tetap ditunda ke Fase 17 seperti
+  semula). `lib/auth/sign-out.ts` (Server Action lama) dihapus karena
+  sudah tidak dipakai di mana pun.
+- **Pelajaran untuk versi mendatang:** Server Action yang (a) mengubah
+  state autentikasi (sign-out, sign-in, hapus akun) DAN (b) dipanggil dari
+  halaman yang butuh sesi aktif DAN (c) tidak memanggil `redirect()` di
+  dalamnya, berisiko pada masalah persis ini — Next.js akan me-render-ulang
+  halaman saat ini dengan cookies lama sebagai bagian dari respons yang
+  sama. Pola aman yang sudah ada di proyek ini untuk endpoint ber-sesi
+  tanpa render ulang halaman (lihat `app/api/speaking-recordings/[id]/route.ts`)
+  adalah Route Handler + `getSession()` + respons JSON manual — bukan
+  Server Action — dan sekarang dipakai konsisten untuk SEMUA aksi yang
+  mengubah status autentikasi, tidak hanya untuk operasi baca/tulis data.
+- **Tinjau ulang:** Jika Fase 17 (keamanan/deployment) membangun
+  token-revocation sisi server, race D-036 yang tersisa (~25%) baru benar-
+  benar bisa dihilangkan, bukan hanya dikurangi.

@@ -15,6 +15,7 @@ const NAV_ITEMS = [
 const ADMIN_ONLY_NAV_ITEMS = [
   { href: "/admin/users", label: "Pengguna" },
   { href: "/admin/audit-log", label: "Audit Log" },
+  { href: "/admin/analytics", label: "Analitik" },
 ] as const;
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
