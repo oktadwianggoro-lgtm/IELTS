@@ -2,35 +2,17 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import type { LessonContent } from "@/lib/content/schema";
+import { PEDAGOGICAL_LEVEL_LABEL, SKILL_AREA_LABEL } from "@/lib/content/labels";
+import type { PedagogicalLevel, SkillArea } from "@prisma/client";
 
 export type LessonViewData = {
   title: string;
-  level: string;
-  skill: string;
+  level: PedagogicalLevel;
+  skill: SkillArea;
   targetBandRange: string | null;
   estimatedMinutes: number;
   objectives: string[];
   content: LessonContent;
-};
-
-const LEVEL_LABEL: Record<string, string> = {
-  STARTER: "Starter / Pre-A1",
-  A1: "A1",
-  A2: "A2",
-  B1: "B1",
-  B2: "B2",
-  C1_ENRICHMENT: "C1 Enrichment",
-};
-
-const SKILL_LABEL: Record<string, string> = {
-  LISTENING: "Listening",
-  READING: "Reading",
-  WRITING: "Writing",
-  SPEAKING: "Speaking",
-  GRAMMAR: "Grammar",
-  VOCABULARY: "Vocabulary",
-  PRONUNCIATION: "Pronunciation",
-  TEST_STRATEGY: "Test Strategy",
 };
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -50,8 +32,8 @@ export function LessonView({ lesson }: { lesson: LessonViewData }) {
     <article className="space-y-6">
       <header className="space-y-2">
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="secondary">{LEVEL_LABEL[lesson.level] ?? lesson.level}</Badge>
-          <Badge variant="secondary">{SKILL_LABEL[lesson.skill] ?? lesson.skill}</Badge>
+          <Badge variant="secondary">{PEDAGOGICAL_LEVEL_LABEL[lesson.level]}</Badge>
+          <Badge variant="secondary">{SKILL_AREA_LABEL[lesson.skill]}</Badge>
           {lesson.targetBandRange ? (
             <Badge variant="outline">{lesson.targetBandRange}</Badge>
           ) : null}

@@ -5,6 +5,8 @@
 // SpeakingPrompt) lands in Fase 7-10 when those labs are built.
 // Fase 3: catalog browsing (Bookmark/Note/LessonProgress) and the real
 // student lesson page.
+// Fase 5: diagnostic test (DiagnosticResult/SkillEstimate/DiagnosticAnswer)
+// and study plan generation (StudyPlan/StudyPlanItem).
 
 generator client {
   provider = "prisma-client-js"
@@ -44,6 +46,8 @@ model User {
   bookmarks          Bookmark[]
   notes              Note[]
   lessonProgress     LessonProgress[]
+  diagnosticResults  DiagnosticResult[]
+  studyPlans         StudyPlan[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -323,6 +327,7 @@ model Lesson {
   bookmarks      Bookmark[]
   notes          Note[]
   progress       LessonProgress[]
+  studyPlanItems StudyPlanItem[]
 
   contentVersion Int           @default(1)
   reviewStatus   ContentStatus @default(DRAFT)
@@ -387,7 +392,8 @@ model Question {
   acceptedAnswers Json?
   explanation     String
 
-  topics QuestionTopic[]
+  topics            QuestionTopic[]
+  diagnosticAnswers DiagnosticAnswer[]
 
   estimatedSeconds Int?
 
@@ -472,4 +478,121 @@ model LessonProgress {
 
   @@unique([userId, lessonId])
   @@map("lesson_progress")
+}
+
+// ---------- Diagnostic test & study plan (Fase 5) ----------
+
+enum DiagnosticStatus {
+  IN_PROGRESS
+  COMPLETED
+}
+
+/// A diagnostic ATTEMPT, separate from any IELTS mock test (Master Prompt
+/// §8.1: "Pisahkan diagnostic grammar dari IELTS mock test" — this model is
+/// never used to back a Fase 11 tryout attempt).
+model DiagnosticResult {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  status DiagnosticStatus @default(IN_PROGRESS)
+
+  /// Null until completed. Deliberately constrained to levels the current
+  /// question bank can actually distinguish between — see
+  /// lib/diagnostic/estimate.ts and docs/DECISIONS.md.
+  estimatedLevel PedagogicalLevel?
+  /// 0-1. Low by design while the question bank is small — never implies
+  /// false precision (Master Prompt §3, §9).
+  confidence     Float?
+
+  answers         DiagnosticAnswer[]
+  skillEstimates  SkillEstimate[]
+  studyPlans      StudyPlan[]
+
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  @@index([userId])
+  @@map("diagnostic_results")
+}
+
+model SkillEstimate {
+  id                 String           @id @default(cuid())
+  diagnosticResultId String
+  diagnosticResult   DiagnosticResult @relation(fields: [diagnosticResultId], references: [id], onDelete: Cascade)
+
+  skill        SkillArea
+  correctCount Int
+  totalCount   Int
+  scorePercent Float
+
+  @@unique([diagnosticResultId, skill])
+  @@map("skill_estimates")
+}
+
+model DiagnosticAnswer {
+  id                 String           @id @default(cuid())
+  diagnosticResultId String
+  diagnosticResult   DiagnosticResult @relation(fields: [diagnosticResultId], references: [id], onDelete: Cascade)
+  questionId         String
+  question           Question         @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  submitted Json
+  correct   Boolean
+
+  createdAt DateTime @default(now())
+
+  @@unique([diagnosticResultId, questionId])
+  @@map("diagnostic_answers")
+}
+
+enum StudyPlanItemStatus {
+  PENDING
+  DONE
+  SKIPPED
+}
+
+/// Regenerating a plan marks the old one `isActive: false` instead of
+/// deleting it, so history survives target/date changes (Master Prompt
+/// §8.2: "sistem menghitung ulang rencana tanpa menghapus histori").
+model StudyPlan {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  isActive          Boolean   @default(true)
+  targetOverallBand Float?
+  testDate          DateTime?
+  dailyStudyMinutes DailyStudyMinutes
+
+  generatedFromDiagnosticId String?
+  generatedFromDiagnostic   DiagnosticResult? @relation(fields: [generatedFromDiagnosticId], references: [id], onDelete: SetNull)
+
+  items StudyPlanItem[]
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, isActive])
+  @@map("study_plans")
+}
+
+model StudyPlanItem {
+  id          String    @id @default(cuid())
+  studyPlanId String
+  studyPlan   StudyPlan @relation(fields: [studyPlanId], references: [id], onDelete: Cascade)
+  lessonId    String
+  lesson      Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  order         Int
+  scheduledDate DateTime
+  status        StudyPlanItemStatus @default(PENDING)
+  /// Short human-readable rationale shown in the UI, e.g. "Prioritas:
+  /// kelemahan di Grammar" — not a foreign key, just an explanation string.
+  reason        String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([studyPlanId])
+  @@map("study_plan_items")
 }

@@ -23,7 +23,7 @@ export default async function LessonPage({
     where: { code: lessonCode },
     include: {
       module: { include: { coursePath: true } },
-      questions: { orderBy: { code: "asc" } },
+      questions: { where: { reviewStatus: "PUBLISHED" }, orderBy: { code: "asc" } },
       requires: { include: { prerequisiteLesson: true } },
     },
   });

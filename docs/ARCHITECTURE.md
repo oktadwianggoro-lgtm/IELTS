@@ -1,6 +1,6 @@
 # Arsitektur — Success IELTS
 
-Status: Fase 3 (katalog kurikulum penuh + lesson page nyata). Dokumen ini
+Status: Fase 5 (diagnostic test + rencana belajar personal). Dokumen ini
 akan diperluas pada setiap fase berikutnya.
 
 ## 1. Ringkasan
@@ -155,9 +155,12 @@ Sesuai instruksi "satu fase pada satu waktu":
 - ~~Tidak ada database/Prisma schema~~ — selesai Fase 1.
 - ~~Tidak ada autentikasi/RBAC~~ — selesai Fase 1.
 - ~~Tidak ada model konten~~ — selesai Fase 2 (CoursePath/Module/Lesson/Topic/
-  Question + CMS review workflow); katalog publik lengkap menyusul Fase 3–4.
-  Hanya 1 lesson vertical-slice yang di-seed sejauh ini — `/materi` publik
-  masih memakai `<ComingSoon />` sampai Fase 3.
+  Question + CMS review workflow).
+- ~~Katalog publik lengkap~~ — selesai Fase 3 (`/materi` penuh, 11 CoursePath/
+  46 Module) + Fase 4 (lesson/soal orisinal pertama di setiap skill Starter).
+- ~~Tidak ada diagnostic test/rencana belajar~~ — selesai Fase 5, lihat §10.
+- Tidak ada practice engine lintas-lesson / Buku Kesalahan dengan spaced
+  repetition (Fase 6).
 - Tidak ada scoring/AI feedback (Fase 9–11).
 - Tidak ada Docker/deployment (Fase 17).
 
@@ -194,7 +197,57 @@ content/
   — dipakai untuk pratinjau admin sekarang, dan akan dipakai ulang untuk
   halaman lesson siswa sungguhan di Fase 3.
 
-## 9. Menjalankan proyek secara lokal
+## 9. Diagnostic test & rencana belajar (Fase 5)
+
+Alur: `/mulai-dari-sini` (ringkasan 3 langkah) → `/mulai-dari-sini/diagnostic/[resultId]`
+(soal) → `/mulai-dari-sini/diagnostic/[resultId]/hasil` (estimasi) →
+`/rencana-belajar` (rencana harian). Model baru: `DiagnosticResult`,
+`DiagnosticAnswer`, `SkillEstimate`, `StudyPlan`, `StudyPlanItem`.
+
+- **Sampling soal:** `sampleDiagnosticQuestions()` mengambil soal
+  `PUBLISHED` dari seluruh bank soal, dikelompokkan per `skill:level`, dan
+  mengambil maksimal 2 soal per kelompok — supaya diagnostic test singkat
+  tapi tetap menyentuh semua skill yang sudah punya konten, bukan hanya
+  level/skill dengan soal terbanyak.
+- **Penilaian:** `startDiagnosticAction` idempotent (melanjutkan
+  `DiagnosticResult` `IN_PROGRESS` yang sama jika sudah ada, bukan membuat
+  baru setiap klik). `submitDiagnosticAction` menilai tiap jawaban lewat
+  `gradeAnswer()` yang sama dengan mini-quiz lesson (lihat D-021), lalu
+  memanggil `estimateDiagnostic()` (pure function, `lib/diagnostic/estimate.ts`)
+  untuk menentukan level dan confidence.
+- **Estimasi level:** `estimateDiagnostic()` berjalan top-down dari level
+  tertinggi yang disampling, memilih level tertinggi yang mencapai ambang
+  70% benar, dan turun ke level yang lebih rendah jika tidak ada yang lolos.
+  Confidence diskalakan dari jumlah soal dan keluasan level yang
+  disampling, dibatasi maksimal 0.6 — sengaja dibuat konservatif karena bank
+  soal saat ini masih kecil (lihat catatan "estimasi, bukan skor resmi" di
+  UI hasil).
+- **Rencana belajar:** `generateStudyPlan()` (pure function,
+  `lib/study-plan/generate.ts`) memfilter lesson yang prasyaratnya sudah
+  terpenuhi dan belum selesai, memberi bobot lebih tinggi pada skill
+  terlemah (`weakSkillsAscending` dari hasil diagnostic) dan level yang
+  dekat dengan estimasi, lalu mengemasnya ke beberapa hari sesuai budget
+  menit belajar harian pengguna (`resolvePlanHorizonDays()` membatasi
+  horizon rencana ke `testDate` pengguna jika ada, maksimal 60 hari).
+  Setiap hari selalu dapat minimal 1 lesson walau melebihi budget menit,
+  supaya rencana tidak pernah kosong di hari yang masih tersisa.
+- **Dashboard terhubung ke data nyata:** `/dashboard` menampilkan item
+  `StudyPlanItem` yang `scheduledDate`-nya hari ini dari `StudyPlan` aktif
+  milik user — bukan lagi state kosong statis seperti Fase 0–4.
+
+### Bug kelas "perbandingan jumlah tanpa guard nol" (lihat D-024)
+
+Dua bug ditemukan dalam fase ini lewat verifikasi visual manual (bukan unit
+test maupun E2E yang sudah ada saat itu): (1) `Question.reviewStatus` tidak
+pernah ikut berubah saat `Lesson.reviewStatus` di-publish/archive, sehingga
+soal yang "terlihat jalan" di lesson sebenarnya belum pernah benar-benar
+PUBLISHED; dan (2) tombol submit yang dicek lewat `jumlah === total`
+bernilai `true` secara trivial saat `0 === 0`. Keduanya diperbaiki dan
+didokumentasikan detail di `docs/DECISIONS.md` D-024 — dicatat di sini juga
+karena polanya relevan untuk reviewer arsitektur, bukan hanya pembaca log
+keputusan.
+
+## 10. Menjalankan proyek secara lokal
 
 Lihat `README.md` untuk perintah lengkap. Ringkas:
 

@@ -6,12 +6,21 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLocale } from "@/lib/i18n/locale-provider";
 
+export type TodayPlanItem = {
+  id: string;
+  title: string;
+  status: "PENDING" | "DONE" | "SKIPPED";
+  href: string;
+};
+
 export function DashboardContent({
   userName,
   onboardingCompleted,
+  todayPlanItems,
 }: {
   userName: string | null;
   onboardingCompleted: boolean;
+  todayPlanItems: TodayPlanItem[];
 }) {
   const { t } = useLocale();
 
@@ -37,7 +46,7 @@ export function DashboardContent({
               </p>
               <p className="text-muted-foreground mt-1 text-sm">
                 {onboardingCompleted
-                  ? "Diagnostic test dan rencana belajar personal akan dibangun pada Fase 5."
+                  ? "Kerjakan diagnostic test untuk mendapat rencana belajar personal."
                   : t.dashboard.nextStepBody}
               </p>
             </div>
@@ -61,7 +70,26 @@ export function DashboardContent({
             <CardTitle className="text-sm font-medium">{t.dashboard.todayPlanTitle}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground text-sm">{t.dashboard.todayPlanEmpty}</p>
+            {todayPlanItems.length === 0 ? (
+              <p className="text-muted-foreground text-sm">{t.dashboard.todayPlanEmpty}</p>
+            ) : (
+              <ul className="space-y-1.5">
+                {todayPlanItems.map((item) => (
+                  <li key={item.id} className="text-sm">
+                    <Link
+                      href={item.href}
+                      className={
+                        item.status === "DONE"
+                          ? "text-muted-foreground line-through"
+                          : "hover:underline"
+                      }
+                    >
+                      {item.title}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
           </CardContent>
         </Card>
 

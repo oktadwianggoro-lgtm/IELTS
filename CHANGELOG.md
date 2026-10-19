@@ -2,6 +2,52 @@
 
 Semua perubahan penting pada Success IELTS dicatat di sini, per fase pengembangan.
 
+## Fase 5 — Diagnostic test dan rencana belajar personal
+
+### Ditambahkan
+
+- Alur diagnostic test lengkap: `/mulai-dari-sini` (ringkasan 3 langkah) →
+  `/mulai-dari-sini/diagnostic/[resultId]` (soal, disampling lintas skill
+  dan level dari bank soal PUBLISHED) → `.../hasil` (estimasi level,
+  confidence, dan breakdown per skill) → `/rencana-belajar` (rencana
+  belajar harian yang bisa ditandai selesai).
+- Model baru: `DiagnosticResult`, `DiagnosticAnswer`, `SkillEstimate`,
+  `StudyPlan`, `StudyPlanItem`.
+- `lib/diagnostic/estimate.ts` dan `lib/study-plan/generate.ts`: dua pure
+  function (bukan terikat DB/request) untuk estimasi level dari jawaban dan
+  penyusunan rencana belajar dari kelemahan skill + prasyarat lesson +
+  budget menit belajar harian, masing-masing dengan unit test lengkap (8
+  dan 10 skenario).
+- `/dashboard` kini menampilkan rencana belajar hari ini yang sungguhan
+  (bukan empty-state statis), dan salinan dashboard yang dulu menyebut
+  fitur ini "belum dibangun" sudah diperbarui (lihat D-025).
+- `e2e/diagnostic-study-plan.spec.ts`: alur penuh (mengerjakan diagnostic →
+  melihat hasil → membuat rencana → menandai item selesai → memastikan
+  tersambung ke dashboard), resume diagnostic yang `IN_PROGRESS`, dan
+  redirect otomatis ke hasil untuk diagnostic yang sudah `COMPLETED`.
+
+### Bug ditemukan dan diperbaiki (lewat verifikasi visual manual, bukan dari test yang sudah hijau)
+
+- `Question.reviewStatus` tidak pernah ikut ter-cascade saat
+  `Lesson.reviewStatus` berubah ke PUBLISHED/ARCHIVED sejak Fase 2 — soal di
+  halaman lesson "terlihat jalan" karena ditampilkan tanpa filter status,
+  tapi secara teknis tidak ada satu pun `Question` yang benar-benar
+  PUBLISHED. Baru ketahuan saat diagnostic test (yang benar memfilter
+  PUBLISHED) menampilkan 0 soal. Diperbaiki di level cascade (CMS),
+  query lesson page, dan data existing (skrip migrasi retroaktif). Detail
+  lengkap: `docs/DECISIONS.md` D-024.
+- Dua tempat terpisah mengecek "semua soal terjawab" lewat perbandingan
+  jumlah (`=== `/`.every()`) tanpa guard eksplisit untuk kasus nol soal,
+  membuat tombol submit aktif pada 0/0. Diperbaiki di `DiagnosticQuizForm`
+  dan proaktif di `LessonQuiz` begitu pola bug ini dikenali.
+
+### Catatan — cakupan bank soal untuk diagnostic test
+
+- Diagnostic test saat ini hanya bisa mengambil soal dari bank yang sudah
+  PUBLISHED (35 soal, Fase 4). Estimasi level jadi makin akurat seiring
+  bank soal bertambah di fase konten berikutnya (Fase 6+ dan Fase 18) — ini
+  dinyatakan jujur di UI hasil ("estimasi awal", bukan skor final).
+
 ## Fase 4 — Content seed tahap pertama
 
 ### Ditambahkan

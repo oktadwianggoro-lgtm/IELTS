@@ -146,17 +146,17 @@ export const dictionary: Record<Locale, Dictionary> = {
     dashboard: {
       welcomeTitle: "Selamat datang di Success IELTS",
       welcomeBody:
-        "Akun, diagnostic test, dan rencana belajar personal belum aktif pada fondasi aplikasi ini. Bagian-bagian ini akan tersambung ke data nyata pada fase berikutnya.",
+        "Kerjakan diagnostic test untuk mendapat estimasi level awal dan rencana belajar personal, lalu lanjutkan lewat Jalur Belajar atau Materi.",
       todayPlanTitle: "Rencana hari ini",
       todayPlanEmpty:
-        "Belum ada rencana belajar. Rencana akan dibuat otomatis setelah diagnostic test tersedia.",
+        "Belum ada rencana belajar aktif. Kerjakan diagnostic test di Mulai dari Sini untuk membuat rencana belajar personal.",
       progressTitle: "Progress kurikulum",
       progressEmpty: "Belum ada progress untuk ditampilkan.",
       activityTitle: "Aktivitas terakhir",
       activityEmpty: "Belum ada aktivitas belajar yang tercatat.",
       nextStepTitle: "Langkah berikutnya",
       nextStepBody:
-        "Diagnostic test dan onboarding akan dibangun pada fase selanjutnya agar rekomendasi belajar didasarkan pada data nyata, bukan tebakan.",
+        "Lengkapi onboarding agar rekomendasi belajar didasarkan pada tujuan dan preferensi Anda, lalu kerjakan diagnostic test.",
     },
   },
   en: {
@@ -237,17 +237,17 @@ export const dictionary: Record<Locale, Dictionary> = {
     dashboard: {
       welcomeTitle: "Welcome to Success IELTS",
       welcomeBody:
-        "Accounts, the diagnostic test, and personal study plans are not yet active in this foundation build. These sections will connect to real data in the next phases.",
+        "Take the diagnostic test to get an initial level estimate and a personal study plan, then continue through Learning Path or Materials.",
       todayPlanTitle: "Today's plan",
       todayPlanEmpty:
-        "No study plan yet. A plan will be generated automatically once the diagnostic test is available.",
+        "No active study plan yet. Take the diagnostic test under Start Here to generate a personal study plan.",
       progressTitle: "Curriculum progress",
       progressEmpty: "No progress to show yet.",
       activityTitle: "Recent activity",
       activityEmpty: "No learning activity recorded yet.",
       nextStepTitle: "Next step",
       nextStepBody:
-        "Onboarding and the diagnostic test will be built in the next phase so recommendations are based on real data, not guesses.",
+        "Complete onboarding so recommendations are based on your goals and preferences, then take the diagnostic test.",
     },
   },
 };

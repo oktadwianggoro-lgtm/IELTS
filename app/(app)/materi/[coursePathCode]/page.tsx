@@ -4,17 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { prisma } from "@/lib/db";
-
-const SKILL_LABEL: Record<string, string> = {
-  LISTENING: "Listening",
-  READING: "Reading",
-  WRITING: "Writing",
-  SPEAKING: "Speaking",
-  GRAMMAR: "Grammar",
-  VOCABULARY: "Vocabulary",
-  PRONUNCIATION: "Pronunciation",
-  TEST_STRATEGY: "Test Strategy",
-};
+import { SKILL_AREA_LABEL } from "@/lib/content/labels";
 
 export default async function CoursePathPage({
   params,
@@ -48,9 +38,7 @@ export default async function CoursePathPage({
           <Link key={module.id} href={`/materi/${coursePath.code}/${module.code}`}>
             <Card className="hover:border-brand-navy h-full transition-colors">
               <CardHeader>
-                <CardTitle className="text-base">
-                  {SKILL_LABEL[module.skill] ?? module.skill}
-                </CardTitle>
+                <CardTitle className="text-base">{SKILL_AREA_LABEL[module.skill]}</CardTitle>
                 <CardDescription>{module.description}</CardDescription>
               </CardHeader>
               <CardContent>

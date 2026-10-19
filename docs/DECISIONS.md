@@ -287,6 +287,72 @@ docker-compose.dev.yml up -d` untuk pengembangan lokal, sesuai stack Master
 
 ## Fase 3
 
+## Fase 5
+
+### D-024: Status review `Question` mengikuti status `Lesson`-nya saat publish/archive
+
+- **Keputusan:** `transitionLessonStatusAction` sekarang juga meng-update
+  `reviewStatus` semua `Question` milik lesson tersebut saat lesson
+  di-PUBLISHED atau di-ARCHIVED (via satu `$transaction`). Halaman lesson
+  siswa (`/materi/.../[lessonCode]`) memfilter `questions` dengan
+  `reviewStatus: "PUBLISHED"`, bukan menampilkan semua soal tanpa pandang
+  status.
+- **Bug yang ditemukan:** Fase 2/3/4 membangun workflow review di level
+  LESSON saja; field `Question.reviewStatus` ada di schema (default DRAFT
+  dari importer) tapi tidak pernah di-cascade saat lesson di-publish, dan
+  halaman lesson tidak pernah memfilter soal berdasarkan status —
+  sehingga quiz di halaman lesson "terlihat jalan" (karena menampilkan
+  SEMUA soal, termasuk yang masih DRAFT). Baru ketahuan di Fase 5 saat
+  `sampleDiagnosticQuestions()` (yang BENAR memfilter `PUBLISHED`)
+  mengembalikan 0 soal — ditemukan lewat verifikasi visual manual
+  ("0 / 0 pertanyaan terjawab"), bukan dari unit test maupun build yang
+  lolos. Data existing diperbaiki retroaktif lewat skrip sekali-jalan.
+- **Bug kedua, terkait:** `DiagnosticQuizForm`'s tombol submit dicek lewat
+  `answeredCount === questions.length`, yang bernilai `true` secara trivial
+  saat `0 === 0` — artinya tombol "Lihat Hasil" aktif meski tidak ada soal
+  sama sekali. Diperbaiki dengan guard eksplisit `questions.length > 0`.
+  Pelajaran yang sama seperti D-022: kondisi "semua terjawab" yang hanya
+  dicek lewat perbandingan jumlah, tanpa guard eksplisit untuk kasus nol,
+  adalah pola bug yang mudah berulang. `LessonQuiz`'s `allAnswered` memakai
+  pola yang sama persis (`.every()` di array kosong juga `true` secara
+  trivial) — belum pernah ketahuan di sana karena setiap lesson di seed
+  sekarang selalu punya minimal 5 soal, tapi diperbaiki sekaligus secara
+  proaktif di commit yang sama begitu polanya dikenali, bukan ditunda
+  sampai benar-benar gagal.
+- **Verifikasi:** Diperbaiki lewat verifikasi visual manual (screenshot
+  Playwright sekali-pakai) yang mengonfirmasi halaman diagnostic test kini
+  menampilkan 14 soal nyata (bukan "0 / 0"), lalu diformalkan jadi E2E test
+  (`e2e/diagnostic-study-plan.spec.ts`) yang menegaskan jumlah soal > 0
+  sebagai regression guard permanen — screenshot sekali-pakai sengaja tidak
+  disimpan di repo, hanya kesimpulannya.
+- **Tinjau ulang:** Jika Fase 13 menambah review per-soal yang independen
+  dari lesson-nya (mis. admin menandai satu soal bermasalah tanpa
+  meng-unpublish seluruh lesson), logika cascade ini perlu direvisi agar
+  tidak menimpa keputusan per-soal yang lebih spesifik.
+
+### D-025: Salinan dashboard yang menyebut diagnostic test/rencana belajar "belum dibangun" diperbarui setelah Fase 5 selesai
+
+- **Keputusan:** `lib/i18n/dictionary.ts`'s teks `dashboard.welcomeBody`,
+  `dashboard.todayPlanEmpty`, dan `dashboard.nextStepBody` (ID & EN)
+  diperbarui dari menyebut diagnostic test/rencana belajar sebagai fitur
+  "akan dibangun pada fase berikutnya" menjadi mengarahkan pengguna untuk
+  benar-benar memakainya.
+- **Bug yang ditemukan:** Teks ini ditulis di Fase 0/1 sebagai placeholder
+  jujur untuk fitur yang memang belum ada saat itu. Setelah Fase 5
+  membangun diagnostic test dan rencana belajar sungguhan, teks ini tidak
+  ikut diperbarui — ditemukan lewat verifikasi visual manual (dashboard
+  tetap menampilkan "Diagnostic test dan onboarding akan dibangun pada fase
+  selanjutnya..." padahal pengguna baru saja menyelesaikan diagnostic test
+  dan punya rencana belajar aktif). Ini melanggar prinsip kejujuran Master
+  Prompt dari arah sebaliknya dari D-018/D-024: bukan menampilkan data
+  palsu, tapi mengklaim fitur nyata sebagai belum ada.
+- **Alasan diperbaiki:** Master Prompt §1 menuntut tidak ada elemen yang
+  menyesatkan pengguna soal status fitur, berlaku untuk klaim "belum ada"
+  maupun "sudah ada".
+- **Tinjau ulang:** Setiap fase yang mengisi sebuah ComingSoon/stub di Fase
+  0/1 perlu secara eksplisit mengecek salinan UI terkait di
+  `lib/i18n/dictionary.ts`, bukan hanya menambah route/komponen baru.
+
 ### D-021: Jawaban mini-quiz dinilai server-side lewat `lib/content/grade-answer.ts`, bukan di client
 
 - **Keputusan:** `app/(app)/materi/[...]/page.tsx` hanya mengirim

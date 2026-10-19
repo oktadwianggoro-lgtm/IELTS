@@ -44,13 +44,29 @@ export async function transitionLessonStatusAction(
   }
 
   const isReviewDecision = targetStatus === "APPROVED" || targetStatus === "PUBLISHED";
-  await prisma.lesson.update({
-    where: { code: lessonCode },
-    data: {
-      reviewStatus: targetStatus,
-      ...(isReviewDecision ? { reviewedById: user.id, reviewedAt: new Date() } : {}),
-    },
-  });
+
+  // Fase 2's CMS reviews a lesson and its mini-quiz as one unit (there's no
+  // separate per-question review UI yet), so a lesson's questions follow its
+  // PUBLISHED/ARCHIVED status — otherwise a "published" lesson's quiz (and
+  // anything else, like the Fase 5 diagnostic, that correctly filters
+  // questions by reviewStatus) silently has zero visible questions.
+  await prisma.$transaction([
+    prisma.lesson.update({
+      where: { code: lessonCode },
+      data: {
+        reviewStatus: targetStatus,
+        ...(isReviewDecision ? { reviewedById: user.id, reviewedAt: new Date() } : {}),
+      },
+    }),
+    ...(targetStatus === "PUBLISHED" || targetStatus === "ARCHIVED"
+      ? [
+          prisma.question.updateMany({
+            where: { lessonId: lesson.id },
+            data: { reviewStatus: targetStatus },
+          }),
+        ]
+      : []),
+  ]);
 
   revalidatePath(`/admin/content/${lessonCode}`);
   revalidatePath("/admin/content");
