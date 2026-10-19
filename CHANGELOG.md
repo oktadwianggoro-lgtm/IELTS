@@ -2,6 +2,50 @@
 
 Semua perubahan penting pada Success IELTS dicatat di sini, per fase pengembangan.
 
+## Fase 6 — Practice engine adaptif dan Buku Kesalahan
+
+### Ditambahkan
+
+- `/latihan-harian`: set latihan adaptif 15 soal per sesi, dengan komposisi
+  default 50% area kelemahan (dari diagnostic test terakhir) / 30% materi
+  yang baru dipelajari / 20% review Buku Kesalahan yang jatuh tempo
+  (`lib/practice/generate-set.ts`, pure function, 7 unit test). Setiap soal
+  ditampilkan satu per satu dengan feedback langsung dan waktu menjawab
+  dicatat per soal (bukan isi-semua-baru-submit seperti mini-quiz lesson).
+- `/buku-kesalahan`: soal yang pernah dijawab salah otomatis tersimpan dan
+  dijadwalkan ulang lewat spaced repetition **SM-2** (`lib/srs/sm2.ts`,
+  pure function, 7 unit test, lihat D-026 untuk alasan memilih SM-2 atas
+  FSRS). Kartu review menampilkan prompt, jawaban yang diharapkan, alasan
+  kesalahan (tag `ErrorReason`: tidak tahu kosakata, salah memahami
+  instruksi, kehilangan detail, grammar, salah strategi, terburu-buru, atau
+  salah ketik), dan tautan ke lesson terkait. Halaman juga menampilkan
+  ringkasan "kesalahan berulang" per skill.
+- Model baru: `QuestionAttempt` (log setiap jawaban di kedua fitur,
+  termasuk waktu menjawab), `MistakeBookEntry` (state SM-2 per
+  user+question), enum `AttemptSource` dan `ErrorReason`.
+- Tidak ada renderer/grader soal baru — kedua fitur menyambungkan ulang
+  `gradeAnswer()` (Fase 3) dan `QuestionInput` (Fase 5) yang sudah
+  menangani seluruh 10 tipe soal, sesuai desain aslinya.
+- `e2e/practice-mistake-book.spec.ts`: alur latihan penuh (grading, logging
+  waktu, soal salah masuk Buku Kesalahan), serta regression test yang
+  me-review seluruh antrean lewat UI dan memverifikasi lewat database
+  langsung bahwa tidak ada kartu yang terlewat.
+
+### Bug ditemukan dan diperbaiki (lewat verifikasi visual manual)
+
+- Antrean review Buku Kesalahan melewati satu kartu di setiap putaran:
+  daftar kartu dibaca langsung dari prop server component yang menyusut
+  setelah tiap `revalidatePath`, sementara index lokal terus bertambah 1
+  tanpa menyadari array-nya sudah lebih pendek. Ditemukan lewat screenshot
+  manual (counter turun wajar, tapi query database menunjukkan satu entri
+  tetap `reviewCount: 0`). Diperbaiki dengan men-snapshot antrean ke state
+  lokal sekali di awal sesi. Detail lengkap: `docs/DECISIONS.md` D-028.
+- Dua lint error dari React Compiler (`react-hooks/purity`,
+  `react-hooks/set-state-in-effect`) tertangkap sebelum build — pola timer
+  per-kartu awalnya memanggil `Date.now()` saat render dan me-reset state
+  lewat effect; keduanya diperbaiki dengan pola child-component yang
+  di-key ulang per kartu (lihat D-027).
+
 ## Fase 5 — Diagnostic test dan rencana belajar personal
 
 ### Ditambahkan

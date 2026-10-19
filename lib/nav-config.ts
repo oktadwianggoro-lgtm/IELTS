@@ -37,7 +37,7 @@ export const navGroups: NavGroup[] = [
     key: "main",
     items: [
       { href: "/dashboard", key: "dashboard", icon: Home },
-      { href: "/mulai-dari-sini", key: "startHere", icon: Compass, plannedPhase: "Fase 5" },
+      { href: "/mulai-dari-sini", key: "startHere", icon: Compass },
     ],
   },
   {
@@ -45,12 +45,7 @@ export const navGroups: NavGroup[] = [
     items: [
       { href: "/jalur-belajar", key: "learningPath", icon: BookOpenCheck, plannedPhase: "Fase 3" },
       { href: "/materi", key: "materials", icon: NotebookPen, plannedPhase: "Fase 3" },
-      {
-        href: "/latihan-harian",
-        key: "dailyPractice",
-        icon: ClipboardList,
-        plannedPhase: "Fase 6",
-      },
+      { href: "/latihan-harian", key: "dailyPractice", icon: ClipboardList },
       {
         href: "/grammar-vocabulary",
         key: "grammarVocabulary",
@@ -72,13 +67,13 @@ export const navGroups: NavGroup[] = [
     key: "exam",
     items: [
       { href: "/tryout", key: "tryout", icon: ClipboardList, plannedPhase: "Fase 11" },
-      { href: "/buku-kesalahan", key: "mistakeBook", icon: BookMarked, plannedPhase: "Fase 6" },
+      { href: "/buku-kesalahan", key: "mistakeBook", icon: BookMarked },
     ],
   },
   {
     key: "planning",
     items: [
-      { href: "/rencana-belajar", key: "studyPlan", icon: CalendarClock, plannedPhase: "Fase 5" },
+      { href: "/rencana-belajar", key: "studyPlan", icon: CalendarClock },
       { href: "/progress", key: "progress", icon: BarChart3, plannedPhase: "Fase 12" },
     ],
   },

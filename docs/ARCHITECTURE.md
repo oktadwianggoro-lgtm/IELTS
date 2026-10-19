@@ -1,7 +1,7 @@
 # Arsitektur — Success IELTS
 
-Status: Fase 5 (diagnostic test + rencana belajar personal). Dokumen ini
-akan diperluas pada setiap fase berikutnya.
+Status: Fase 6 (practice engine adaptif + Buku Kesalahan dengan spaced
+repetition). Dokumen ini akan diperluas pada setiap fase berikutnya.
 
 ## 1. Ringkasan
 
@@ -159,8 +159,8 @@ Sesuai instruksi "satu fase pada satu waktu":
 - ~~Katalog publik lengkap~~ — selesai Fase 3 (`/materi` penuh, 11 CoursePath/
   46 Module) + Fase 4 (lesson/soal orisinal pertama di setiap skill Starter).
 - ~~Tidak ada diagnostic test/rencana belajar~~ — selesai Fase 5, lihat §10.
-- Tidak ada practice engine lintas-lesson / Buku Kesalahan dengan spaced
-  repetition (Fase 6).
+- ~~Tidak ada practice engine lintas-lesson / Buku Kesalahan dengan spaced
+  repetition~~ — selesai Fase 6, lihat §10.
 - Tidak ada scoring/AI feedback (Fase 9–11).
 - Tidak ada Docker/deployment (Fase 17).
 
@@ -247,7 +247,62 @@ didokumentasikan detail di `docs/DECISIONS.md` D-024 — dicatat di sini juga
 karena polanya relevan untuk reviewer arsitektur, bukan hanya pembaca log
 keputusan.
 
-## 10. Menjalankan proyek secara lokal
+## 10. Practice engine adaptif & Buku Kesalahan (Fase 6)
+
+Dua fitur baru: `/latihan-harian` (set latihan adaptif) dan `/buku-kesalahan`
+(review spaced-repetition). Model baru: `QuestionAttempt` (log setiap jawaban,
+lintas kedua fitur, dibedakan lewat `AttemptSource`) dan `MistakeBookEntry`
+(satu baris per pasangan user+question yang pernah salah, menyimpan state SM-2).
+
+- **Rendering/penilaian per tipe soal:** tidak ada renderer/grader baru —
+  Fase 6 murni menyambungkan `QuestionInput` (Fase 5) dan `gradeAnswer()`
+  (Fase 3, D-021) yang sudah menangani seluruh 10 `QuestionType` ke dua
+  alur baru ini, sesuai catatan desain aslinya ("shared by the Fase 3
+  lesson mini-quiz and the Fase 6 practice engine").
+- **Latihan adaptif:** `lib/practice/generate-set.ts` (pure function)
+  menyusun satu set 15 soal dengan komposisi default 50% kelemahan skill
+  (dari hasil diagnostic test terakhir) / 30% materi yang baru dipelajari
+  (`LessonProgress` terbaru) / 20% review Buku Kesalahan yang jatuh tempo,
+  dengan fallback mengisi dari bank soal umum jika satu kategori terlalu
+  tipis. `app/(app)/latihan-harian/page.tsx` mengacak kandidat sebelum
+  memanggil fungsi ini sehingga variasi muncul di request layer, bukan di
+  fungsi pure-nya (supaya tetap mudah diuji deterministik).
+- **Satu-kartu-satu-waktu, bukan isi-semua-baru-submit:** berbeda dari
+  mini-quiz lesson/diagnostic test (Fase 3/5) yang menampilkan semua soal
+  sekaligus, `PracticeSessionForm` dan `MistakeReviewSession` menampilkan
+  satu soal per layar dengan feedback langsung setelah dijawab — supaya
+  `timeSpentMs` per soal akurat dan sesuai Master Prompt §8.9 ("feedback
+  per soal"). Lihat D-027 untuk detail pola timer yang lolos lint React
+  Compiler (`react-hooks/purity`, `react-hooks/set-state-in-effect`).
+- **Buku Kesalahan auto-populate:** `checkPracticeAnswerAction` meng-upsert
+  `MistakeBookEntry` setiap kali jawaban di Latihan Harian salah
+  (`nextReviewAt` di-set ke sekarang). Pengguna bisa menandai `ErrorReason`
+  dari layar ringkasan latihan maupun dari halaman Buku Kesalahan sendiri.
+- **Spaced repetition (SM-2):** `lib/srs/sm2.ts`, pure function, diuji unit
+  penuh. Status SM-2 (`intervalDays`/`easeFactor`/`repetitions`) HANYA maju
+  lewat alur review eksplisit `/buku-kesalahan` (lihat jawaban lalu nilai
+  diri sendiri, ala Anki) — bukan dari jawaban benar di Latihan Harian
+  biasa. Alasan lengkap dan alternatif yang dipertimbangkan: D-026.
+- **Server-side grading tetap dipertahankan** (D-021): baik
+  `checkPracticeAnswerAction` maupun `checkMistakeReviewAction` mengambil
+  `Question` penuh (termasuk `answerKey`) hanya di server, mengembalikan
+  `{correct, explanation}` (plus `expected`/`lessonHref` khusus di Buku
+  Kesalahan, lihat `describeExpectedAnswer()`) — tidak pernah answer key
+  mentah ke client sebelum submit.
+
+### Bug ditemukan lewat verifikasi visual: antrean review yang menyusut membuat satu kartu terlewat (D-028)
+
+`MistakeReviewSession` awalnya membaca daftar kartu langsung dari prop
+server component, yang menyusut setiap kali `rateMistakeReviewAction`
+memanggil `revalidatePath`. Index lokal yang terus bertambah 1 tanpa
+menyadari array-nya sudah menyusut membuat satu kartu terlewat di setiap
+putaran — ditemukan lewat verifikasi visual manual (counter "X soal siap
+direview" turun wajar, tapi query database langsung menunjukkan satu entri
+tetap `reviewCount: 0`), bukan dari build yang lolos. Diperbaiki dengan
+men-snapshot daftar kartu ke state lokal sekali saat sesi review dimulai.
+Detail lengkap dan regression test: D-028.
+
+## 11. Menjalankan proyek secara lokal
 
 Lihat `README.md` untuk perintah lengkap. Ringkas:
 

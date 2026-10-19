@@ -417,3 +417,104 @@ docker-compose.dev.yml up -d` untuk pengembangan lokal, sesuai stack Master
   sebagai peta jalan produk.
 - **Tinjau ulang:** Setiap fase yang menyelesaikan satu menu harus menghapus stub
   terkait dan mengarahkan ke halaman nyata.
+
+## Fase 6
+
+### D-026: SM-2 (bukan FSRS) untuk spaced repetition di Buku Kesalahan; SM-2 hanya maju lewat review eksplisit, bukan latihan biasa
+
+- **Keputusan:** `lib/srs/sm2.ts` mengimplementasikan algoritma SuperMemo
+  SM-2 klasik (Wozniak, 1987) secara pure/stateless. `MistakeBookEntry`
+  menyimpan `intervalDays`/`easeFactor`/`repetitions`. Status SM-2 HANYA
+  dimajukan lewat `rateMistakeReviewAction` (alur review eksplisit di
+  `/buku-kesalahan`, model "lihat jawaban lalu nilai diri sendiri" ala
+  Anki) — menjawab soal yang sama di Latihan Harian biasa TIDAK memajukan
+  SM-2, hanya memperbarui `lastSubmittedAnswer` dan menjadwalkan ulang
+  `nextReviewAt` ke hari ini jika masih salah.
+- **Alasan:** Master Prompt §8.10 mengizinkan "FSRS atau SM-2 melalui
+  implementasi terdokumentasi". SM-2 dipilih karena parameternya (interval,
+  ease factor) deterministik dan mudah diuji unit tanpa data training,
+  sementara FSRS idealnya dikalibrasi dari riwayat review pengguna dalam
+  jumlah besar — belum relevan selama basis soal dan pengguna masih kecil.
+  Membatasi kemajuan SM-2 hanya ke alur review eksplisit mencegah soal yang
+  kebetulan dijawab benar di sesi latihan biasa (tanpa niat "mereview")
+  memperpanjang interval secara tidak sengaja — quality SM-2 butuh sinyal
+  recall yang disengaja, bukan jawaban insidental.
+- **Alternatif dipertimbangkan:** Memajukan SM-2 dari jawaban benar di
+  Latihan Harian juga — ditolak karena itu akan membuat interval tumbuh
+  dari sinyal yang lebih noisy (pengguna mungkin menjawab benar karena
+  soal itu sedang relevan dipelajari, bukan karena benar-benar mengingat
+  kesalahan sebelumnya).
+- **Tinjau ulang:** Jika data menunjukkan SM-2 terlalu kasar (mis. interval
+  tumbuh terlalu cepat/lambat dibanding pengalaman pengguna nyata), ganti
+  ke FSRS dengan kalibrasi dari `QuestionAttempt`/`MistakeBookEntry` yang
+  sudah terkumpul.
+
+### D-027: Waktu menjawab (`timeSpentMs`) adalah per-kartu, bukan perkiraan dari sesi gabungan
+
+- **Keputusan:** `components/practice/practice-session-form.tsx` dan
+  `components/mistake-book/mistake-review-session.tsx` menampilkan SATU
+  soal per layar (bukan semua soal sekaligus seperti mini-quiz lesson/
+  diagnostic test Fase 3/5), dengan timer mulai persis saat kartu itu
+  mount (`useEffect` sekali per kartu, di-key dari `questions[index].code`/
+  `entryId` di parent supaya child benar-benar remount, bukan reset manual
+  lewat effect).
+- **Alasan:** Master Prompt §8.4 eksplisit minta "simpan waktu menjawab"
+  per soal. Pola "isi semua baru submit" (dipakai Fase 3/5) tidak bisa
+  memberi angka waktu-per-soal yang jujur karena urutan pengisian bebas.
+  Pola satu-kartu-satu-waktu juga lebih cocok dengan "feedback per soal"
+  yang diminta untuk mode practice (§8.9).
+- **Catatan implementasi:** `useRef(Date.now())` di render body awalnya
+  dipakai lalu ditolak oleh lint rule `react-hooks/purity` (App Router
+  React Compiler) karena memanggil fungsi impure saat render. Timer
+  dipindah ke `useEffect(() => { ref.current = Date.now() }, [])` yang
+  jalan sekali per mount kartu — bukan di render, dan bukan `setState` di
+  effect (yang juga ditolak oleh `react-hooks/set-state-in-effect`).
+- **Tinjau ulang:** Tidak perlu — pola ini sudah konsisten dipakai di
+  kedua komponen dan lolos lint React Compiler yang ketat.
+
+### D-028: Bug ditemukan lewat verifikasi visual: Buku Kesalahan melewati satu kartu setiap kali satu kartu selesai direview
+
+- **Bug:** `MistakeReviewSession` awalnya membaca `items` langsung dari
+  prop server component (daftar soal yang jatuh tempo). `rateMistakeReviewAction`
+  memanggil `revalidatePath("/buku-kesalahan")` setelah tiap review, yang
+  membuat server component mem-fetch ulang daftar jatuh-tempo yang LEBIH
+  PENDEK (kartu yang baru direview sudah tidak jatuh tempo lagi). Tapi
+  `index` lokal di client tetap bertambah 1 seperti biasa — akibatnya
+  `items[index]` pada array yang sudah menyusut menunjuk ke kartu yang
+  SALAH (satu posisi terlalu jauh), sehingga satu kartu yang belum
+  direview terlewat tanpa pernah ditampilkan ke pengguna, setiap kali.
+- **Cara ditemukan:** Verifikasi visual manual (screenshot Playwright
+  sekali-pakai) yang menunjukkan counter "X soal siap direview hari ini"
+  berkurang dari 14 → 13 secara wajar, tapi query database langsung
+  terhadap `MistakeBookEntry.reviewCount` menunjukkan satu entri yang
+  seharusnya sudah direview tetap `reviewCount: 0`. Pola yang sama seperti
+  D-022/D-024: lolos uji visual sekilas, tidak lolos verifikasi data.
+- **Perbaikan:** `MistakeReviewSession` sekarang men-snapshot `items` ke
+  `useState` SEKALI saat mount (`const [items] = useState(initialItems)`)
+  dan mengabaikan pembaruan prop berikutnya — sesi review selalu
+  menyelesaikan batch tetap yang di-fetch di awal, terlepas dari berapa
+  kali `revalidatePath` memperbarui counter "jatuh tempo" di bagian lain
+  halaman. Counter ringkasan di atasnya tetap live (dibaca langsung dari
+  server component), hanya ANTREAN review yang dibekukan.
+- **Regresi:** `e2e/practice-mistake-book.spec.ts` ("reviewing every due
+  card updates all of them — none are silently skipped") me-review SELURUH
+  antrean lewat UI lalu memverifikasi lewat Prisma langsung bahwa setiap
+  entri yang tadinya jatuh tempo kini punya `reviewCount >= 1` — regression
+  guard permanen untuk bug kelas ini.
+- **Tinjau ulang:** Jika Fase 12 menambah notifikasi real-time yang bisa
+  mengubah antrean SAAT sesi review berjalan (mis. soal baru ditambahkan
+  admin), pertimbangkan ulang apakah snapshot statis masih tepat atau
+  perlu digabung ke antrean yang sedang berjalan.
+
+### D-029: `Question.lessonId` nullable berarti soal Buku Kesalahan bisa tanpa link lesson
+
+- **Keputusan:** `describeExpectedAnswer()` dan `checkMistakeReviewAction`
+  menangani `question.lesson` yang `null` dengan `lessonHref: null`, dan UI
+  review cukup tidak menampilkan tautan "Buka lesson terkait" jika null,
+  bukan error atau placeholder rusak.
+- **Alasan:** Schema `Question.lessonId` sudah nullable sejak Fase 2 (soal
+  bisa berdiri sendiri, mis. untuk tryout Fase 11 nanti), jadi Buku
+  Kesalahan harus menangani kasus ini sejak awal, bukan mengasumsikan
+  setiap soal selalu datang dari satu lesson.
+- **Tinjau ulang:** Tidak perlu — ini konsisten dengan desain
+  `Question.lessonId` yang sudah ada sejak Fase 2.

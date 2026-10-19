@@ -33,9 +33,40 @@ function arrayMatchesByOptionText(
 }
 
 /**
- * Pure comparison logic shared by the Fase 3 lesson mini-quiz and (future)
- * Fase 6 practice engine — keeping grading in one server-only place means
- * answer keys never need to reach the client bundle for either feature.
+ * Human-readable expected answer for the Fase 6 Buku Kesalahan review card
+ * (Master Prompt §8.10: "jawaban yang diharapkan"). Resolves option ids to
+ * their text the same way grading does, so what the user reads matches what
+ * was actually checked. Never called before an answer is submitted —
+ * callers must keep this server-only (see D-021).
+ */
+export function describeExpectedAnswer(question: {
+  type: string;
+  answerKey: unknown;
+  options?: unknown;
+}): string {
+  const options = Array.isArray(question.options) ? (question.options as QuestionOption[]) : [];
+  const idToText = new Map(options.map((o) => [o.id, o.text]));
+
+  if (question.type === "ORDERING" || question.type === "MATCHING") {
+    const key = Array.isArray(question.answerKey) ? (question.answerKey as string[]) : [];
+    return key.map((id) => idToText.get(id) ?? id).join(", ");
+  }
+  if (question.type === "MULTIPLE_CHOICE") {
+    const key = Array.isArray(question.answerKey)
+      ? (question.answerKey as string[])[0]
+      : (question.answerKey as string);
+    return idToText.get(key ?? "") ?? key ?? "";
+  }
+  return Array.isArray(question.answerKey)
+    ? (question.answerKey as string[]).join(", ")
+    : String(question.answerKey ?? "");
+}
+
+/**
+ * Pure comparison logic shared by the Fase 3 lesson mini-quiz and the Fase 6
+ * practice engine / Buku Kesalahan review — keeping grading in one
+ * server-only place means answer keys never need to reach the client bundle
+ * for any of them.
  */
 export function gradeAnswer(
   question: { type: string; answerKey: unknown; acceptedAnswers?: unknown; options?: unknown },

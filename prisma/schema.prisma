@@ -40,14 +40,16 @@ model User {
   preference          UserPreference?
   passwordResetTokens PasswordResetToken[]
 
-  reviewedLessons    Lesson[]   @relation("LessonReviewedBy")
-  createdQuestions   Question[] @relation("QuestionCreatedBy")
-  reviewedQuestions  Question[] @relation("QuestionReviewedBy")
+  reviewedLessons    Lesson[]           @relation("LessonReviewedBy")
+  createdQuestions   Question[]         @relation("QuestionCreatedBy")
+  reviewedQuestions  Question[]         @relation("QuestionReviewedBy")
   bookmarks          Bookmark[]
   notes              Note[]
   lessonProgress     LessonProgress[]
   diagnosticResults  DiagnosticResult[]
   studyPlans         StudyPlan[]
+  questionAttempts   QuestionAttempt[]
+  mistakeBookEntries MistakeBookEntry[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -152,9 +154,9 @@ enum InterfaceLanguage {
 /// (not deleted) when the user changes target/date so history isn't lost —
 /// see docs/DECISIONS.md.
 model Profile {
-  id      String @id @default(cuid())
-  userId  String @unique
-  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   goal                LearningGoal?
   testType            TestType?
@@ -247,9 +249,9 @@ enum QuestionType {
 /// "present-perfect") — orthogonal to the CoursePath > Module > Lesson
 /// sequencing, used for cross-cutting catalog/search filtering.
 model Topic {
-  id   String @id @default(cuid())
-  code String @unique
-  name String
+  id    String     @id @default(cuid())
+  code  String     @unique
+  name  String
   skill SkillArea?
 
   lessons   LessonTopic[]
@@ -277,8 +279,8 @@ model CoursePath {
 }
 
 model Module {
-  id           String @id @default(cuid())
-  code         String @unique
+  id           String     @id @default(cuid())
+  code         String     @unique
   coursePathId String
   coursePath   CoursePath @relation(fields: [coursePathId], references: [id], onDelete: Cascade)
 
@@ -345,11 +347,11 @@ model Lesson {
 }
 
 model LessonPrerequisite {
-  id                    String @id @default(cuid())
-  lessonId              String
-  lesson                Lesson @relation("LessonRequires", fields: [lessonId], references: [id], onDelete: Cascade)
-  prerequisiteLessonId  String
-  prerequisiteLesson    Lesson @relation("LessonRequiredFor", fields: [prerequisiteLessonId], references: [id], onDelete: Cascade)
+  id                   String @id @default(cuid())
+  lessonId             String
+  lesson               Lesson @relation("LessonRequires", fields: [lessonId], references: [id], onDelete: Cascade)
+  prerequisiteLessonId String
+  prerequisiteLesson   Lesson @relation("LessonRequiredFor", fields: [prerequisiteLessonId], references: [id], onDelete: Cascade)
 
   @@unique([lessonId, prerequisiteLessonId])
   @@map("lesson_prerequisites")
@@ -379,21 +381,23 @@ model Question {
   skill           SkillArea
   level           PedagogicalLevel
   targetBandRange String?
-  difficulty      Int          @default(3)
+  difficulty      Int              @default(3)
 
   /// { text, instructions?, context? } — structure left to the renderer per
   /// `type` rather than forcing every question type into one shape.
-  prompt Json
+  prompt          Json
   /// Choice-based types only (e.g. multiple choice): [{ id, text }].
-  options Json?
+  options         Json?
   /// Canonical correct answer(s); shape depends on `type`.
-  answerKey Json
+  answerKey       Json
   /// Additional strings/values accepted as correct besides `answerKey`.
   acceptedAnswers Json?
   explanation     String
 
-  topics            QuestionTopic[]
-  diagnosticAnswers DiagnosticAnswer[]
+  topics             QuestionTopic[]
+  diagnosticAnswers  DiagnosticAnswer[]
+  attempts           QuestionAttempt[]
+  mistakeBookEntries MistakeBookEntry[]
 
   estimatedSeconds Int?
 
@@ -505,9 +509,9 @@ model DiagnosticResult {
   /// false precision (Master Prompt §3, §9).
   confidence     Float?
 
-  answers         DiagnosticAnswer[]
-  skillEstimates  SkillEstimate[]
-  studyPlans      StudyPlan[]
+  answers        DiagnosticAnswer[]
+  skillEstimates SkillEstimate[]
+  studyPlans     StudyPlan[]
 
   startedAt   DateTime  @default(now())
   completedAt DateTime?
@@ -560,7 +564,7 @@ model StudyPlan {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  isActive          Boolean   @default(true)
+  isActive          Boolean           @default(true)
   targetOverallBand Float?
   testDate          DateTime?
   dailyStudyMinutes DailyStudyMinutes
@@ -595,4 +599,77 @@ model StudyPlanItem {
 
   @@index([studyPlanId])
   @@map("study_plan_items")
+}
+
+// ---------- Practice engine & Buku Kesalahan (Fase 6) ----------
+
+enum AttemptSource {
+  ADAPTIVE_PRACTICE
+  MISTAKE_REVIEW
+}
+
+/// Master Prompt §8.10: "Pengguna bisa menandai alasan error" — a fixed set
+/// rather than freeform text so the "kesalahan berulang" dashboard/report
+/// can aggregate by reason without NLP.
+enum ErrorReason {
+  VOCAB_UNKNOWN
+  MISUNDERSTOOD_INSTRUCTION
+  MISSED_DETAIL
+  GRAMMAR
+  WRONG_STRATEGY
+  RUSHED
+  TYPO
+}
+
+/// One row per answer submitted in the adaptive practice engine or a
+/// mistake-book review — the source of truth for "simpan waktu menjawab,
+/// percobaan dan riwayat" (Master Prompt §8.4). Deliberately separate from
+/// `DiagnosticAnswer` (one-time placement test) and the Fase 3 lesson
+/// mini-quiz (which is check-as-you-go and not attempt-tracked) — merging
+/// all three into one table would couple unrelated review workflows.
+model QuestionAttempt {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  source      AttemptSource
+  submitted   Json
+  correct     Boolean
+  timeSpentMs Int
+
+  attemptedAt DateTime @default(now())
+
+  @@index([userId, questionId])
+  @@index([userId, attemptedAt])
+  @@map("question_attempts")
+}
+
+/// SM-2 review state for one (user, question) pair. Created the first time
+/// a user misses a question in adaptive practice; graduates through longer
+/// `intervalDays` as reviews succeed. See lib/srs/sm2.ts and
+/// docs/DECISIONS.md for why SM-2 (not FSRS) was chosen.
+model MistakeBookEntry {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  lastSubmittedAnswer Json
+  errorReason         ErrorReason?
+
+  intervalDays Int   @default(1)
+  easeFactor   Float @default(2.5)
+  repetitions  Int   @default(0)
+  reviewCount  Int   @default(0)
+
+  nextReviewAt   DateTime  @default(now())
+  firstMissedAt  DateTime  @default(now())
+  lastReviewedAt DateTime?
+
+  @@unique([userId, questionId])
+  @@index([userId, nextReviewAt])
+  @@map("mistake_book_entries")
 }
