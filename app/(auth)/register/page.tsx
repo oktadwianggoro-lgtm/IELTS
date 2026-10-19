@@ -33,14 +33,14 @@ export default function RegisterPage() {
             <Label htmlFor="name">Nama</Label>
             <Input id="name" name="name" autoComplete="name" required />
             {state?.fieldErrors?.name ? (
-              <p className="text-xs text-destructive">{state.fieldErrors.name[0]}</p>
+              <p className="text-destructive text-xs">{state.fieldErrors.name[0]}</p>
             ) : null}
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="email">Email</Label>
             <Input id="email" name="email" type="email" autoComplete="email" required />
             {state?.fieldErrors?.email ? (
-              <p className="text-xs text-destructive">{state.fieldErrors.email[0]}</p>
+              <p className="text-destructive text-xs">{state.fieldErrors.email[0]}</p>
             ) : null}
           </div>
           <div className="space-y-1.5">
@@ -52,17 +52,17 @@ export default function RegisterPage() {
               autoComplete="new-password"
               required
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-muted-foreground text-xs">
               Minimal 8 karakter, mengandung huruf dan angka.
             </p>
             {state?.fieldErrors?.password ? (
-              <p className="text-xs text-destructive">{state.fieldErrors.password[0]}</p>
+              <p className="text-destructive text-xs">{state.fieldErrors.password[0]}</p>
             ) : null}
           </div>
-          {state?.error ? <p className="text-sm text-destructive">{state.error}</p> : null}
+          {state?.error ? <p className="text-destructive text-sm">{state.error}</p> : null}
           <SubmitButton />
         </form>
-        <p className="mt-4 text-center text-sm text-muted-foreground">
+        <p className="text-muted-foreground mt-4 text-center text-sm">
           Sudah punya akun?{" "}
           <Link href="/login" className="text-brand-navy underline underline-offset-2">
             Masuk

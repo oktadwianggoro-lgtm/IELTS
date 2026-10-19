@@ -36,8 +36,8 @@ export default async function VerifyEmailPage({
         <CardHeader>
           <CardTitle>Periksa email Anda</CardTitle>
           <CardDescription>
-            Kami mengirim tautan verifikasi ke email Anda. Buka email tersebut dan klik
-            tautannya untuk memverifikasi akun.
+            Kami mengirim tautan verifikasi ke email Anda. Buka email tersebut dan klik tautannya
+            untuk memverifikasi akun.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -61,10 +61,7 @@ export default async function VerifyEmailPage({
           <CardDescription>Terima kasih, email Anda sudah terverifikasi.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Button
-            render={<Link href="/dashboard">Lanjut ke Beranda</Link>}
-            className="w-full"
-          />
+          <Button render={<Link href="/dashboard">Lanjut ke Beranda</Link>} className="w-full" />
         </CardContent>
       </Card>
     );
@@ -80,7 +77,11 @@ export default async function VerifyEmailPage({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Button render={<Link href="/login">Ke halaman masuk</Link>} variant="outline" className="w-full" />
+        <Button
+          render={<Link href="/login">Ke halaman masuk</Link>}
+          variant="outline"
+          className="w-full"
+        />
       </CardContent>
     </Card>
   );

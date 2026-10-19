@@ -11,9 +11,7 @@ async function main() {
   const password = process.env.SEED_ADMIN_PASSWORD;
 
   if (!email || !password) {
-    console.log(
-      "[seed] SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD not set — skipping admin seed.",
-    );
+    console.log("[seed] SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD not set — skipping admin seed.");
     return;
   }
 

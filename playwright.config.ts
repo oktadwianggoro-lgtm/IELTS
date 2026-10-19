@@ -7,6 +7,9 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
+  // Many tests register a fresh user (bcrypt hash + several DB writes); too
+  // much parallelism just creates artificial contention, not realistic load.
+  workers: process.env.CI ? 2 : 4,
   reporter: "html",
   use: {
     baseURL: `http://localhost:${PORT}`,

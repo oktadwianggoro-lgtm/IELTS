@@ -17,7 +17,7 @@ export function AppShell({
   onboardingCompleted: boolean;
 }) {
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="bg-background flex min-h-screen">
       <SidebarNav />
       <div className="flex min-h-screen flex-1 flex-col">
         <SiteHeader user={user} />

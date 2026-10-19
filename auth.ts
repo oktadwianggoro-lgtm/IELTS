@@ -12,6 +12,10 @@ const googleConfigured = Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOO
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
+  // Self-hosted (VPS/Docker) target per Master Prompt §17, not Vercel, so the
+  // trusted-host origin must come from the incoming request's Host header
+  // rather than a single fixed AUTH_URL. Nginx must forward Host correctly.
+  trustHost: true,
   pages: {
     signIn: "/login",
   },

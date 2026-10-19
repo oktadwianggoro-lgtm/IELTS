@@ -22,10 +22,10 @@ export function AccountBanners({
   if (emailVerified && onboardingCompleted) return null;
 
   return (
-    <div className="space-y-2 border-b border-border bg-muted/40 px-4 py-2 sm:px-6">
+    <div className="border-border bg-muted/40 space-y-2 border-b px-4 py-2 sm:px-6">
       {!emailVerified ? (
         <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-          <span className="flex items-center gap-2 text-muted-foreground">
+          <span className="text-muted-foreground flex items-center gap-2">
             <MailWarning className="h-4 w-4 shrink-0" aria-hidden />
             Email Anda belum diverifikasi.
             {state?.success ? " Email verifikasi baru telah dikirim." : null}
@@ -39,7 +39,7 @@ export function AccountBanners({
       ) : null}
       {!onboardingCompleted ? (
         <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-          <span className="flex items-center gap-2 text-muted-foreground">
+          <span className="text-muted-foreground flex items-center gap-2">
             <Compass className="h-4 w-4 shrink-0" aria-hidden />
             Lengkapi tujuan belajar Anda agar rekomendasi lebih akurat.
           </span>

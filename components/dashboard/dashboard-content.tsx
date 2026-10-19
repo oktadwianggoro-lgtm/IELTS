@@ -24,18 +24,18 @@ export function DashboardContent({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">{t.dashboard.welcomeBody}</p>
-          <div className="flex items-start gap-3 rounded-md border border-border bg-card p-4">
+          <p className="text-muted-foreground text-sm">{t.dashboard.welcomeBody}</p>
+          <div className="border-border bg-card flex items-start gap-3 rounded-md border p-4">
             {onboardingCompleted ? (
-              <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-brand-teal" aria-hidden />
+              <CheckCircle2 className="text-brand-teal mt-0.5 h-5 w-5 shrink-0" aria-hidden />
             ) : (
-              <Compass className="mt-0.5 h-5 w-5 shrink-0 text-brand-teal" aria-hidden />
+              <Compass className="text-brand-teal mt-0.5 h-5 w-5 shrink-0" aria-hidden />
             )}
             <div>
               <p className="text-sm font-medium">
                 {onboardingCompleted ? "Onboarding selesai" : t.dashboard.nextStepTitle}
               </p>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <p className="text-muted-foreground mt-1 text-sm">
                 {onboardingCompleted
                   ? "Diagnostic test dan rencana belajar personal akan dibangun pada Fase 5."
                   : t.dashboard.nextStepBody}
@@ -57,31 +57,31 @@ export function DashboardContent({
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex-row items-center gap-2 space-y-0">
-            <CalendarDays className="h-4 w-4 text-muted-foreground" aria-hidden />
+            <CalendarDays className="text-muted-foreground h-4 w-4" aria-hidden />
             <CardTitle className="text-sm font-medium">{t.dashboard.todayPlanTitle}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">{t.dashboard.todayPlanEmpty}</p>
+            <p className="text-muted-foreground text-sm">{t.dashboard.todayPlanEmpty}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex-row items-center gap-2 space-y-0">
-            <TrendingUp className="h-4 w-4 text-muted-foreground" aria-hidden />
+            <TrendingUp className="text-muted-foreground h-4 w-4" aria-hidden />
             <CardTitle className="text-sm font-medium">{t.dashboard.progressTitle}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">{t.dashboard.progressEmpty}</p>
+            <p className="text-muted-foreground text-sm">{t.dashboard.progressEmpty}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex-row items-center gap-2 space-y-0">
-            <Activity className="h-4 w-4 text-muted-foreground" aria-hidden />
+            <Activity className="text-muted-foreground h-4 w-4" aria-hidden />
             <CardTitle className="text-sm font-medium">{t.dashboard.activityTitle}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">{t.dashboard.activityEmpty}</p>
+            <p className="text-muted-foreground text-sm">{t.dashboard.activityEmpty}</p>
           </CardContent>
         </Card>
       </div>

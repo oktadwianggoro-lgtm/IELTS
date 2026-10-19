@@ -80,9 +80,7 @@ export default async function ProfilePage() {
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Target overall band</span>
-                <span className="font-medium">
-                  {user.profile.targetOverallBand ?? "—"}
-                </span>
+                <span className="font-medium">{user.profile.targetOverallBand ?? "—"}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Skill tersulit</span>
@@ -113,9 +111,7 @@ export default async function ProfilePage() {
           <div className="flex justify-between">
             <span className="text-muted-foreground">Durasi belajar harian</span>
             <span className="font-medium">
-              {user.preference
-                ? DAILY_STUDY_MINUTES_LABEL[user.preference.dailyStudyMinutes]
-                : "—"}
+              {user.preference ? DAILY_STUDY_MINUTES_LABEL[user.preference.dailyStudyMinutes] : "—"}
             </span>
           </div>
           <div className="flex justify-between">
@@ -137,8 +133,8 @@ export default async function ProfilePage() {
         <CardHeader>
           <CardTitle>Langganan</CardTitle>
           <CardDescription>
-            Fitur premium dan pembayaran belum diaktifkan. Akan tersedia pada Fase 16 sesuai
-            Master Prompt, dengan status default nonaktif (PAYMENTS_ENABLED=false).
+            Fitur premium dan pembayaran belum diaktifkan. Akan tersedia pada Fase 16 sesuai Master
+            Prompt, dengan status default nonaktif (PAYMENTS_ENABLED=false).
           </CardDescription>
         </CardHeader>
       </Card>

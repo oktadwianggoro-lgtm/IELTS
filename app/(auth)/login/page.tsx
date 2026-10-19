@@ -37,7 +37,7 @@ export default function LoginPage() {
             <Label htmlFor="email">Email</Label>
             <Input id="email" name="email" type="email" autoComplete="email" required />
             {state?.fieldErrors?.email ? (
-              <p className="text-xs text-destructive">{state.fieldErrors.email[0]}</p>
+              <p className="text-destructive text-xs">{state.fieldErrors.email[0]}</p>
             ) : null}
           </div>
           <div className="space-y-1.5">
@@ -50,13 +50,13 @@ export default function LoginPage() {
               required
             />
             {state?.fieldErrors?.password ? (
-              <p className="text-xs text-destructive">{state.fieldErrors.password[0]}</p>
+              <p className="text-destructive text-xs">{state.fieldErrors.password[0]}</p>
             ) : null}
           </div>
-          {state?.error ? <p className="text-sm text-destructive">{state.error}</p> : null}
+          {state?.error ? <p className="text-destructive text-sm">{state.error}</p> : null}
           <SubmitButton />
         </form>
-        <div className="mt-4 flex flex-col gap-2 text-center text-sm text-muted-foreground">
+        <div className="text-muted-foreground mt-4 flex flex-col gap-2 text-center text-sm">
           <Link href="/forgot-password" className="underline underline-offset-2">
             Lupa password?
           </Link>

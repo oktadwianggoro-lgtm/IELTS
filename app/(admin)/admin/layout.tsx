@@ -9,11 +9,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   await requireRole(["ADMIN"]);
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="flex h-16 items-center justify-between border-b border-border px-4 sm:px-6">
+    <div className="bg-background min-h-screen">
+      <header className="border-border flex h-16 items-center justify-between border-b px-4 sm:px-6">
         <div className="flex items-center gap-4">
           <Logo href="/admin" />
-          <span className="rounded bg-brand-navy px-2 py-0.5 text-xs font-medium text-brand-navy-foreground">
+          <span className="bg-brand-navy text-brand-navy-foreground rounded px-2 py-0.5 text-xs font-medium">
             Admin
           </span>
         </div>

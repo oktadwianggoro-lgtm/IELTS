@@ -167,7 +167,7 @@ default yang wajar untuk dipilih, bukan satu jawaban tunggal. Format: **Keputusa
 ### D-013: Database lokal pakai Docker Compose (`docker-compose.dev.yml`), bukan SQLite
 
 - **Keputusan:** PostgreSQL 17 (Alpine) via `docker compose -f
-  docker-compose.dev.yml up -d` untuk pengembangan lokal, sesuai stack Master
+docker-compose.dev.yml up -d` untuk pengembangan lokal, sesuai stack Master
   Prompt §4 (bukan SQLite sebagai pengganti sementara).
 - **Alasan:** Docker Desktop tersedia dan berfungsi di mesin ini. Memakai
   PostgreSQL sejak awal menghindari perbedaan perilaku tipe data/fungsi SQL
@@ -224,7 +224,7 @@ default yang wajar untuk dipilih, bukan satu jawaban tunggal. Format: **Keputusa
 
 - **Keputusan:** Master Prompt §13 menyebut `Role` sebagai salah satu model.
   Di Fase 1, ini diimplementasikan sebagai `enum Role { STUDENT TEACHER ADMIN }`
-  + kolom `role` pada `User`, bukan tabel relasi many-to-many terpisah.
+  - kolom `role` pada `User`, bukan tabel relasi many-to-many terpisah.
 - **Alasan:** Tiga peran tetap dan saling eksklusif (satu pengguna = satu
   peran) sesuai seluruh penjelasan RBAC di Master Prompt; tabel `Role`
   terpisah hanya diperlukan untuk multi-role-per-user atau peran dinamis yang
@@ -232,7 +232,28 @@ default yang wajar untuk dipilih, bukan satu jawaban tunggal. Format: **Keputusa
 - **Tinjau ulang:** Jika kebutuhan multi-role-per-user atau peran kustom
   muncul (mis. "guru sekaligus admin kelas tertentu"), migrasi ke tabel relasi.
 
-### D-017: Hanya "Beranda" punya halaman nyata di Fase 0; 15 menu lain pakai stub "segera tersedia"
+### D-017: `trustHost: true` di NextAuth, `AUTH_URL` sengaja tidak di-set di dev
+
+- **Keputusan:** `auth.ts` mengaktifkan `trustHost: true`. `.env` TIDAK berisi
+  `AUTH_URL`.
+- **Alasan:** Tanpa `trustHost`, NextAuth v5 hanya mempercayai origin yang
+  cocok persis dengan `AUTH_URL` yang di-hardcode (default `.env` sebelumnya:
+  `http://localhost:3000`). Ini ditemukan lewat E2E test yang gagal: server
+  `npm run start -p 3100` (dipakai Playwright) tetap meredirect ke
+  `http://localhost:3000/onboarding` setelah login — port yang salah, tidak
+  ada yang listen di sana — menyebabkan `ERR_CONNECTION_REFUSED`. Men-set
+  `trustHost: true` membuat NextAuth memakai Host header request yang
+  sesungguhnya, benar untuk `:3000` (dev), `:3100` (E2E), maupun domain VPS
+  asli nanti — selama Nginx meneruskan header `Host` dengan benar (Fase 17).
+- **Alternatif:** Menyamakan `AUTH_URL` dengan port yang dipakai setiap kali
+  — ditolak karena rapuh (gampang lupa disesuaikan) dan tidak scalable ke
+  multi-environment.
+- **Tinjau ulang:** Saat setup Nginx di Fase 17, pastikan header
+  `X-Forwarded-Host`/`Host` diteruskan dengan benar; jika deployment di
+  belakang proxy yang tidak bisa dipercaya header-nya, pertimbangkan
+  mengembalikan `AUTH_URL` eksplisit untuk environment tersebut saja.
+
+### D-018: Hanya "Beranda" punya halaman nyata di Fase 0; 15 menu lain pakai stub "segera tersedia"
 
 - **Keputusan:** Semua item navigasi di `lib/nav-config.ts` punya route yang benar
   (bisa diklik dan berpindah halaman), tapi hanya `/dashboard` berisi konten nyata.

@@ -39,10 +39,18 @@ const TIMEZONES = [
   { value: "Asia/Jayapura", label: "WIT — Jayapura" },
 ];
 
-function NextButton({ onClick }: { onClick: () => void }) {
+function NextButton({ onClick, label }: { onClick: () => void; label: string }) {
   return (
     <Button type="button" onClick={onClick}>
-      Lanjut
+      {label}
+    </Button>
+  );
+}
+
+function BackButton({ onClick, label }: { onClick: () => void; label: string }) {
+  return (
+    <Button type="button" variant="outline" onClick={onClick}>
+      {label}
     </Button>
   );
 }
@@ -57,10 +65,7 @@ function SubmitButton() {
 }
 
 export function OnboardingWizard() {
-  const [state, formAction] = useActionState<ActionState, FormData>(
-    completeOnboardingAction,
-    null,
-  );
+  const [state, formAction] = useActionState<ActionState, FormData>(completeOnboardingAction, null);
   const [step, setStep] = useState(0);
   const [reminderEnabled, setReminderEnabled] = useState(false);
 
@@ -78,7 +83,7 @@ export function OnboardingWizard() {
       </CardHeader>
       <CardContent>
         {hasErrors ? (
-          <p className="mb-4 text-sm text-destructive">
+          <p className="text-destructive mb-4 text-sm">
             Ada isian yang belum valid. Periksa kembali langkah sebelumnya.
           </p>
         ) : null}
@@ -91,7 +96,7 @@ export function OnboardingWizard() {
                 {learningGoalValues.map((value) => (
                   <label
                     key={value}
-                    className="flex items-center gap-2 rounded-md border border-border p-2.5 text-sm has-[[data-checked]]:border-brand-navy"
+                    className="border-border has-[[data-checked]]:border-brand-navy flex items-center gap-2 rounded-md border p-2.5 text-sm"
                   >
                     <RadioGroupItem value={value} />
                     {LEARNING_GOAL_LABEL[value]}
@@ -105,7 +110,7 @@ export function OnboardingWizard() {
                 {testTypeValues.map((value) => (
                   <label
                     key={value}
-                    className="flex items-center gap-2 rounded-md border border-border p-2.5 text-sm has-[[data-checked]]:border-brand-navy"
+                    className="border-border has-[[data-checked]]:border-brand-navy flex items-center gap-2 rounded-md border p-2.5 text-sm"
                   >
                     <RadioGroupItem value={value} />
                     {TEST_TYPE_LABEL[value]}
@@ -115,7 +120,7 @@ export function OnboardingWizard() {
             </div>
             <div className="flex justify-between">
               <Button render={<Link href="/dashboard">Lewati, isi nanti</Link>} variant="ghost" />
-              <NextButton onClick={() => setStep(1)} />
+              <NextButton onClick={() => setStep(1)} label={`Lanjut: ${STEPS[1]}`} />
             </div>
           </section>
 
@@ -169,10 +174,8 @@ export function OnboardingWizard() {
               </Select>
             </div>
             <div className="flex justify-between">
-              <Button type="button" variant="outline" onClick={() => setStep(0)}>
-                Kembali
-              </Button>
-              <NextButton onClick={() => setStep(2)} />
+              <BackButton onClick={() => setStep(0)} label={`Kembali: ${STEPS[0]}`} />
+              <NextButton onClick={() => setStep(2)} label={`Lanjut: ${STEPS[2]}`} />
             </div>
           </section>
 
@@ -188,7 +191,7 @@ export function OnboardingWizard() {
                 {dailyStudyMinutesValues.map((value) => (
                   <label
                     key={value}
-                    className="flex items-center gap-2 rounded-md border border-border p-2.5 text-sm has-[[data-checked]]:border-brand-navy"
+                    className="border-border has-[[data-checked]]:border-brand-navy flex items-center gap-2 rounded-md border p-2.5 text-sm"
                   >
                     <RadioGroupItem value={value} />
                     {DAILY_STUDY_MINUTES_LABEL[value]}
@@ -217,7 +220,7 @@ export function OnboardingWizard() {
                 {interfaceLanguageValues.map((value) => (
                   <label
                     key={value}
-                    className="flex items-center gap-2 rounded-md border border-border p-2.5 text-sm has-[[data-checked]]:border-brand-navy"
+                    className="border-border has-[[data-checked]]:border-brand-navy flex items-center gap-2 rounded-md border p-2.5 text-sm"
                   >
                     <RadioGroupItem value={value} />
                     {value === "ID" ? "Bahasa Indonesia" : "English"}
@@ -225,10 +228,10 @@ export function OnboardingWizard() {
                 ))}
               </RadioGroup>
             </div>
-            <div className="flex items-center justify-between rounded-md border border-border p-3">
+            <div className="border-border flex items-center justify-between rounded-md border p-3">
               <div>
                 <p className="text-sm font-medium">Pengingat belajar harian</p>
-                <p className="text-xs text-muted-foreground">Bisa dimatikan kapan saja.</p>
+                <p className="text-muted-foreground text-xs">Bisa dimatikan kapan saja.</p>
               </div>
               <Switch
                 name="reminderEnabled"
@@ -242,11 +245,9 @@ export function OnboardingWizard() {
                 <Input id="reminderTime" name="reminderTime" type="time" defaultValue="19:00" />
               </div>
             ) : null}
-            {state?.error ? <p className="text-sm text-destructive">{state.error}</p> : null}
+            {state?.error ? <p className="text-destructive text-sm">{state.error}</p> : null}
             <div className="flex justify-between">
-              <Button type="button" variant="outline" onClick={() => setStep(1)}>
-                Kembali
-              </Button>
+              <BackButton onClick={() => setStep(1)} label={`Kembali: ${STEPS[1]}`} />
               <SubmitButton />
             </div>
           </section>

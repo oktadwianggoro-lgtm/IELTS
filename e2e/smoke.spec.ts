@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { registerAndLandOnDashboard } from "./helpers";
 
 test("landing page shows the brand, CTA, and the required IELTS disclaimer", async ({ page }) => {
   await page.goto("/");
@@ -7,36 +8,47 @@ test("landing page shows the brand, CTA, and the required IELTS disclaimer", asy
   await expect(page.getByText(/bukan penyelenggara atau mitra resmi IELTS/i)).toBeVisible();
 });
 
-test("primary CTA navigates to the dashboard with honest empty states", async ({ page }) => {
+test("primary CTA leads to login, then the dashboard shows honest empty states", async ({
+  page,
+}) => {
   await page.goto("/");
   await page.getByRole("link", { name: /mulai belajar gratis/i }).click();
-  await expect(page).toHaveURL(/\/dashboard$/);
+  // Not signed in yet, so the CTA should land on login (with dashboard as the
+  // post-login destination), not silently show a dashboard to a stranger.
+  await expect(page).toHaveURL(/\/login\?callbackUrl=%2Fdashboard/);
+
+  await registerAndLandOnDashboard(page, "landing-cta");
   await expect(page.getByText(/belum ada rencana belajar/i)).toBeVisible();
   await expect(page.getByText(/belum ada progress/i)).toBeVisible();
 });
 
 test("a not-yet-built section honestly says so instead of faking content", async ({ page }) => {
+  await registerAndLandOnDashboard(page, "coming-soon");
   await page.goto("/tryout");
   await expect(page.getByText(/segera tersedia/i)).toBeVisible();
   await expect(page.getByText(/fase 11/i)).toBeVisible();
 });
 
 test("language toggle switches dashboard copy to English", async ({ page }) => {
-  await page.goto("/dashboard");
+  // The dashboard greets a named user with "Halo, {name}!" instead of the
+  // dictionary's generic welcome title, so assert on body copy that stays
+  // dictionary-driven regardless of personalization.
+  await registerAndLandOnDashboard(page, "lang-toggle");
+  await expect(page.getByText(/rencana hari ini/i)).toBeVisible();
   await page.getByRole("group", { name: "Bahasa" }).getByRole("button", { name: "EN" }).click();
-  await expect(page.getByText(/welcome to success ielts/i)).toBeVisible();
+  await expect(page.getByText(/today's plan/i)).toBeVisible();
 });
 
 test.describe("responsive navigation", () => {
   test("shows the sidebar on desktop viewports", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
-    await page.goto("/dashboard");
+    await registerAndLandOnDashboard(page, "nav-desktop");
     await expect(page.getByRole("navigation", { name: "Navigasi utama" }).first()).toBeVisible();
   });
 
   test("shows the bottom nav on mobile viewports", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto("/dashboard");
+    await registerAndLandOnDashboard(page, "nav-mobile");
     await expect(page.getByRole("link", { name: /^Beranda$/ })).toBeVisible();
   });
 });

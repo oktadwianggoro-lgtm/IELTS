@@ -36,17 +36,17 @@ export default function ForgotPasswordPage() {
             <Label htmlFor="email">Email</Label>
             <Input id="email" name="email" type="email" autoComplete="email" required />
             {state?.fieldErrors?.email ? (
-              <p className="text-xs text-destructive">{state.fieldErrors.email[0]}</p>
+              <p className="text-destructive text-xs">{state.fieldErrors.email[0]}</p>
             ) : null}
           </div>
           <SubmitButton />
         </form>
         {submitted ? (
-          <p className="mt-4 text-sm text-muted-foreground">
+          <p className="text-muted-foreground mt-4 text-sm">
             Jika email terdaftar, tautan reset password telah dikirim. Periksa kotak masuk Anda.
           </p>
         ) : null}
-        <p className="mt-4 text-center text-sm text-muted-foreground">
+        <p className="text-muted-foreground mt-4 text-center text-sm">
           <Link href="/login" className="underline underline-offset-2">
             Kembali ke halaman masuk
           </Link>

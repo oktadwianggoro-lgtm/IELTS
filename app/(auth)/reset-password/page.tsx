@@ -76,14 +76,14 @@ export default function ResetPasswordPage() {
               autoComplete="new-password"
               required
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-muted-foreground text-xs">
               Minimal 8 karakter, mengandung huruf dan angka.
             </p>
             {state?.fieldErrors?.password ? (
-              <p className="text-xs text-destructive">{state.fieldErrors.password[0]}</p>
+              <p className="text-destructive text-xs">{state.fieldErrors.password[0]}</p>
             ) : null}
           </div>
-          {state?.error ? <p className="text-sm text-destructive">{state.error}</p> : null}
+          {state?.error ? <p className="text-destructive text-sm">{state.error}</p> : null}
           <SubmitButton />
         </form>
       </CardContent>

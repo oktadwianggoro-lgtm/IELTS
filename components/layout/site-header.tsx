@@ -20,7 +20,7 @@ export function SiteHeader({ user }: { user?: HeaderUser }) {
   const { t } = useLocale();
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur sm:px-6">
+    <header className="border-border bg-background/95 sticky top-0 z-30 flex h-16 items-center justify-between border-b px-4 backdrop-blur sm:px-6">
       <div className="lg:hidden">
         <Logo />
       </div>
