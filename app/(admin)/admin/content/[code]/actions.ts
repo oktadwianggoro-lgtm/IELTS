@@ -234,3 +234,38 @@ export async function transitionSpeakingPromptStatusAction(
   revalidatePath("/admin/content");
   return null;
 }
+
+export async function transitionMockTestStatusAction(
+  mockTestCode: string,
+  targetStatus: ContentStatus,
+): Promise<ContentActionState> {
+  const user = await requireRole(["ADMIN", "TEACHER"]);
+
+  const mockTest = await prisma.mockTest.findUnique({ where: { code: mockTestCode } });
+  if (!mockTest) return { error: "Mock test tidak ditemukan." };
+
+  const allowed = TRANSITIONS[mockTest.reviewStatus].find((t) => t.to === targetStatus);
+  if (!allowed) {
+    return { error: `Tidak bisa pindah dari ${mockTest.reviewStatus} ke ${targetStatus}.` };
+  }
+  if (!allowed.allowedRoles.includes(user.role)) {
+    return { error: "Anda tidak punya izin untuk tindakan ini." };
+  }
+
+  const isReviewDecision = targetStatus === "APPROVED" || targetStatus === "PUBLISHED";
+
+  // No nested cascade needed — a MockTestSection references an existing
+  // Listening/ReadingPassage's own review status, it doesn't carry one of
+  // its own to cascade.
+  await prisma.mockTest.update({
+    where: { code: mockTestCode },
+    data: {
+      reviewStatus: targetStatus,
+      ...(isReviewDecision ? { reviewedById: user.id, reviewedAt: new Date() } : {}),
+    },
+  });
+
+  revalidatePath(`/admin/content/${mockTestCode}`);
+  revalidatePath("/admin/content");
+  return null;
+}

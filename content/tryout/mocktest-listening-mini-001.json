@@ -1,0 +1,17 @@
+{
+  "code": "MOCKTEST-LISTENING-MINI-001",
+  "title": "Listening Mini Mock — 2 Section",
+  "blueprint": {
+    "code": "BLUEPRINT-LISTENING-MINI-001",
+    "title": "Listening Mini Mock",
+    "examType": "ACADEMIC",
+    "kind": "MINI_MOCK",
+    "skill": "LISTENING",
+    "description": "Versi singkat Listening test dengan 2 section (bukan 4 section penuh) untuk latihan format ujian: timer berkelanjutan, navigator soal, flag/review, dan auto-submit. Soal dan audio sama persis dengan Listening Lab, hanya mode pengerjaannya yang berbeda (satu timer untuk seluruh test, bukan per-passage). Berlaku sama untuk kandidat Academic maupun General Training — Listening tidak berbeda antara kedua tipe tes.",
+    "totalSeconds": 900
+  },
+  "sections": [
+    { "order": 1, "listeningPassageCode": "LISTENING-S1-001" },
+    { "order": 2, "listeningPassageCode": "LISTENING-S3-001" }
+  ]
+}

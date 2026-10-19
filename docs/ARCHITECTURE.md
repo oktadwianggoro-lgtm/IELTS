@@ -1,6 +1,6 @@
 # Arsitektur — Success IELTS
 
-Status: Fase 10 (Speaking Lab — rekaman opt-in, self-assessment, model answer).
+Status: Fase 11 (Tryout — mode ujian, auto-submit server-side, estimasi band).
 Dokumen ini akan diperluas pada setiap fase berikutnya.
 
 ## 1. Ringkasan
@@ -174,8 +174,12 @@ Sesuai instruksi "satu fase pada satu waktu":
   per part; satu rekaman per submission bukan per pertanyaan; tanpa
   transkripsi/skor AI — belum ada kredensial provider untuk itu, lihat
   D-037).
-- Tidak ada scoring/AI feedback otomatis atas esai/speaking (Fase 11, tabel
-  konversi band terverifikasi untuk tryout).
+- ~~Tidak ada Tryout/mode ujian/estimasi band~~ — selesai Fase 11, lihat §16
+  (hanya mock test single-skill Listening/Reading, bukan full 4-skill
+  mock; tabel konversi band adalah estimasi terverifikasi, bukan tabel
+  resmi tunggal — IELTS sendiri tidak mempublikasikan itu; lihat D-038).
+- Tidak ada scoring/AI feedback otomatis atas esai/speaking (butuh
+  kredensial provider AI yang belum disediakan — lihat D-035/D-037).
 - Tidak ada Docker/deployment (Fase 17).
 
 ## 8. Pipeline konten (Fase 2)
@@ -493,7 +497,52 @@ self-assessment, alur editorial yang sama dengan tipe konten lain),
   sama seperti WritingTask — free-response, tidak ada baris `Question`
   anak).
 
-## 15. Menjalankan proyek secara lokal
+## 16. Tryout, mode ujian, dan estimasi band (Fase 11)
+
+`/tryout` (katalog mock test) → `/tryout/[mockTestCode]` (attempt runner
+mode ujian). Model baru: `BandConversionTable`, `TestBlueprint`/
+`MockTest`/`MockTestSection` (struktur dan waktu), `Attempt`/
+`AttemptAnswer`/`AttemptEvent` (satu percobaan pengguna).
+
+- **Deadline server-side, bukan client-side** — `Attempt.deadlineAt`
+  dihitung sekali saat attempt dibuat dan menjadi satu-satunya sumber
+  kebenaran. `finalizeIfExpired()` (`app/(app)/tryout/[mockTestCode]/actions.ts`)
+  dipanggil di setiap entry point (baca maupun tulis) sehingga auto-submit
+  selalu benar meski klien offline lama atau timer client tidak pernah
+  sempat berjalan sampai nol. Lihat D-038 untuk detail dan cara ini
+  diverifikasi end-to-end.
+- **`AttemptRunner`** (`components/tryout/`): mesin status eksplisit
+  (loading → not-started → in-progress → completed), navigator soal LINTAS
+  SECTION (bukan per-passage seperti Listening/Reading Lab), autosave
+  per-jawaban ter-debounce, flag/review, dan timer `setInterval` yang
+  menghitung dari `deadlineAt` absolut (bukan durasi relatif) — sehingga
+  reload/resume menampilkan sisa waktu yang benar, bukan mereset ke
+  durasi penuh.
+- **Reuse penuh, bukan grader baru** — `gradeAnswer()`/`QuestionInput`/
+  `toSubmittedValue()` dari Fase 3 dipakai apa adanya. Soal di dalam
+  MockTestSection adalah `Question` yang sama persis dengan yang dipakai
+  Listening/Reading Lab (lewat `listeningPassageId`/`readingPassageId`
+  yang sudah ada) — tidak ada passage/soal baru dibuat untuk Tryout.
+- **Satu skill per MockTest** (lihat D-038) — setiap mock test yang
+  di-seed hanya LISTENING atau READING, tidak ada full 4-skill mock dalam
+  satu attempt bertimer tunggal.
+- **Scoring terdokumentasi penuh** (`docs/SCORING.md`,
+  `lib/scoring/overall-band.ts`, `lib/scoring/raw-to-band.ts`) — tidak ada
+  angka konversi yang di-hardcode; `rawToBand()` selalu membaca
+  `BandConversionTable` dari database, dan mengembalikan `null` (bukan
+  tebakan) untuk raw score di luar cakupan tabel yang terverifikasi.
+- **Hasil Tryout masuk Buku Kesalahan** — soal yang salah memakai
+  `recordQuestionAttempt()` yang sama dengan Listening/Reading Lab
+  (`AttemptSource.TRYOUT`), bukan logic baru. Tidak ada review per-soal
+  (explanation/evidence) di hasil, hanya skor agregat — meniru bagaimana
+  skor IELTS asli bekerja.
+- **CMS:** `/admin/content` diperluas dengan kartu "Mock Tests (Tryout)",
+  alur editorial yang sama dengan tipe konten lain. Pembuatan
+  blueprint/mock test baru dari nol ("test builder") masih lewat
+  `content/tryout/*.json` + pipeline import yang sama seperti tipe konten
+  lain — UI admin untuk itu ada di cakupan Fase 13 (lihat D-038).
+
+## 17. Menjalankan proyek secara lokal
 
 Lihat `README.md` untuk perintah lengkap. Ringkas:
 

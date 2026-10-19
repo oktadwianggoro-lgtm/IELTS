@@ -859,3 +859,68 @@ docker-compose.dev.yml up -d` untuk pengembangan lokal, sesuai stack Master
   menguji pipeline rekaman SUNGGUHAN end-to-end (rekam → upload → simpan
   ke disk → putar ulang lewat route terproteksi), bukan di-skip atau
   di-mock, konsisten dengan prinsip sesi ini untuk tidak memalsukan test.
+
+## Fase 11
+
+### D-038: MockTest single-skill saja (bukan full 4-skill mock); deadline server-side via `deadlineAt`, bukan dipercaya dari client; test builder admin ditunda ke Fase 13
+
+- **Keputusan (single-skill):** Setiap `MockTest` yang dibangun/di-seed di
+  fase ini hanya mencakup SATU skill (`TestBlueprint.skill`: LISTENING atau
+  READING) — tidak ada "Full Mock Test" 4-skill (Listening+Reading+Writing+
+  Speaking) dalam satu attempt bertimer tunggal. Tiga mock test di-seed:
+  Listening Mini Mock (2 section, reuse `LISTENING-S1-001`/`LISTENING-S3-001`
+  dari Fase 7), Academic Reading Section Test dan General Training Reading
+  Section Test (masing-masing reuse 1 passage dari Fase 8).
+- **Alasan:** Menyatukan Writing/Speaking ke dalam alur attempt bertimer
+  tunggal yang sama butuh menggabungkan essay-writing/perekaman audio ke
+  DALAM state machine Attempt yang sama — kerumitan tambahan signifikan
+  (upload rekaman di tengah attempt, auto-submit yang juga harus
+  menyimpan draft esai, dst.) untuk manfaat yang bisa dicapai lebih
+  sederhana: Writing Lab (Fase 9) dan Speaking Lab (Fase 10) SUDAH
+  menyediakan latihan bertimer per-task untuk kedua skill ini secara
+  independen. `calculateOverallBand()` (lib/scoring/overall-band.ts)
+  dibangun generik dan diuji penuh terhadap 4 angka band APAPUN sumbernya,
+  supaya siap dipakai begitu alur full mock 4-skill benar-benar dibangun
+  (bukan dipaksakan sekarang) — lihat docs/SCORING.md §4.
+- **Keputusan (deadline server-side):** `Attempt.deadlineAt` dihitung SEKALI
+  saat attempt dibuat (`startedAt + blueprint.totalSeconds`) dan menjadi
+  SATU-SATUNYA sumber kebenaran untuk auto-submit. Client punya timer
+  tampilannya sendiri (`setInterval` menghitung mundur dari `deadlineAt`),
+  tapi SETIAP entry point server (`getAttemptStateAction`,
+  `saveAnswerAction`, `submitAttemptAction`) memanggil
+  `finalizeIfExpired()` lebih dulu — kalau waktu client berbeda, koneksi
+  terputus lama, atau tab ditutup sampai lewat deadline, request
+  BERIKUTNYA yang menyentuh attempt itu (termasuk sekadar me-reload
+  halaman) otomatis men-finalize-nya. Diverifikasi end-to-end lewat
+  `e2e/tryout.spec.ts`: deadline dipaksa ke masa lalu langsung lewat
+  Prisma, lalu `page.reload()` terbukti memicu auto-submit tanpa timer
+  client pernah berjalan sampai nol.
+- **Keputusan (admin "test builder" ditunda):** Master Prompt sendiri
+  menugaskan "test builder dan blueprint tryout" ke Fase 13 CMS. Fase ini
+  karena itu men-seed `TestBlueprint`/`MockTest`/`MockTestSection` lewat
+  `content/tryout/*.json` + pipeline import yang sama seperti tipe konten
+  lain (bukan UI buatan admin dari nol), dan `/admin/content` hanya
+  memberi alur editorial DRAFT→PUBLISHED yang sama seperti tipe konten
+  lain (baca-saja untuk struktur section, bisa transisi status). Ini
+  konsisten dengan apa yang Master Prompt sendiri minta per fase, bukan
+  penyederhanaan sepihak.
+- **Soal yang salah di Tryout tetap masuk Buku Kesalahan** — `AttemptSource`
+  mendapat nilai baru `TRYOUT`, memakai `recordQuestionAttempt()` yang
+  sama persis dipakai Listening/Reading Lab (D-030/D-034 lineage), bukan
+  logic grading baru. `timeSpentMs` diisi 0 untuk setiap soal karena
+  Tryout memakai SATU timer berkelanjutan untuk seluruh test (bukan
+  per-soal) — lihat docs/SCORING.md §4 untuk kenapa ini diterima sebagai
+  keterbatasan jujur, bukan angka yang dipalsukan.
+- **Tidak ada review per-soal (explanation/evidence) di hasil Tryout** —
+  berbeda dari mode latihan Listening/Reading Lab. Hasil Tryout hanya
+  menampilkan raw score, estimasi band, akurasi per tipe soal, waktu
+  dipakai, dan topik lemah — meniru bagaimana skor IELTS asli bekerja
+  (dapat skor, bukan kunci jawaban per soal). Pengguna yang ingin
+  penjelasan per soal diarahkan kembali ke Listening/Reading Lab.
+- **Tinjau ulang:** Begitu Fase 13 membangun test builder admin yang
+  sesungguhnya, decision di atas tentang seeding lewat `content/tryout/`
+  tetap valid sebagai MEKANISME IMPORT (admin builder bisa menulis ke
+  tabel yang sama), tapi UI pembuatan blueprint dari nol pindah ke admin.
+  Begitu Writing/Speaking punya skor numerik (butuh AI scoring yang belum
+  ada kredensialnya — lihat D-035/D-037), full mock 4-skill jadi masuk akal
+  untuk dibangun memakai `calculateOverallBand()` yang sudah siap.

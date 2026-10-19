@@ -88,6 +88,25 @@ describe("loadContent (real content/ directory)", () => {
     }
   });
 
+  it("loads the seeded mock tests, each matching its blueprint's single skill", () => {
+    const result = loadContent(contentRoot);
+    expect(result.mockTests.length).toBeGreaterThanOrEqual(3);
+    const listeningCodes = new Set(result.listeningPassages.map((p) => p.code));
+    const readingCodes = new Set(result.readingPassages.map((p) => p.code));
+    for (const mockTest of result.mockTests) {
+      expect(mockTest.sections.length).toBeGreaterThan(0);
+      for (const section of mockTest.sections) {
+        if (mockTest.blueprint.skill === "LISTENING") {
+          expect(section.listeningPassageCode).toBeDefined();
+          expect(listeningCodes.has(section.listeningPassageCode!)).toBe(true);
+        } else if (mockTest.blueprint.skill === "READING") {
+          expect(section.readingPassageCode).toBeDefined();
+          expect(readingCodes.has(section.readingPassageCode!)).toBe(true);
+        }
+      }
+    }
+  });
+
   it("resolves every MATCHING question's single-letter options to a real paragraph label", () => {
     const result = loadContent(contentRoot);
     for (const passage of result.readingPassages) {

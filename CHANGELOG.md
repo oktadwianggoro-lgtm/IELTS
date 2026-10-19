@@ -2,6 +2,69 @@
 
 Semua perubahan penting pada Success IELTS dicatat di sini, per fase pengembangan.
 
+## Fase 11 — Tryout, mode ujian, estimasi band
+
+### Ditambahkan
+
+- `/tryout` (katalog mock test) dan `/tryout/[mockTestCode]` (attempt
+  runner mode ujian): timer berkelanjutan, navigator soal lintas section,
+  flag/review, autosave per jawaban, resume setelah reload/koneksi
+  terputus, dan auto-submit server-side saat waktu habis.
+- Model baru: `BandConversionTable` (tabel konversi raw score → band,
+  selalu dibaca dari DB — tidak pernah di-hardcode sebagai konstanta),
+  `TestBlueprint`/`MockTest`/`MockTestSection` (struktur tryout, section
+  mereferensikan passage Listening/Reading yang sudah ada), `Attempt`/
+  `AttemptAnswer`/`AttemptEvent` (satu attempt per percobaan pengguna,
+  `deadlineAt` dihitung sekali di server sebagai satu-satunya sumber
+  kebenaran untuk auto-submit).
+- `lib/scoring/overall-band.ts` — `calculateOverallBand()`, implementasi
+  teruji penuh dari aturan pembulatan resmi ielts.org (rata-rata 4 skill,
+  .25 dibulatkan naik ke half band, .75 dibulatkan naik ke whole band).
+- `lib/scoring/raw-to-band.ts` — `rawToBand()`, membaca baris aktif dari
+  `BandConversionTable`; mengembalikan `null` (bukan tebakan) jika raw
+  score di luar cakupan tabel yang terverifikasi.
+- `docs/SCORING.md` — definisi, rumus, sumber (dikutip dan diverifikasi
+  dari ielts.org dan ielts.idp.com), asumsi, keterbatasan, dan test case
+  untuk setiap fungsi scoring.
+- 3 mock test di-seed lewat `content/tryout/*.json` (pipeline import yang
+  sama seperti tipe konten lain), semuanya reuse passage Listening/Reading
+  yang sudah ada dari Fase 7/8 — tidak ada passage baru: Listening Mini
+  Mock (2 section), Academic Reading Section Test, General Training
+  Reading Section Test.
+- Hasil Tryout menampilkan raw score, estimasi band (dengan sumber dan
+  tanggal verifikasi), akurasi per tipe soal, waktu dipakai, dan topik
+  lemah; soal yang salah otomatis masuk Buku Kesalahan (`AttemptSource.TRYOUT`,
+  memakai `recordQuestionAttempt()` yang sama dengan Listening/Reading Lab).
+- `/admin/content` diperluas dengan kartu "Mock Tests (Tryout)" dan alur
+  editorial DRAFT→PUBLISHED yang sama dengan tipe konten lain.
+- `e2e/tryout.spec.ts`: katalog, jawaban+flag bertahan setelah reload
+  dengan timer yang benar-benar melanjutkan (bukan reset), submit
+  menampilkan skor dan mengisi Buku Kesalahan, auto-submit server-side
+  (deadline dipaksa ke masa lalu langsung di DB, lalu dibuktikan reload
+  memicu finalisasi tanpa timer client pernah menyentuh nol), dan "Coba
+  Lagi" memulai attempt baru.
+
+### Catatan — lingkup yang sengaja dipersempit (lihat D-038 untuk detail)
+
+- Setiap mock test hanya satu skill (Listening ATAU Reading) — tidak ada
+  "Full Mock Test" 4-skill gabungan dalam satu attempt bertimer tunggal.
+  Writing Lab dan Speaking Lab (Fase 9/10) sudah menyediakan latihan
+  bertimer per-task untuk kedua skill itu secara independen.
+- Tabel konversi band Listening/Reading adalah estimasi yang di-cross-
+  reference dari IDP (salah satu dari tiga organisasi pemilik IELTS),
+  bukan tabel resmi tunggal — IELTS sendiri tidak mempublikasikan satu
+  tabel presisi universal (variasi antar versi tes adalah by design).
+  Raw score rendah yang tidak tercakup tabel menampilkan raw score saja,
+  bukan tebakan band.
+- Tidak ada review jawaban per-soal (explanation/evidence) di hasil
+  Tryout — meniru bagaimana skor IELTS asli bekerja (dapat skor, bukan
+  kunci jawaban). Pengguna yang ingin penjelasan per soal memakai
+  Listening/Reading Lab.
+- UI admin untuk membuat blueprint/mock test baru dari nol ("test
+  builder") belum ada — konten di-seed lewat `content/tryout/*.json`
+  seperti tipe konten lain; Master Prompt sendiri menugaskan test builder
+  admin ke Fase 13.
+
 ## Fase 10 — Speaking Lab
 
 ### Ditambahkan

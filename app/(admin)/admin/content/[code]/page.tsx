@@ -7,6 +7,7 @@ import { StatusTransitionButtons } from "@/components/content/status-transition-
 import {
   transitionLessonStatusAction,
   transitionListeningPassageStatusAction,
+  transitionMockTestStatusAction,
   transitionReadingPassageStatusAction,
   transitionSpeakingPromptStatusAction,
   transitionWritingTaskStatusAction,
@@ -425,94 +426,163 @@ export default async function AdminContentDetailPage({
     include: { reviewedBy: { select: { name: true, email: true } } },
   });
 
-  if (!speakingPrompt) notFound();
+  if (speakingPrompt) {
+    const cueCardPoints = speakingPrompt.cueCardPoints as string[] | null;
+    const followUpQuestions = speakingPrompt.followUpQuestions as string[];
+    const speakingChecklistItems = speakingPrompt.checklistItems as string[];
 
-  const cueCardPoints = speakingPrompt.cueCardPoints as string[] | null;
-  const followUpQuestions = speakingPrompt.followUpQuestions as string[];
-  const speakingChecklistItems = speakingPrompt.checklistItems as string[];
+    return (
+      <div className="mx-auto max-w-3xl space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex flex-wrap items-center gap-2">
+              {speakingPrompt.code}
+              <Badge>
+                {STATUS_LABEL[speakingPrompt.reviewStatus] ?? speakingPrompt.reviewStatus}
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <div className="text-muted-foreground grid grid-cols-2 gap-2">
+              <p>Part: {SPEAKING_PART_LABEL[speakingPrompt.part]}</p>
+              <p>Level: {PEDAGOGICAL_LEVEL_LABEL[speakingPrompt.level]}</p>
+              <p>Topik: {speakingPrompt.topic}</p>
+              <p>
+                Persiapan/bicara: {speakingPrompt.prepSeconds}s / {speakingPrompt.responseSeconds}s
+              </p>
+              <p>Versi konten: {speakingPrompt.contentVersion}</p>
+              <p>Terakhir diperbarui: {speakingPrompt.lastUpdatedAt.toLocaleString("id-ID")}</p>
+              {speakingPrompt.reviewedBy ? (
+                <p className="col-span-2">
+                  Ditinjau oleh: {speakingPrompt.reviewedBy.name ?? speakingPrompt.reviewedBy.email}{" "}
+                  pada {speakingPrompt.reviewedAt?.toLocaleString("id-ID")}
+                </p>
+              ) : null}
+              {speakingPrompt.sourceNotes ? (
+                <p className="col-span-2">Catatan sumber: {speakingPrompt.sourceNotes}</p>
+              ) : null}
+            </div>
+            <Separator />
+            <StatusTransitionButtons
+              code={speakingPrompt.code}
+              currentStatus={speakingPrompt.reviewStatus}
+              onTransition={transitionSpeakingPromptStatusAction}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Prompt</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <p>{speakingPrompt.promptText}</p>
+            {cueCardPoints && cueCardPoints.length > 0 ? (
+              <ul className="list-disc space-y-1 pl-5">
+                {cueCardPoints.map((point, i) => (
+                  <li key={i}>{point}</li>
+                ))}
+              </ul>
+            ) : null}
+            {followUpQuestions.length > 0 ? (
+              <ol className="list-decimal space-y-1 pl-5">
+                {followUpQuestions.map((q, i) => (
+                  <li key={i}>{q}</li>
+                ))}
+              </ol>
+            ) : null}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Model Answer</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm whitespace-pre-line">
+            {speakingPrompt.modelAnswer}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Checklist Self-Assessment</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="list-disc space-y-1 pl-5 text-sm">
+              {speakingChecklistItems.map((item, i) => (
+                <li key={i}>{item}</li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const mockTest = await prisma.mockTest.findUnique({
+    where: { code },
+    include: {
+      blueprint: true,
+      reviewedBy: { select: { name: true, email: true } },
+      sections: {
+        orderBy: { order: "asc" },
+        include: {
+          listeningPassage: { select: { code: true, title: true } },
+          readingPassage: { select: { code: true, title: true } },
+        },
+      },
+    },
+  });
+
+  if (!mockTest) notFound();
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex flex-wrap items-center gap-2">
-            {speakingPrompt.code}
-            <Badge>
-              {STATUS_LABEL[speakingPrompt.reviewStatus] ?? speakingPrompt.reviewStatus}
-            </Badge>
+            {mockTest.code}
+            <Badge>{STATUS_LABEL[mockTest.reviewStatus] ?? mockTest.reviewStatus}</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           <div className="text-muted-foreground grid grid-cols-2 gap-2">
-            <p>Part: {SPEAKING_PART_LABEL[speakingPrompt.part]}</p>
-            <p>Level: {PEDAGOGICAL_LEVEL_LABEL[speakingPrompt.level]}</p>
-            <p>Topik: {speakingPrompt.topic}</p>
-            <p>
-              Persiapan/bicara: {speakingPrompt.prepSeconds}s / {speakingPrompt.responseSeconds}s
-            </p>
-            <p>Versi konten: {speakingPrompt.contentVersion}</p>
-            <p>Terakhir diperbarui: {speakingPrompt.lastUpdatedAt.toLocaleString("id-ID")}</p>
-            {speakingPrompt.reviewedBy ? (
+            <p>Exam type: {mockTest.blueprint.examType}</p>
+            <p>Skill: {mockTest.blueprint.skill}</p>
+            <p>Kind: {mockTest.blueprint.kind}</p>
+            <p>Durasi: {Math.round(mockTest.blueprint.totalSeconds / 60)} menit</p>
+            <p>Versi konten: {mockTest.contentVersion}</p>
+            <p>Terakhir diperbarui: {mockTest.lastUpdatedAt.toLocaleString("id-ID")}</p>
+            {mockTest.reviewedBy ? (
               <p className="col-span-2">
-                Ditinjau oleh: {speakingPrompt.reviewedBy.name ?? speakingPrompt.reviewedBy.email}{" "}
-                pada {speakingPrompt.reviewedAt?.toLocaleString("id-ID")}
+                Ditinjau oleh: {mockTest.reviewedBy.name ?? mockTest.reviewedBy.email} pada{" "}
+                {mockTest.reviewedAt?.toLocaleString("id-ID")}
               </p>
             ) : null}
-            {speakingPrompt.sourceNotes ? (
-              <p className="col-span-2">Catatan sumber: {speakingPrompt.sourceNotes}</p>
-            ) : null}
+            <p className="col-span-2">{mockTest.blueprint.description}</p>
           </div>
           <Separator />
           <StatusTransitionButtons
-            code={speakingPrompt.code}
-            currentStatus={speakingPrompt.reviewStatus}
-            onTransition={transitionSpeakingPromptStatusAction}
+            code={mockTest.code}
+            currentStatus={mockTest.reviewStatus}
+            onTransition={transitionMockTestStatusAction}
           />
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Prompt</CardTitle>
+          <CardTitle className="text-base">Sections ({mockTest.sections.length})</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3 text-sm">
-          <p>{speakingPrompt.promptText}</p>
-          {cueCardPoints && cueCardPoints.length > 0 ? (
-            <ul className="list-disc space-y-1 pl-5">
-              {cueCardPoints.map((point, i) => (
-                <li key={i}>{point}</li>
-              ))}
-            </ul>
-          ) : null}
-          {followUpQuestions.length > 0 ? (
-            <ol className="list-decimal space-y-1 pl-5">
-              {followUpQuestions.map((q, i) => (
-                <li key={i}>{q}</li>
-              ))}
-            </ol>
-          ) : null}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Model Answer</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3 text-sm whitespace-pre-line">
-          {speakingPrompt.modelAnswer}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Checklist Self-Assessment</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="list-disc space-y-1 pl-5 text-sm">
-            {speakingChecklistItems.map((item, i) => (
-              <li key={i}>{item}</li>
-            ))}
-          </ul>
+        <CardContent className="space-y-2 text-sm">
+          {mockTest.sections.map((s) => {
+            const passage = s.listeningPassage ?? s.readingPassage;
+            return (
+              <p key={s.id}>
+                {s.order}. {passage?.title} ({passage?.code})
+              </p>
+            );
+          })}
         </CardContent>
       </Card>
     </div>

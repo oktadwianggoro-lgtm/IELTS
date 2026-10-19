@@ -1,0 +1,14 @@
+{
+  "code": "MOCKTEST-READING-ACADEMIC-001",
+  "title": "Academic Reading Section Test — 1 Passage",
+  "blueprint": {
+    "code": "BLUEPRINT-READING-ACADEMIC-SECTION-001",
+    "title": "Academic Reading Section Test",
+    "examType": "ACADEMIC",
+    "kind": "SECTION_TEST",
+    "skill": "READING",
+    "description": "Satu passage Academic Reading dikerjakan dalam mode ujian: timer berkelanjutan, navigator soal, flag/review, autosave, dan auto-submit saat waktu habis. Passage dan soal sama persis dengan Reading Lab, hanya mode pengerjaannya yang berbeda.",
+    "totalSeconds": 1200
+  },
+  "sections": [{ "order": 1, "readingPassageCode": "READING-AC-001" }]
+}

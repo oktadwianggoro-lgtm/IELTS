@@ -66,7 +66,7 @@ export const navGroups: NavGroup[] = [
   {
     key: "exam",
     items: [
-      { href: "/tryout", key: "tryout", icon: ClipboardList, plannedPhase: "Fase 11" },
+      { href: "/tryout", key: "tryout", icon: ClipboardList },
       { href: "/buku-kesalahan", key: "mistakeBook", icon: BookMarked },
     ],
   },

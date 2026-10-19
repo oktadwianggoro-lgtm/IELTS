@@ -54,6 +54,9 @@ model User {
   reviewedSpeakingPrompts   SpeakingPrompt[]     @relation("SpeakingPromptReviewedBy")
   speakingSubmissions       SpeakingSubmission[]
   speakingRecordings        SpeakingRecording[]
+  createdMockTests          MockTest[]           @relation("MockTestCreatedBy")
+  reviewedMockTests         MockTest[]           @relation("MockTestReviewedBy")
+  attempts                  Attempt[]
   bookmarks                 Bookmark[]
   notes                     Note[]
   lessonProgress            LessonProgress[]
@@ -421,6 +424,7 @@ model Question {
   diagnosticAnswers  DiagnosticAnswer[]
   attempts           QuestionAttempt[]
   mistakeBookEntries MistakeBookEntry[]
+  attemptAnswers     AttemptAnswer[]
 
   estimatedSeconds Int?
 
@@ -633,6 +637,7 @@ enum AttemptSource {
   MISTAKE_REVIEW
   LISTENING_PRACTICE
   READING_PRACTICE
+  TRYOUT
 }
 
 /// Master Prompt §8.10: "Pengguna bisa menandai alasan error" — a fixed set
@@ -733,7 +738,8 @@ model ListeningPassage {
   script          Json
   sourceNotes     String?
 
-  questions Question[]
+  questions        Question[]
+  mockTestSections MockTestSection[]
 
   contentVersion Int           @default(1)
   reviewStatus   ContentStatus @default(DRAFT)
@@ -774,7 +780,8 @@ model ReadingPassage {
   paragraphs Json
   wordCount  Int
 
-  questions Question[]
+  questions        Question[]
+  mockTestSections MockTestSection[]
 
   contentVersion Int           @default(1)
   reviewStatus   ContentStatus @default(DRAFT)
@@ -988,4 +995,180 @@ model SpeakingSubmission {
 
   @@index([userId, speakingPromptId])
   @@map("speaking_submissions")
+}
+
+// ---------- Tryout / exam mode (Fase 11) ----------
+
+/// Never hardcoded as a constant in app logic — `rawToBand()`
+/// (lib/scoring/raw-to-band.ts) always reads the active row set from
+/// here, per Master Prompt §8.9/§13. IELTS does not publish one single
+/// universal official raw-to-band table (the mapping can vary slightly
+/// per test version), so this is seeded from a cited, dated third-party
+/// reference and is always presented as an estimate — see docs/SCORING.md.
+model BandConversionTable {
+  id         String          @id @default(cuid())
+  examType   ReadingExamType
+  /// LISTENING or READING only — Writing/Speaking are not raw-scored.
+  section    SkillArea
+  minRaw     Int
+  maxRaw     Int
+  band       Float
+  sourceUrl  String
+  verifiedAt DateTime
+  notes      String?
+  active     Boolean         @default(true)
+
+  createdAt DateTime @default(now())
+
+  @@index([examType, section, active])
+  @@map("band_conversion_table")
+}
+
+enum TestKind {
+  SECTION_TEST
+  MINI_MOCK
+  FULL_MOCK
+}
+
+/// Timing/structure rules for a tryout. The admin authoring UI for
+/// building new blueprints from scratch ("test builder") is Fase 13 —
+/// this phase seeds blueprints via content scripts, the same pattern as
+/// every other content type until then.
+model TestBlueprint {
+  id           String          @id @default(cuid())
+  code         String          @unique
+  title        String
+  examType     ReadingExamType
+  kind         TestKind
+  /// Primary skill this blueprint raw-scores. Mixed-skill FULL_MOCK
+  /// blueprints are schema-compatible but not built this phase — every
+  /// MockTest seeded so far is single-skill (D-038).
+  skill        SkillArea
+  description  String
+  /// One continuous timer across every section, matching the real IELTS
+  /// Listening/Reading format (no per-section stop/restart).
+  totalSeconds Int
+
+  mockTests MockTest[]
+
+  createdAt     DateTime @default(now())
+  lastUpdatedAt DateTime @updatedAt
+
+  @@map("test_blueprints")
+}
+
+model MockTest {
+  id          String        @id @default(cuid())
+  code        String        @unique
+  title       String
+  blueprintId String
+  blueprint   TestBlueprint @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
+
+  sections MockTestSection[]
+  attempts Attempt[]
+
+  contentVersion Int           @default(1)
+  reviewStatus   ContentStatus @default(DRAFT)
+  sourceType     String        @default("original")
+  sourceNotes    String?
+  createdById    String?
+  createdBy      User?         @relation("MockTestCreatedBy", fields: [createdById], references: [id])
+  reviewedById   String?
+  reviewedBy     User?         @relation("MockTestReviewedBy", fields: [reviewedById], references: [id])
+  reviewedAt     DateTime?
+
+  createdAt     DateTime @default(now())
+  lastUpdatedAt DateTime @updatedAt
+
+  @@index([reviewStatus])
+  @@map("mock_tests")
+}
+
+/// One passage per section — a whole ListeningPassage/ReadingPassage
+/// (with its own Question rows) becomes one section, same granularity as
+/// the real test ("Section 1-4" / "Passage 1-3").
+model MockTestSection {
+  id         String   @id @default(cuid())
+  mockTestId String
+  mockTest   MockTest @relation(fields: [mockTestId], references: [id], onDelete: Cascade)
+  order      Int
+
+  listeningPassageId String?
+  listeningPassage   ListeningPassage? @relation(fields: [listeningPassageId], references: [id])
+  readingPassageId   String?
+  readingPassage     ReadingPassage?   @relation(fields: [readingPassageId], references: [id])
+
+  @@unique([mockTestId, order])
+  @@map("mock_test_sections")
+}
+
+enum AttemptStatus {
+  IN_PROGRESS
+  SUBMITTED
+  AUTO_SUBMITTED
+}
+
+/// One user's run through a MockTest. `deadlineAt` is computed once at
+/// creation (startedAt + blueprint.totalSeconds) and is the sole
+/// server-side authority for auto-submit — a client-reported elapsed time
+/// is never trusted, since that's exactly the kind of value a client
+/// clock or network pause/resume can drift or be made to lie about.
+model Attempt {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mockTestId String
+  mockTest   MockTest @relation(fields: [mockTestId], references: [id], onDelete: Cascade)
+
+  status      AttemptStatus @default(IN_PROGRESS)
+  startedAt   DateTime      @default(now())
+  deadlineAt  DateTime
+  submittedAt DateTime?
+
+  /// string[] of Question.code currently flagged for review.
+  flaggedQuestionCodes Json @default("[]")
+
+  /// { rawScore, maxRawScore, band, accuracyByType, timeUsedSeconds,
+  /// weakTopics } — set once at submit time (manual or auto); null while
+  /// IN_PROGRESS.
+  result Json?
+
+  answers AttemptAnswer[]
+  events  AttemptEvent[]
+
+  @@index([userId, mockTestId])
+  @@map("attempts")
+}
+
+model AttemptAnswer {
+  id         String   @id @default(cuid())
+  attemptId  String
+  attempt    Attempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  /// string | string[], same submitted-value shape used elsewhere
+  /// (toSubmittedValue()).
+  value   Json
+  correct Boolean?
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([attemptId, questionId])
+  @@map("attempt_answers")
+}
+
+/// A lightweight audit trail ("started", "resumed", "flagged",
+/// "unflagged", "submitted", "auto_submitted") — supports "resume setelah
+/// koneksi terputus" by giving the client something to reconcile against,
+/// and is a cheap place to notice anomalies later without needing it for
+/// MVP correctness.
+model AttemptEvent {
+  id        String   @id @default(cuid())
+  attemptId String
+  attempt   Attempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  type      String
+  createdAt DateTime @default(now())
+
+  @@map("attempt_events")
 }

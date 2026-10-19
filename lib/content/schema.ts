@@ -345,3 +345,58 @@ export const speakingPromptFileSchema = z
     }
   });
 export type SpeakingPromptFile = z.infer<typeof speakingPromptFileSchema>;
+
+export const testKinds = ["SECTION_TEST", "MINI_MOCK", "FULL_MOCK"] as const;
+
+const mockTestSectionFileSchema = z
+  .object({
+    order: z.number().int().positive(),
+    listeningPassageCode: codeSchema.optional(),
+    readingPassageCode: codeSchema.optional(),
+  })
+  .refine(
+    (s) => (s.listeningPassageCode ? 1 : 0) + (s.readingPassageCode ? 1 : 0) === 1,
+    "Setiap section harus punya tepat satu dari listeningPassageCode/readingPassageCode",
+  );
+
+/** A MockTest's sections only ever reference an EXISTING listening/reading
+ * passage by code (resolved against already-loaded content at import
+ * time) — no new passage content is authored here. Every MockTest seeded
+ * so far is single-skill: `blueprint.skill` must match every section's
+ * passage type (see D-038). */
+export const mockTestFileSchema = z
+  .object({
+    code: codeSchema,
+    title: z.string().min(3),
+    blueprint: z.object({
+      code: codeSchema,
+      title: z.string().min(3),
+      examType: z.enum(readingExamTypes),
+      kind: z.enum(testKinds),
+      skill: z.enum(skillAreas),
+      description: z.string().min(10),
+      totalSeconds: z.number().int().positive(),
+    }),
+    sections: z.array(mockTestSectionFileSchema).min(1),
+  })
+  .superRefine((t, ctx) => {
+    const orders = t.sections.map((s) => s.order);
+    if (new Set(orders).size !== orders.length) {
+      ctx.addIssue({ code: "custom", path: ["sections"], message: "order section harus unik" });
+    }
+    if (t.blueprint.skill === "LISTENING" && t.sections.some((s) => !s.listeningPassageCode)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["sections"],
+        message: "blueprint.skill LISTENING tapi ada section tanpa listeningPassageCode",
+      });
+    }
+    if (t.blueprint.skill === "READING" && t.sections.some((s) => !s.readingPassageCode)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["sections"],
+        message: "blueprint.skill READING tapi ada section tanpa readingPassageCode",
+      });
+    }
+  });
+export type MockTestFile = z.infer<typeof mockTestFileSchema>;

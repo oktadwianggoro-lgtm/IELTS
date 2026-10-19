@@ -35,6 +35,8 @@ async function main() {
   const readingPassageCounts: Counts = { created: 0, updated: 0 };
   const writingTaskCounts: Counts = { created: 0, updated: 0 };
   const speakingPromptCounts: Counts = { created: 0, updated: 0 };
+  const blueprintCounts: Counts = { created: 0, updated: 0 };
+  const mockTestCounts: Counts = { created: 0, updated: 0 };
 
   // ---- topics ----
   const topicIdByCode = new Map<string, string>();
@@ -345,6 +347,65 @@ async function main() {
     }
   }
 
+  // ---- mock tests (tryout) ----
+  for (const t of result.mockTests) {
+    const existingBlueprint = await prisma.testBlueprint.findUnique({
+      where: { code: t.blueprint.code },
+    });
+    const blueprintData = {
+      title: t.blueprint.title,
+      examType: t.blueprint.examType,
+      kind: t.blueprint.kind,
+      skill: t.blueprint.skill,
+      description: t.blueprint.description,
+      totalSeconds: t.blueprint.totalSeconds,
+    };
+    const blueprint = existingBlueprint
+      ? await prisma.testBlueprint.update({
+          where: { code: t.blueprint.code },
+          data: blueprintData,
+        })
+      : await prisma.testBlueprint.create({
+          data: { ...blueprintData, code: t.blueprint.code },
+        });
+    bump(blueprintCounts, !existingBlueprint);
+
+    const existingMockTest = await prisma.mockTest.findUnique({ where: { code: t.code } });
+    const mockTest = existingMockTest
+      ? await prisma.mockTest.update({
+          where: { code: t.code },
+          data: { title: t.title, blueprintId: blueprint.id, contentVersion: { increment: 1 } },
+        })
+      : await prisma.mockTest.create({
+          data: { code: t.code, title: t.title, blueprintId: blueprint.id },
+        });
+    bump(mockTestCounts, !existingMockTest);
+
+    // Sections are fully replaced on every import — simpler and safer than
+    // diffing, and nothing external references a MockTestSection by ID
+    // (Attempt snapshots the resolved passage IDs onto AttemptAnswer rows,
+    // not onto MockTestSection).
+    await prisma.mockTestSection.deleteMany({ where: { mockTestId: mockTest.id } });
+    for (const s of t.sections) {
+      const listeningPassage = s.listeningPassageCode
+        ? await prisma.listeningPassage.findUniqueOrThrow({
+            where: { code: s.listeningPassageCode },
+          })
+        : null;
+      const readingPassage = s.readingPassageCode
+        ? await prisma.readingPassage.findUniqueOrThrow({ where: { code: s.readingPassageCode } })
+        : null;
+      await prisma.mockTestSection.create({
+        data: {
+          mockTestId: mockTest.id,
+          order: s.order,
+          listeningPassageId: listeningPassage?.id,
+          readingPassageId: readingPassage?.id,
+        },
+      });
+    }
+  }
+
   const summary = (label: string, c: Counts) =>
     `  ${label}: ${c.created} baru, ${c.updated} diperbarui`;
   console.log("[content:import] Selesai.");
@@ -357,6 +418,8 @@ async function main() {
   console.log(summary("Reading passages", readingPassageCounts));
   console.log(summary("Writing tasks", writingTaskCounts));
   console.log(summary("Speaking prompts", speakingPromptCounts));
+  console.log(summary("Test blueprints", blueprintCounts));
+  console.log(summary("Mock tests", mockTestCounts));
   console.log(
     "\nSemua konten yang baru dibuat/diperbarui berstatus DRAFT. Gunakan CMS admin untuk meninjau dan menerbitkan.",
   );

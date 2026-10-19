@@ -4,6 +4,7 @@ import {
   coursePathFileSchema,
   lessonFileSchema,
   listeningPassageFileSchema,
+  mockTestFileSchema,
   moduleFileSchema,
   readingPassageFileSchema,
   speakingPromptFileSchema,
@@ -12,6 +13,7 @@ import {
   type CoursePathFile,
   type LessonFile,
   type ListeningPassageFile,
+  type MockTestFile,
   type ModuleFile,
   type ReadingPassageFile,
   type SpeakingPromptFile,
@@ -32,6 +34,7 @@ export type LoadedContent = {
   readingPassages: ReadingPassageFile[];
   writingTasks: WritingTaskFile[];
   speakingPrompts: SpeakingPromptFile[];
+  mockTests: MockTestFile[];
 };
 
 function walkJsonFiles(dir: string): string[] {
@@ -420,6 +423,56 @@ export function loadContent(contentRoot: string): LoadedContent {
     errors.push({ file: "speaking/", message: `Kode speaking prompt duplikat: ${code}` });
   }
 
+  // ---- mock tests (tryout) ----
+  // Sections only reference existing listening/reading passage codes — no
+  // passage content is authored here. Cross-check every reference resolves
+  // to a passage actually loaded above.
+  const listeningCodes = new Set(listeningPassages.map((p) => p.code));
+  const readingCodes = new Set(readingPassages.map((p) => p.code));
+  const mockTests: MockTestFile[] = [];
+  const dupMockTestCodes = new Set<string>();
+  const dupBlueprintCodes = new Set<string>();
+  const seenBlueprintCodes = new Set<string>();
+  for (const file of walkJsonFiles(join(contentRoot, "tryout"))) {
+    const parsed = mockTestFileSchema.safeParse(readJson(file));
+    if (!parsed.success) {
+      errors.push({
+        file: rel(file),
+        message: parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; "),
+      });
+      continue;
+    }
+    const mockTest = parsed.data;
+    if (mockTests.some((t) => t.code === mockTest.code)) {
+      dupMockTestCodes.add(mockTest.code);
+    }
+    if (seenBlueprintCodes.has(mockTest.blueprint.code)) {
+      dupBlueprintCodes.add(mockTest.blueprint.code);
+    }
+    seenBlueprintCodes.add(mockTest.blueprint.code);
+    for (const s of mockTest.sections) {
+      if (s.listeningPassageCode && !listeningCodes.has(s.listeningPassageCode)) {
+        errors.push({
+          file: rel(file),
+          message: `listeningPassageCode "${s.listeningPassageCode}" tidak ditemukan`,
+        });
+      }
+      if (s.readingPassageCode && !readingCodes.has(s.readingPassageCode)) {
+        errors.push({
+          file: rel(file),
+          message: `readingPassageCode "${s.readingPassageCode}" tidak ditemukan`,
+        });
+      }
+    }
+    mockTests.push(mockTest);
+  }
+  for (const code of dupMockTestCodes) {
+    errors.push({ file: "tryout/", message: `Kode mock test duplikat: ${code}` });
+  }
+  for (const code of dupBlueprintCodes) {
+    errors.push({ file: "tryout/", message: `Kode test blueprint duplikat: ${code}` });
+  }
+
   return {
     ok: errors.length === 0,
     errors,
@@ -431,5 +484,6 @@ export function loadContent(contentRoot: string): LoadedContent {
     readingPassages,
     writingTasks,
     speakingPrompts,
+    mockTests,
   };
 }

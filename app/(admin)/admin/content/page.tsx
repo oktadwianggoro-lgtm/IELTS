@@ -23,7 +23,7 @@ const STATUS_LABEL: Record<string, string> = {
 export default async function AdminContentListPage() {
   await requireRole(["ADMIN", "TEACHER"]);
 
-  const [lessons, listeningPassages, readingPassages, writingTasks, speakingPrompts] =
+  const [lessons, listeningPassages, readingPassages, writingTasks, speakingPrompts, mockTests] =
     await Promise.all([
       prisma.lesson.findMany({
         orderBy: [{ level: "asc" }, { order: "asc" }],
@@ -45,6 +45,10 @@ export default async function AdminContentListPage() {
       }),
       prisma.speakingPrompt.findMany({
         orderBy: [{ part: "asc" }, { title: "asc" }],
+      }),
+      prisma.mockTest.findMany({
+        orderBy: [{ title: "asc" }],
+        include: { blueprint: true, _count: { select: { sections: true } } },
       }),
     ]);
 
@@ -192,6 +196,36 @@ export default async function AdminContentListPage() {
                 </div>
                 <Badge variant={STATUS_VARIANT[p.reviewStatus] ?? "outline"}>
                   {STATUS_LABEL[p.reviewStatus] ?? p.reviewStatus}
+                </Badge>
+              </Link>
+            ))
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Mock Tests (Tryout)</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-1">
+          {mockTests.length === 0 ? (
+            <p className="text-muted-foreground text-sm">Belum ada mock test.</p>
+          ) : (
+            mockTests.map((t) => (
+              <Link
+                key={t.id}
+                href={`/admin/content/${t.code}`}
+                className="border-border hover:border-brand-navy flex flex-wrap items-center justify-between gap-2 rounded-md border p-3 text-sm"
+              >
+                <div>
+                  <p className="font-medium">{t.title}</p>
+                  <p className="text-muted-foreground text-xs">
+                    {t.code} · {t.blueprint.examType} · {t.blueprint.skill} · {t._count.sections}{" "}
+                    section · v{t.contentVersion}
+                  </p>
+                </div>
+                <Badge variant={STATUS_VARIANT[t.reviewStatus] ?? "outline"}>
+                  {STATUS_LABEL[t.reviewStatus] ?? t.reviewStatus}
                 </Badge>
               </Link>
             ))

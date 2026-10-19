@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   lessonFileSchema,
   listeningPassageFileSchema,
+  mockTestFileSchema,
   questionSchema,
   readingPassageFileSchema,
   speakingPromptFileSchema,
@@ -405,6 +406,86 @@ describe("speakingPromptFileSchema", () => {
 
   it("rejects an invalid part value", () => {
     const result = speakingPromptFileSchema.safeParse(minimalSpeakingPrompt({ part: "PART4" }));
+    expect(result.success).toBe(false);
+  });
+});
+
+function minimalMockTest(overrides: Record<string, unknown> = {}) {
+  return {
+    code: "TEST-MOCKTEST-001",
+    title: "A valid test mock test",
+    blueprint: {
+      code: "TEST-BLUEPRINT-001",
+      title: "A valid test blueprint",
+      examType: "ACADEMIC" as const,
+      kind: "SECTION_TEST" as const,
+      skill: "READING" as const,
+      description: "A sufficiently long description for schema validation.",
+      totalSeconds: 1200,
+    },
+    sections: [{ order: 1, readingPassageCode: "TEST-READING-001" }],
+    ...overrides,
+  };
+}
+
+describe("mockTestFileSchema", () => {
+  it("accepts a fully valid minimal single-section READING mock test", () => {
+    const result = mockTestFileSchema.safeParse(minimalMockTest());
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts a valid multi-section LISTENING mock test", () => {
+    const result = mockTestFileSchema.safeParse(
+      minimalMockTest({
+        blueprint: {
+          ...minimalMockTest().blueprint,
+          skill: "LISTENING",
+        },
+        sections: [
+          { order: 1, listeningPassageCode: "TEST-LISTENING-001" },
+          { order: 2, listeningPassageCode: "TEST-LISTENING-002" },
+        ],
+      }),
+    );
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects a section with neither listeningPassageCode nor readingPassageCode", () => {
+    const result = mockTestFileSchema.safeParse(minimalMockTest({ sections: [{ order: 1 }] }));
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects a section with BOTH listeningPassageCode and readingPassageCode", () => {
+    const result = mockTestFileSchema.safeParse(
+      minimalMockTest({
+        sections: [
+          {
+            order: 1,
+            listeningPassageCode: "TEST-LISTENING-001",
+            readingPassageCode: "TEST-READING-001",
+          },
+        ],
+      }),
+    );
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects duplicate section order values", () => {
+    const result = mockTestFileSchema.safeParse(
+      minimalMockTest({
+        sections: [
+          { order: 1, readingPassageCode: "TEST-READING-001" },
+          { order: 1, readingPassageCode: "TEST-READING-002" },
+        ],
+      }),
+    );
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects a READING-skill blueprint with a listeningPassageCode section", () => {
+    const result = mockTestFileSchema.safeParse(
+      minimalMockTest({ sections: [{ order: 1, listeningPassageCode: "TEST-LISTENING-001" }] }),
+    );
     expect(result.success).toBe(false);
   });
 });
