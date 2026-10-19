@@ -23,26 +23,30 @@ const STATUS_LABEL: Record<string, string> = {
 export default async function AdminContentListPage() {
   await requireRole(["ADMIN", "TEACHER"]);
 
-  const [lessons, listeningPassages, readingPassages, writingTasks] = await Promise.all([
-    prisma.lesson.findMany({
-      orderBy: [{ level: "asc" }, { order: "asc" }],
-      include: {
-        module: { include: { coursePath: true } },
-        _count: { select: { questions: true } },
-      },
-    }),
-    prisma.listeningPassage.findMany({
-      orderBy: [{ section: "asc" }, { title: "asc" }],
-      include: { _count: { select: { questions: true } } },
-    }),
-    prisma.readingPassage.findMany({
-      orderBy: [{ examType: "asc" }, { title: "asc" }],
-      include: { _count: { select: { questions: true } } },
-    }),
-    prisma.writingTask.findMany({
-      orderBy: [{ taskType: "asc" }, { title: "asc" }],
-    }),
-  ]);
+  const [lessons, listeningPassages, readingPassages, writingTasks, speakingPrompts] =
+    await Promise.all([
+      prisma.lesson.findMany({
+        orderBy: [{ level: "asc" }, { order: "asc" }],
+        include: {
+          module: { include: { coursePath: true } },
+          _count: { select: { questions: true } },
+        },
+      }),
+      prisma.listeningPassage.findMany({
+        orderBy: [{ section: "asc" }, { title: "asc" }],
+        include: { _count: { select: { questions: true } } },
+      }),
+      prisma.readingPassage.findMany({
+        orderBy: [{ examType: "asc" }, { title: "asc" }],
+        include: { _count: { select: { questions: true } } },
+      }),
+      prisma.writingTask.findMany({
+        orderBy: [{ taskType: "asc" }, { title: "asc" }],
+      }),
+      prisma.speakingPrompt.findMany({
+        orderBy: [{ part: "asc" }, { title: "asc" }],
+      }),
+    ]);
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -159,6 +163,35 @@ export default async function AdminContentListPage() {
                 </div>
                 <Badge variant={STATUS_VARIANT[t.reviewStatus] ?? "outline"}>
                   {STATUS_LABEL[t.reviewStatus] ?? t.reviewStatus}
+                </Badge>
+              </Link>
+            ))
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Speaking Prompts</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-1">
+          {speakingPrompts.length === 0 ? (
+            <p className="text-muted-foreground text-sm">Belum ada speaking prompt.</p>
+          ) : (
+            speakingPrompts.map((p) => (
+              <Link
+                key={p.id}
+                href={`/admin/content/${p.code}`}
+                className="border-border hover:border-brand-navy flex flex-wrap items-center justify-between gap-2 rounded-md border p-3 text-sm"
+              >
+                <div>
+                  <p className="font-medium">{p.title}</p>
+                  <p className="text-muted-foreground text-xs">
+                    {p.code} · {p.part} · v{p.contentVersion}
+                  </p>
+                </div>
+                <Badge variant={STATUS_VARIANT[p.reviewStatus] ?? "outline"}>
+                  {STATUS_LABEL[p.reviewStatus] ?? p.reviewStatus}
                 </Badge>
               </Link>
             ))

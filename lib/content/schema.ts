@@ -294,3 +294,54 @@ export const writingTaskFileSchema = z
     }
   });
 export type WritingTaskFile = z.infer<typeof writingTaskFileSchema>;
+
+export const speakingParts = ["PART1", "PART2", "PART3"] as const;
+
+export const speakingPromptFileSchema = z
+  .object({
+    code: codeSchema,
+    title: z.string().min(3),
+    part: z.enum(speakingParts),
+    level: z.enum(pedagogicalLevels),
+    topic: z.string().min(1),
+    promptText: z.string().min(10),
+    /** PART2 cue card bullet points only. */
+    cueCardPoints: z.array(z.string().min(1)).optional(),
+    /** PART1's set of familiar-topic questions, or PART3's discussion
+     * follow-ups — asked in sequence within a single recording. Empty for
+     * PART2 (the cue card prompt is the whole task). */
+    followUpQuestions: z.array(z.string().min(1)).default([]),
+    prepSeconds: z.number().int().nonnegative(),
+    responseSeconds: z.number().int().positive(),
+    modelAnswer: z.string().min(50, "Model answer terlalu pendek"),
+    /** Self-assessment prompts for fluency/coherence, lexical resource,
+     * grammatical range/accuracy, and pronunciation — own wording, never
+     * copied official rubric text. */
+    checklistItems: z.array(z.string().min(5)).min(4),
+    sourceNotes: z.string().optional(),
+  })
+  .superRefine((p, ctx) => {
+    if (p.part === "PART2") {
+      if (!p.cueCardPoints || p.cueCardPoints.length < 2) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["cueCardPoints"],
+          message: "PART2 butuh minimal 2 cue card point",
+        });
+      }
+    } else if (p.cueCardPoints) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["cueCardPoints"],
+        message: `${p.part} tidak menggunakan cueCardPoints`,
+      });
+    }
+    if (p.part !== "PART2" && p.followUpQuestions.length < 2) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["followUpQuestions"],
+        message: `${p.part} butuh minimal 2 followUpQuestions`,
+      });
+    }
+  });
+export type SpeakingPromptFile = z.infer<typeof speakingPromptFileSchema>;

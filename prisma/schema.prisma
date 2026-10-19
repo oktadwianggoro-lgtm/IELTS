@@ -40,16 +40,20 @@ model User {
   preference          UserPreference?
   passwordResetTokens PasswordResetToken[]
 
-  reviewedLessons           Lesson[]            @relation("LessonReviewedBy")
-  createdQuestions          Question[]          @relation("QuestionCreatedBy")
-  reviewedQuestions         Question[]          @relation("QuestionReviewedBy")
-  createdListeningPassages  ListeningPassage[]  @relation("ListeningPassageCreatedBy")
-  reviewedListeningPassages ListeningPassage[]  @relation("ListeningPassageReviewedBy")
-  createdReadingPassages    ReadingPassage[]    @relation("ReadingPassageCreatedBy")
-  reviewedReadingPassages   ReadingPassage[]    @relation("ReadingPassageReviewedBy")
-  createdWritingTasks       WritingTask[]       @relation("WritingTaskCreatedBy")
-  reviewedWritingTasks      WritingTask[]       @relation("WritingTaskReviewedBy")
+  reviewedLessons           Lesson[]             @relation("LessonReviewedBy")
+  createdQuestions          Question[]           @relation("QuestionCreatedBy")
+  reviewedQuestions         Question[]           @relation("QuestionReviewedBy")
+  createdListeningPassages  ListeningPassage[]   @relation("ListeningPassageCreatedBy")
+  reviewedListeningPassages ListeningPassage[]   @relation("ListeningPassageReviewedBy")
+  createdReadingPassages    ReadingPassage[]     @relation("ReadingPassageCreatedBy")
+  reviewedReadingPassages   ReadingPassage[]     @relation("ReadingPassageReviewedBy")
+  createdWritingTasks       WritingTask[]        @relation("WritingTaskCreatedBy")
+  reviewedWritingTasks      WritingTask[]        @relation("WritingTaskReviewedBy")
   writingSubmissions        WritingSubmission[]
+  createdSpeakingPrompts    SpeakingPrompt[]     @relation("SpeakingPromptCreatedBy")
+  reviewedSpeakingPrompts   SpeakingPrompt[]     @relation("SpeakingPromptReviewedBy")
+  speakingSubmissions       SpeakingSubmission[]
+  speakingRecordings        SpeakingRecording[]
   bookmarks                 Bookmark[]
   notes                     Note[]
   lessonProgress            LessonProgress[]
@@ -874,4 +878,114 @@ model WritingSubmission {
 
   @@index([userId, writingTaskId])
   @@map("writing_submissions")
+}
+
+enum SpeakingPart {
+  PART1
+  PART2
+  PART3
+}
+
+enum SpeakingSubmissionStatus {
+  IN_PROGRESS
+  COMPLETED
+}
+
+/// One recording per submission (not per question within a part) — keeps
+/// the capture pipeline to a single MediaRecorder session regardless of
+/// how many follow-up questions a part asks (D-037).
+model SpeakingPrompt {
+  id    String           @id @default(cuid())
+  code  String           @unique
+  title String
+  part  SpeakingPart
+  level PedagogicalLevel
+  topic String
+
+  promptText        String
+  /// PART2 cue card bullet points only; null for PART1/PART3.
+  cueCardPoints     Json?
+  /// PART1's set of familiar-topic questions, or PART3's discussion
+  /// follow-ups — asked in sequence within the same single recording.
+  followUpQuestions Json   @default("[]")
+
+  prepSeconds     Int
+  responseSeconds Int
+
+  /// Original model answer text, revealed only after the student
+  /// completes their attempt (same D-021/D-034/D-035 reveal-after-submit
+  /// principle as every other lab).
+  modelAnswer    String
+  /// Self-assessment prompts covering fluency/coherence, lexical
+  /// resource, grammatical range/accuracy, and pronunciation —
+  /// self-reflection only, never a derived score.
+  checklistItems Json
+
+  submissions SpeakingSubmission[]
+
+  contentVersion Int           @default(1)
+  reviewStatus   ContentStatus @default(DRAFT)
+  sourceType     String        @default("original")
+  sourceNotes    String?
+  createdById    String?
+  createdBy      User?         @relation("SpeakingPromptCreatedBy", fields: [createdById], references: [id])
+  reviewedById   String?
+  reviewedBy     User?         @relation("SpeakingPromptReviewedBy", fields: [reviewedById], references: [id])
+  reviewedAt     DateTime?
+
+  createdAt     DateTime @default(now())
+  lastUpdatedAt DateTime @updatedAt
+
+  @@index([reviewStatus])
+  @@map("speaking_prompts")
+}
+
+/// The audio artifact itself, stored on local disk under a server-only
+/// directory (never public/) and served only via an ownership-checked
+/// route handler — "Lindungi file rekaman" (Master Prompt §8.8). Split out
+/// from SpeakingSubmission so deleting a recording (explicit user control,
+/// §8.8 "kontrol penghapusan") doesn't have to delete the submission's
+/// self-assessment/completion state along with it.
+model SpeakingRecording {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  storageKey      String
+  mimeType        String
+  durationSeconds Int
+  sizeBytes       Int
+  createdAt       DateTime @default(now())
+
+  submission SpeakingSubmission?
+
+  @@map("speaking_recordings")
+}
+
+/// One attempt at a SpeakingPrompt, same "new row per attempt" rationale
+/// as WritingSubmission.
+model SpeakingSubmission {
+  id               String         @id @default(cuid())
+  userId           String
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  speakingPromptId String
+  speakingPrompt   SpeakingPrompt @relation(fields: [speakingPromptId], references: [id], onDelete: Cascade)
+
+  recordingId String?            @unique
+  recording   SpeakingRecording? @relation(fields: [recordingId], references: [id], onDelete: SetNull)
+
+  /// Used when the user declines microphone access, has no input device,
+  /// or deletes their recording — recording is opt-in, never required to
+  /// complete an attempt (Master Prompt §8.8 "rekaman bersifat opt-in").
+  fallbackText String?
+
+  status         SpeakingSubmissionStatus @default(IN_PROGRESS)
+  /// { fluency: bool, lexical: bool, grammar: bool, pronunciation: bool }
+  selfAssessment Json?
+
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([userId, speakingPromptId])
+  @@map("speaking_submissions")
 }

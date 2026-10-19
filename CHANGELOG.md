@@ -2,6 +2,72 @@
 
 Semua perubahan penting pada Success IELTS dicatat di sini, per fase pengembangan.
 
+## Fase 10 — Speaking Lab
+
+### Ditambahkan
+
+- `/speaking-lab` (katalog per Part 1/2/3) dan `/speaking-lab/[promptCode]`
+  (workspace dengan alur rekam opt-in: izin mikrofon → timer persiapan →
+  timer bicara → tinjau rekaman → kirim, dengan fallback tulis jawaban
+  manual jika mikrofon ditolak/tidak tersedia atau dilewati).
+- Model baru: `SpeakingPrompt` (part, cue card points untuk Part 2,
+  follow-up questions untuk Part 1/3, model answer orisinal, checklist
+  self-assessment, alur editorial yang sama dengan tipe konten lain),
+  `SpeakingRecording` (file audio di disk server-only, bukan di DB sebagai
+  blob dan bukan di `public/`), `SpeakingSubmission` (status
+  IN_PROGRESS/COMPLETED, fallback text, self-assessment).
+- Route terproteksi `app/api/speaking-recordings/[id]` — satu-satunya
+  cara membaca bytes rekaman, memverifikasi kepemilikan sebelum
+  mengembalikan file (Master Prompt §8.8 "Lindungi file rekaman").
+- Kontrol penghapusan rekaman ("Hapus Rekaman") yang menghapus file dari
+  disk DAN baris DB-nya secara permanen, terpisah dari status submission
+  (menghapus rekaman tidak menghapus self-assessment/completion).
+- 3 speaking prompt orisinal dengan model answer dan checklist
+  self-assessment orisinal (4 kriteria IELTS Speaking: fluency/coherence,
+  lexical resource, grammatical range/accuracy, pronunciation): "Hometown
+  and Daily Routine" (Part 1), "Describe a Skill You Would Like to Learn"
+  (Part 2, cue card), "Learning New Skills in Modern Society" (Part 3,
+  diskusi lanjutan dari topik Part 2).
+- `content/speaking/*.json` + skema Zod baru (`speakingPromptFileSchema`),
+  termasuk validasi silang: `cueCardPoints` wajib ada HANYA untuk PART2,
+  `followUpQuestions` minimal 2 untuk PART1/PART3.
+- `/admin/content` diperluas dengan kartu "Speaking Prompts" dan alur
+  editorial yang sama dengan tipe konten lain.
+- `e2e/speaking-lab.spec.ts` — menguji pipeline rekaman SUNGGUHAN lewat
+  Chromium `--use-fake-device-for-media-stream` (bukan mock): rekam →
+  upload → putar ulang lewat route terproteksi → self-assessment persist
+  → hapus rekaman → attempt baru lewat "Coba Lagi"; plus jalur fallback
+  tulisan tanpa mikrofon sama sekali.
+
+### Bug ditemukan & diperbaiki (lihat D-037 untuk detail)
+
+- **D-037:** Setelah menyelesaikan attempt lewat jalur jawaban tertulis
+  (tanpa rekaman), tampilan "selesai" tidak pernah menampilkan balik
+  jawaban yang baru dikirim — state lokal `submission.fallbackText` tidak
+  ikut di-update bersama status `COMPLETED`. Ditemukan oleh E2E (jalur
+  fallback-text), bukan verifikasi visual manual yang hanya menguji jalur
+  rekaman. Diperbaiki dengan menyertakan `fallbackText` saat meng-update
+  state `submission` pasca-complete.
+
+### Catatan — lingkup yang sengaja dipersempit
+
+- Satu rekaman per submission (bukan per pertanyaan individual dalam satu
+  part) — Part 1/3 menampilkan semua follow-up question sekaligus dan
+  direkam dalam satu sesi berkelanjutan, bukan rekaman terpisah per
+  pertanyaan. Lihat D-037.
+- File rekaman disimpan di disk lokal server, bukan object storage —
+  belum ada kredensial object storage di proyek ini pada fase manapun;
+  modul penyimpanan sengaja diisolasi (`lib/speaking/storage.ts`) supaya
+  migrasi ke object storage sungguhan di Fase 17 tidak menyentuh server
+  action atau UI. Lihat D-037.
+- Tidak ada transkripsi speech-to-text maupun skor/feedback otomatis dari
+  AI — bukan fallback sementara, melainkan satu-satunya mode yang
+  dibangun di fase ini (belum ada kredensial provider AI). Self-assessment
+  checklist dan model answer tertulis orisinal adalah pengganti jujur.
+  Lihat D-037.
+- Hanya 1 prompt per part (Part 1/2/3); perluasan konten lebih lanjut
+  adalah pekerjaan berkelanjutan Fase 18.
+
 ## Fase 9 — Writing Lab
 
 ### Ditambahkan

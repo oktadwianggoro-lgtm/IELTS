@@ -1,6 +1,6 @@
 # Arsitektur — Success IELTS
 
-Status: Fase 9 (Writing Lab — outline/jawaban, self-assessment, contoh jawaban).
+Status: Fase 10 (Speaking Lab — rekaman opt-in, self-assessment, model answer).
 Dokumen ini akan diperluas pada setiap fase berikutnya.
 
 ## 1. Ringkasan
@@ -170,7 +170,12 @@ Sesuai instruksi "satu fase pada satu waktu":
 - ~~Tidak ada Writing Lab~~ — selesai Fase 9, lihat §13 (hanya 1 task per
   kategori; self-assessment checklist + contoh jawaban, bukan feedback AI
   otomatis — belum ada kredensial API eksternal untuk itu).
-- Tidak ada scoring/AI feedback otomatis atas esai/speaking (Fase 10–11).
+- ~~Tidak ada Speaking Lab~~ — selesai Fase 10, lihat §14 (hanya 1 prompt
+  per part; satu rekaman per submission bukan per pertanyaan; tanpa
+  transkripsi/skor AI — belum ada kredensial provider untuk itu, lihat
+  D-037).
+- Tidak ada scoring/AI feedback otomatis atas esai/speaking (Fase 11, tabel
+  konversi band terverifikasi untuk tryout).
 - Tidak ada Docker/deployment (Fase 17).
 
 ## 8. Pipeline konten (Fase 2)
@@ -433,7 +438,62 @@ DRAFT/SUBMITTED, `selfAssessment`).
   Writing Lab dan Reading Lab (sebelumnya Reading Lab punya definisi
   duplikat sendiri, disatukan di fase ini).
 
-## 14. Menjalankan proyek secara lokal
+## 14. Speaking Lab (Fase 10)
+
+`/speaking-lab` (katalog per Part 1/2/3) → `/speaking-lab/[promptCode]`
+(alur rekam opt-in). Model baru: `SpeakingPrompt` (part, cue card points
+untuk Part 2, follow-up questions untuk Part 1/3, model answer, checklist
+self-assessment, alur editorial yang sama dengan tipe konten lain),
+`SpeakingRecording` (file audio di disk, lihat di bawah), `SpeakingSubmission`
+(status IN_PROGRESS/COMPLETED, fallback text, self-assessment).
+
+- **Satu rekaman per submission, bukan per pertanyaan** — Part 1/3
+  menampilkan semua follow-up question sekaligus (seperti cue card) dan
+  direkam dalam satu sesi `MediaRecorder` berkelanjutan. Lihat D-037 untuk
+  alasan penyederhanaan ini.
+- **`SpeakingPromptWorkspace`** (`components/speaking/`): mesin status
+  eksplisit (`choice` → `requesting-mic` → `prep` → `recording` →
+  `review-recording` → `has-recording` → selesai, dengan `mic-error`/
+  `fallback-text` sebagai jalur alternatif) — bukan derivasi implisit dari
+  beberapa boolean. Timer persiapan dan bicara memakai pola `setInterval`
+  yang sama dengan lab lain (closure variable untuk nilai "sekarang",
+  bukan `Date.now()` di render — menghindari kelas masalah React Compiler
+  purity yang sudah berulang kali ditemukan sesi ini).
+- **Penyimpanan rekaman** (`lib/speaking/storage.ts`): file disimpan di
+  `storage/speaking-recordings/<userId>/<uuid>.<ext>` di disk server,
+  BUKAN di `public/` dan BUKAN sebagai blob di kolom DB. Satu-satunya cara
+  membaca bytes-nya adalah route handler `app/api/speaking-recordings/[id]`,
+  yang memverifikasi `recording.userId === session.user.id` sebelum
+  mengembalikan file — "Lindungi file rekaman" (Master Prompt §8.8). Lihat
+  D-037 untuk alasan memilih disk lokal dibanding object storage.
+- **Kontrol penghapusan:** tombol "Hapus Rekaman" (hanya muncul setelah
+  attempt selesai) menghapus file fisik DAN baris `SpeakingRecording`-nya
+  secara permanen, tanpa menghapus `SpeakingSubmission` (status/self-
+  assessment tetap ada) — "kontrol penghapusan" (Master Prompt §8.8).
+- **Fallback tanpa mikrofon:** jika `getUserMedia` ditolak/gagal, atau
+  pengguna memilih "Lewati, tulis jawaban saja" dari awal, alur beralih ke
+  textarea dengan autosave ter-debounce — attempt tetap bisa diselesaikan
+  tanpa rekaman sama sekali (Master Prompt §8.8 "rekaman bersifat
+  opt-in").
+- **Model answer + checklist hanya terbuka setelah selesai** — prinsip
+  D-021/D-034/D-035 yang sama: `revealedModelAnswer`/`revealedChecklist`
+  di server component hanya diisi jika submission terbaru pengguna untuk
+  prompt tersebut sudah `COMPLETED`.
+- **Tanpa transkripsi/skor AI** — satu-satunya mode yang dibangun di fase
+  ini (bukan fallback sementara), karena belum ada kredensial provider AI
+  di proyek ini. Self-assessment checklist dan model answer tertulis
+  orisinal menggantikannya secara jujur. Lihat D-037.
+- **E2E memakai mikrofon palsu Chromium sungguhan, bukan mock** —
+  `--use-fake-device-for-media-stream --use-fake-ui-for-media-stream` di
+  `playwright.config.ts` membuat `getUserMedia`/`MediaRecorder` benar-benar
+  berjalan dengan stream audio sintetis, jadi `e2e/speaking-lab.spec.ts`
+  menguji pipeline rekam→upload→simpan→putar-ulang yang sesungguhnya.
+- **CMS:** `/admin/content` diperluas dengan kartu "Speaking Prompts",
+  alur editorial identik dengan tipe konten lain (tanpa cascade soal,
+  sama seperti WritingTask — free-response, tidak ada baris `Question`
+  anak).
+
+## 15. Menjalankan proyek secara lokal
 
 Lihat `README.md` untuk perintah lengkap. Ringkas:
 

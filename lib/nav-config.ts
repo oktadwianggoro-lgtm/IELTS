@@ -60,7 +60,7 @@ export const navGroups: NavGroup[] = [
       { href: "/listening-lab", key: "listeningLab", icon: Headphones },
       { href: "/reading-lab", key: "readingLab", icon: BookMarked },
       { href: "/writing-lab", key: "writingLab", icon: PenSquare },
-      { href: "/speaking-lab", key: "speakingLab", icon: Mic, plannedPhase: "Fase 10" },
+      { href: "/speaking-lab", key: "speakingLab", icon: Mic },
     ],
   },
   {

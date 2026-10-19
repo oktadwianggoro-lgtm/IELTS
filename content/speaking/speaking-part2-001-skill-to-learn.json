@@ -1,0 +1,23 @@
+{
+  "code": "SPEAKING-PART2-001",
+  "title": "Part 2 — Describe a Skill You Would Like to Learn",
+  "part": "PART2",
+  "level": "B1",
+  "topic": "A skill you would like to learn",
+  "promptText": "Describe a skill you would like to learn.",
+  "cueCardPoints": [
+    "what the skill is",
+    "why you want to learn it",
+    "how you would learn it",
+    "and explain how your life might be different if you learned this skill"
+  ],
+  "prepSeconds": 60,
+  "responseSeconds": 120,
+  "modelAnswer": "The skill I'd really like to learn is sign language — specifically the sign language used in my own country, since every country tends to have its own version.\n\nI first became interested after meeting a deaf colleague at work a couple of years ago. We mostly communicated by writing things down or using a translation app, which worked, but it always felt a bit slow and impersonal. I remember thinking that if I could sign even a little, our conversations would feel much more natural and direct.\n\nAs for how I'd learn it, I think I'd start with an online course or a video series, just to pick up the alphabet and some basic everyday phrases. After that, I'd try to find a local community class, because sign language really depends on facial expression and rhythm, which is hard to get right just from watching videos alone. Ideally I'd also look for conversation meet-ups with deaf signers, since that's probably the fastest way to actually improve.\n\nIf I actually learned it well, I think it would change quite a lot for me. For one thing, I'd be able to have real conversations with my colleague and other deaf people I might meet, rather than relying on writing things down. It would also make me more useful at work, since I could help interpret in small meetings. And on a more personal level, I think learning a visual language like that would make me pay much more attention to body language and expression in general, which could even help my communication in my first language too.",
+  "checklistItems": [
+    "Saya berbicara terus selama waktu yang tersedia tanpa jeda panjang yang mengganggu alur",
+    "Saya menyentuh keempat poin di cue card (apa, kenapa, bagaimana, dan dampaknya) secara runtut",
+    "Saya memakai kosakata yang lebih spesifik/beragam, bukan hanya kata-kata dasar yang berulang",
+    "Saya memakai kalimat kompleks (misalnya klausa 'if', 'because', 'which') dengan struktur yang benar"
+  ]
+}

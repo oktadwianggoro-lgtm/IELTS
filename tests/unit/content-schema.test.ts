@@ -4,6 +4,7 @@ import {
   listeningPassageFileSchema,
   questionSchema,
   readingPassageFileSchema,
+  speakingPromptFileSchema,
   writingTaskFileSchema,
 } from "@/lib/content/schema";
 
@@ -331,6 +332,79 @@ describe("writingTaskFileSchema", () => {
 
   it("rejects an invalid taskType value", () => {
     const result = writingTaskFileSchema.safeParse(minimalWritingTask({ taskType: "TASK3" }));
+    expect(result.success).toBe(false);
+  });
+});
+
+function minimalSpeakingPrompt(overrides: Record<string, unknown> = {}) {
+  return {
+    code: "TEST-SPEAKING-001",
+    title: "A valid test speaking prompt",
+    part: "PART1" as const,
+    level: "A2" as const,
+    topic: "Test topic",
+    promptText: "This is a sufficiently long test prompt.",
+    followUpQuestions: ["Question one?", "Question two?"],
+    prepSeconds: 0,
+    responseSeconds: 60,
+    modelAnswer:
+      "This is a sufficiently long model answer used only for schema validation purposes, not real content.",
+    checklistItems: [
+      "Checklist item one",
+      "Checklist item two",
+      "Checklist item three",
+      "Checklist item four",
+    ],
+    ...overrides,
+  };
+}
+
+describe("speakingPromptFileSchema", () => {
+  it("accepts a fully valid minimal PART1 prompt", () => {
+    const result = speakingPromptFileSchema.safeParse(minimalSpeakingPrompt());
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects a prompt with fewer than 4 checklist items", () => {
+    const prompt = minimalSpeakingPrompt();
+    prompt.checklistItems = prompt.checklistItems.slice(0, 3);
+    expect(speakingPromptFileSchema.safeParse(prompt).success).toBe(false);
+  });
+
+  it("rejects PART1 with fewer than 2 followUpQuestions", () => {
+    const result = speakingPromptFileSchema.safeParse(
+      minimalSpeakingPrompt({ followUpQuestions: ["Only one?"] }),
+    );
+    expect(result.success).toBe(false);
+  });
+
+  it("requires cueCardPoints for PART2", () => {
+    const result = speakingPromptFileSchema.safeParse(
+      minimalSpeakingPrompt({ part: "PART2", followUpQuestions: [] }),
+    );
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts PART2 with valid cueCardPoints and no followUpQuestions", () => {
+    const result = speakingPromptFileSchema.safeParse(
+      minimalSpeakingPrompt({
+        part: "PART2",
+        followUpQuestions: [],
+        cueCardPoints: ["Point one", "Point two"],
+      }),
+    );
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects PART1/PART3 with a cueCardPoints set (only PART2 uses it)", () => {
+    const result = speakingPromptFileSchema.safeParse(
+      minimalSpeakingPrompt({ cueCardPoints: ["Should not be here"] }),
+    );
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects an invalid part value", () => {
+    const result = speakingPromptFileSchema.safeParse(minimalSpeakingPrompt({ part: "PART4" }));
     expect(result.success).toBe(false);
   });
 });

@@ -72,6 +72,22 @@ describe("loadContent (real content/ directory)", () => {
     }
   });
 
+  it("loads the seeded speaking prompts, with PART2 carrying cueCardPoints and others not", () => {
+    const result = loadContent(contentRoot);
+    expect(result.speakingPrompts.length).toBeGreaterThanOrEqual(3);
+    for (const prompt of result.speakingPrompts) {
+      expect(prompt.modelAnswer.length).toBeGreaterThan(0);
+      expect(prompt.checklistItems.length).toBeGreaterThanOrEqual(4);
+      if (prompt.part === "PART2") {
+        expect(prompt.cueCardPoints).toBeDefined();
+        expect(prompt.followUpQuestions.length).toBe(0);
+      } else {
+        expect(prompt.cueCardPoints).toBeUndefined();
+        expect(prompt.followUpQuestions.length).toBeGreaterThanOrEqual(2);
+      }
+    }
+  });
+
   it("resolves every MATCHING question's single-letter options to a real paragraph label", () => {
     const result = loadContent(contentRoot);
     for (const passage of result.readingPassages) {

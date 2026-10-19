@@ -34,6 +34,7 @@ async function main() {
   const listeningPassageCounts: Counts = { created: 0, updated: 0 };
   const readingPassageCounts: Counts = { created: 0, updated: 0 };
   const writingTaskCounts: Counts = { created: 0, updated: 0 };
+  const speakingPromptCounts: Counts = { created: 0, updated: 0 };
 
   // ---- topics ----
   const topicIdByCode = new Map<string, string>();
@@ -315,6 +316,35 @@ async function main() {
     }
   }
 
+  // ---- speaking prompts ----
+  for (const p of result.speakingPrompts) {
+    const existing = await prisma.speakingPrompt.findUnique({ where: { code: p.code } });
+    const data = {
+      title: p.title,
+      part: p.part,
+      level: p.level,
+      topic: p.topic,
+      promptText: p.promptText,
+      cueCardPoints: p.cueCardPoints ?? undefined,
+      followUpQuestions: p.followUpQuestions,
+      prepSeconds: p.prepSeconds,
+      responseSeconds: p.responseSeconds,
+      modelAnswer: p.modelAnswer,
+      checklistItems: p.checklistItems,
+      sourceNotes: p.sourceNotes,
+    };
+    if (existing) {
+      await prisma.speakingPrompt.update({
+        where: { code: p.code },
+        data: { ...data, contentVersion: { increment: 1 } },
+      });
+      bump(speakingPromptCounts, false);
+    } else {
+      await prisma.speakingPrompt.create({ data: { ...data, code: p.code } });
+      bump(speakingPromptCounts, true);
+    }
+  }
+
   const summary = (label: string, c: Counts) =>
     `  ${label}: ${c.created} baru, ${c.updated} diperbarui`;
   console.log("[content:import] Selesai.");
@@ -326,6 +356,7 @@ async function main() {
   console.log(summary("Listening passages", listeningPassageCounts));
   console.log(summary("Reading passages", readingPassageCounts));
   console.log(summary("Writing tasks", writingTaskCounts));
+  console.log(summary("Speaking prompts", speakingPromptCounts));
   console.log(
     "\nSemua konten yang baru dibuat/diperbarui berstatus DRAFT. Gunakan CMS admin untuk meninjau dan menerbitkan.",
   );

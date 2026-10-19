@@ -50,6 +50,10 @@ next-env.d.ts
 # local agent/tooling state (not project content)
 /.claude/
 
+# user-uploaded speaking recordings (private audio, never committed;
+# served only through an ownership-checked route handler — see D-037)
+/storage/
+
 # Prisma generated client (regenerate with `npx prisma generate`)
 /generated/
 

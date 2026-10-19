@@ -1,0 +1,23 @@
+{
+  "code": "SPEAKING-PART3-001",
+  "title": "Part 3 — Learning New Skills in Modern Society",
+  "part": "PART3",
+  "level": "B2",
+  "topic": "Learning new skills in modern society",
+  "promptText": "We've been talking about a skill you'd like to learn. I'd like to discuss with you one or two more general questions related to this.",
+  "followUpQuestions": [
+    "Do you think it's more important for adults to learn practical skills or academic knowledge? Why?",
+    "How has technology changed the way people learn new skills, compared to the past?",
+    "Some people say self-taught skills are less valuable than those learned from a teacher. Do you agree?",
+    "Why do you think some adults are reluctant to learn new skills later in life?"
+  ],
+  "prepSeconds": 10,
+  "responseSeconds": 150,
+  "modelAnswer": "That's a difficult one, because I think it really depends on the person's stage of life. For someone already working, I'd lean towards practical skills being more immediately useful — things like financial literacy, basic cooking, or digital skills tend to have a direct impact on daily life. Academic knowledge is valuable too, of course, but it's often less urgent unless you're planning to change careers or go back into education.\n\nTechnology has changed this enormously, I think. In the past, learning a new skill almost always meant finding a local class or an expert willing to teach you in person, which could be expensive or simply unavailable depending on where you lived. Now, you can watch a tutorial on almost anything within minutes, join an online course from another country, or even practise a language with an app on your phone. The main shift, in my view, is that learning has become far more self-paced and accessible, even if it sometimes lacks the structure and accountability that a classroom provides.\n\nI partly agree and partly disagree with that. For very practical, hands-on skills — cooking, basic coding, photography — I don't think a self-taught approach is necessarily worse, especially now that good resources are freely available online. However, for skills that require precise technique or safety awareness, like certain sports or medical procedures, I do think a qualified teacher adds real value, because they can correct small mistakes immediately that a learner might not even notice on their own.\n\nI suspect it comes down to a mix of time pressure and fear of failure. Many adults already feel stretched between work and family responsibilities, so starting something new feels like an extra burden rather than something enjoyable. There's also a psychological factor — adults tend to be more self-conscious about looking inexperienced or making mistakes in front of others, which can make the early, clumsy stage of learning feel more uncomfortable than it did when they were children.",
+  "checklistItems": [
+    "Saya memberi pendapat yang jelas dan mengembangkannya dengan alasan atau contoh, bukan hanya jawaban satu kalimat",
+    "Saya bisa membandingkan dua sisi (misalnya setuju/tidak setuju sebagian) dengan koheren",
+    "Saya memakai kosakata abstrak/akademis yang sesuai topik diskusi, bukan hanya kosakata sehari-hari",
+    "Saya tetap lancar dan jelas pelafalannya meskipun membahas ide yang lebih kompleks"
+  ]
+}

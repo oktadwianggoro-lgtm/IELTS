@@ -15,7 +15,22 @@ export default defineConfig({
     baseURL: `http://localhost:${PORT}`,
     trace: "on-first-retry",
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  projects: [
+    {
+      name: "chromium",
+      use: {
+        ...devices["Desktop Chrome"],
+        permissions: ["microphone"],
+        // Speaking Lab's E2E tests exercise the real MediaRecorder/
+        // getUserMedia flow (not a mock) — these flags make Chromium hand
+        // back a synthetic audio stream instead of prompting for/needing a
+        // real microphone, so the recording pipeline is tested end to end.
+        launchOptions: {
+          args: ["--use-fake-device-for-media-stream", "--use-fake-ui-for-media-stream"],
+        },
+      },
+    },
+  ],
   webServer: {
     command: `npm run build && npm run start -- -p ${PORT}`,
     url: `http://localhost:${PORT}`,

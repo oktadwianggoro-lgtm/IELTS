@@ -6,6 +6,7 @@ import {
   listeningPassageFileSchema,
   moduleFileSchema,
   readingPassageFileSchema,
+  speakingPromptFileSchema,
   topicRegistrySchema,
   writingTaskFileSchema,
   type CoursePathFile,
@@ -13,6 +14,7 @@ import {
   type ListeningPassageFile,
   type ModuleFile,
   type ReadingPassageFile,
+  type SpeakingPromptFile,
   type TopicFile,
   type WritingTaskFile,
 } from "./schema";
@@ -29,6 +31,7 @@ export type LoadedContent = {
   listeningPassages: ListeningPassageFile[];
   readingPassages: ReadingPassageFile[];
   writingTasks: WritingTaskFile[];
+  speakingPrompts: SpeakingPromptFile[];
 };
 
 function walkJsonFiles(dir: string): string[] {
@@ -393,6 +396,30 @@ export function loadContent(contentRoot: string): LoadedContent {
     errors.push({ file: "writing/", message: `Kode writing task duplikat: ${code}` });
   }
 
+  // ---- speaking prompts ----
+  // Free-response (self-assessment + model answer), same rationale as
+  // writing tasks — own code namespace, no `Question` cross-check needed.
+  const speakingPrompts: SpeakingPromptFile[] = [];
+  const dupSpeakingPromptCodes = new Set<string>();
+  for (const file of walkJsonFiles(join(contentRoot, "speaking"))) {
+    const parsed = speakingPromptFileSchema.safeParse(readJson(file));
+    if (!parsed.success) {
+      errors.push({
+        file: rel(file),
+        message: parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; "),
+      });
+      continue;
+    }
+    const prompt = parsed.data;
+    if (speakingPrompts.some((p) => p.code === prompt.code)) {
+      dupSpeakingPromptCodes.add(prompt.code);
+    }
+    speakingPrompts.push(prompt);
+  }
+  for (const code of dupSpeakingPromptCodes) {
+    errors.push({ file: "speaking/", message: `Kode speaking prompt duplikat: ${code}` });
+  }
+
   return {
     ok: errors.length === 0,
     errors,
@@ -403,5 +430,6 @@ export function loadContent(contentRoot: string): LoadedContent {
     listeningPassages,
     readingPassages,
     writingTasks,
+    speakingPrompts,
   };
 }

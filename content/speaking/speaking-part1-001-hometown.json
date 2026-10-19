@@ -1,0 +1,23 @@
+{
+  "code": "SPEAKING-PART1-001",
+  "title": "Part 1 — Hometown and Daily Routine",
+  "part": "PART1",
+  "level": "A2",
+  "topic": "Hometown and daily routine",
+  "promptText": "In this part, the examiner asks a few short questions about familiar topics — yourself, your home, your work or studies, and your daily life. Answer naturally in 1-3 sentences each; you don't need to prepare in advance.",
+  "followUpQuestions": [
+    "Can you tell me a little about the town or city where you live?",
+    "What do you usually do on a typical weekday?",
+    "Do you prefer spending time at home or going out? Why?",
+    "Has your hometown changed much in recent years?"
+  ],
+  "prepSeconds": 0,
+  "responseSeconds": 90,
+  "modelAnswer": "I live in a mid-sized city on the coast, so it's known mostly for its fishing port and a few old colonial buildings in the centre. It's not huge, but it has everything I need — a university, a couple of malls, and a river that runs right through the middle of town, which is nice to walk along in the evening.\n\nOn a typical weekday I get up around six, have a quick breakfast, and then either go to work or, if I'm studying, log into my morning class. Most of my day is spent at a desk, to be honest, so I try to take a short walk at lunchtime just to get some fresh air. In the evening I usually cook something simple, watch a bit of TV, and read before bed.\n\nHonestly, it depends on my mood. On weekdays I'm usually too tired to go out, so I stay home and relax. But on weekends I like meeting friends for coffee or trying a new restaurant — staying in all the time gets a bit dull after a while.\n\nActually, yes, quite a lot. When I was a child there was a lot of open land near my house, but most of it has been built over now — there's a shopping centre and some new apartment blocks there instead. The traffic has also gotten noticeably worse over the last ten years.",
+  "checklistItems": [
+    "Saya menjawab setiap pertanyaan secara langsung tanpa berhenti lama untuk mencari kata",
+    "Saya memberi sedikit detail tambahan di setiap jawaban, bukan hanya satu kata atau satu kalimat pendek",
+    "Saya memakai variasi kosakata sehari-hari yang sesuai topik, bukan mengulang kata yang sama terus-menerus",
+    "Saya memakai beberapa bentuk waktu (tense) yang berbeda dengan benar sesuai konteks pertanyaan"
+  ]
+}

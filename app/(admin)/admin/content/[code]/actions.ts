@@ -200,3 +200,37 @@ export async function transitionWritingTaskStatusAction(
   revalidatePath("/admin/content");
   return null;
 }
+
+export async function transitionSpeakingPromptStatusAction(
+  promptCode: string,
+  targetStatus: ContentStatus,
+): Promise<ContentActionState> {
+  const user = await requireRole(["ADMIN", "TEACHER"]);
+
+  const prompt = await prisma.speakingPrompt.findUnique({ where: { code: promptCode } });
+  if (!prompt) return { error: "Speaking prompt tidak ditemukan." };
+
+  const allowed = TRANSITIONS[prompt.reviewStatus].find((t) => t.to === targetStatus);
+  if (!allowed) {
+    return { error: `Tidak bisa pindah dari ${prompt.reviewStatus} ke ${targetStatus}.` };
+  }
+  if (!allowed.allowedRoles.includes(user.role)) {
+    return { error: "Anda tidak punya izin untuk tindakan ini." };
+  }
+
+  const isReviewDecision = targetStatus === "APPROVED" || targetStatus === "PUBLISHED";
+
+  // No nested `Question` cascade needed here either — free-response, same
+  // rationale as WritingTask.
+  await prisma.speakingPrompt.update({
+    where: { code: promptCode },
+    data: {
+      reviewStatus: targetStatus,
+      ...(isReviewDecision ? { reviewedById: user.id, reviewedAt: new Date() } : {}),
+    },
+  });
+
+  revalidatePath(`/admin/content/${promptCode}`);
+  revalidatePath("/admin/content");
+  return null;
+}

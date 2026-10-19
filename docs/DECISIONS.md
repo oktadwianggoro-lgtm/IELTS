@@ -786,3 +786,76 @@ docker-compose.dev.yml up -d` untuk pengembangan lokal, sesuai stack Master
   seluruh suite) — keputusan "tidak dikejar lebih jauh karena effort tidak
   proporsional" dari fase sebelumnya adalah penilaian pada saat itu, bukan
   fakta permanen, dan di sini ternyata salah.
+
+## Fase 10
+
+### D-037: Satu rekaman per submission (bukan per pertanyaan); penyimpanan di disk lokal server-only (bukan object storage); tanpa transkripsi/skor AI
+
+- **Keputusan (satu rekaman per submission):** Part 1 dan Part 3 masing-
+  masing membawa beberapa `followUpQuestions` (gaya pertanyaan beruntun
+  seperti ujian asli), tapi SELURUH part direkam sebagai SATU sesi
+  `MediaRecorder` berkelanjutan — bukan satu rekaman terpisah per
+  pertanyaan. Pengguna melihat semua pertanyaan part itu sekaligus
+  (seperti cue card) dan menjawabnya berurutan dalam satu rekaman.
+- **Alasan:** Merekam per-pertanyaan butuh pipeline jauh lebih rumit
+  (banyak `MediaRecorder` session per attempt, banyak file, UI untuk
+  menavigasi antar rekaman) untuk manfaat realisme yang marginal pada
+  tahap latihan (bukan mock test resmi — itu domain Fase 11). Trade-off
+  yang sama persis dengan bagaimana Listening/Reading/Writing masing-
+  masing menyederhanakan struktur dibanding ujian resmi (lihat D-033).
+- **Keputusan (penyimpanan):** File audio disimpan di disk lokal server
+  (`storage/speaking-recordings/<userId>/<uuid>.<ext>`, di luar `public/`,
+  tidak pernah di-commit ke git), bukan object storage (S3/R2/dll). Dibaca
+  HANYA lewat route handler `app/api/speaking-recordings/[id]` yang
+  memverifikasi `session.user.id === recording.userId` sebelum
+  mengembalikan bytes-nya — "Lindungi file rekaman" (Master Prompt §8.8).
+- **Alasan (disk lokal, bukan object storage):** Master Prompt §13
+  eksplisit menyarankan object storage untuk file besar, tapi proyek ini
+  belum punya kredensial/provider object storage terkonfigurasi di fase
+  manapun sebelumnya, dan rekaman Speaking Lab berdurasi pendek (≤150
+  detik, dibatasi `MAX_RECORDING_BYTES` 15MB server-side) — bukan file
+  besar dalam pengertian yang dimaksud aturan itu. Menambah dependency
+  object storage sekarang berarti kredensial palsu/placeholder, bertentangan
+  dengan prinsip "tidak ada data/koneksi palsu" yang dipegang konsisten
+  sejak Fase 1. **Tinjau ulang di Fase 17** (VPS/deployment): jika volume
+  rekaman nyata membesar, pindahkan ke object storage sungguhan saat
+  kredensialnya tersedia — `lib/speaking/storage.ts` sengaja diisolasi di
+  satu modul kecil (3 fungsi) persis supaya migrasi ini nanti tidak
+  menyentuh server actions atau UI sama sekali.
+- **Keputusan (tanpa AI):** Tidak ada transkripsi speech-to-text dan tidak
+  ada skor/feedback otomatis dari AI — sama seperti keputusan Writing Lab
+  Fase 9 (D-035's pendahulu implisit): tidak ada kredensial provider AI
+  yang disediakan pengguna untuk fase mana pun di proyek ini. Self-
+  assessment checklist (4 kriteria: fluency/coherence, lexical resource,
+  grammar range/accuracy, pronunciation) dan model answer tertulis
+  orisinal menggantikan feedback AI secara jujur, sesuai Master Prompt
+  §8.8 "Implementasikan fallback tanpa AI/transkripsi" — ini BUKAN
+  fallback sementara menunggu AI terpasang, melainkan satu-satunya mode
+  yang dibangun di fase ini.
+- **Konsisten dengan D-021/D-034/D-035:** `modelAnswer`/`checklistItems`
+  hanya pernah dikirim ke client setelah `SpeakingSubmission.status`
+  benar-benar `COMPLETED` — dicek di server component
+  (`revealedModelAnswer`/`revealedChecklist` di
+  `app/(app)/speaking-lab/[promptCode]/page.tsx`), bukan disembunyikan di
+  client saja.
+- **Bug ditemukan lewat E2E (diperbaiki sebelum commit):**
+  `completeSpeakingSubmissionAction` sudah menerima `fallbackText`
+  langsung dari client (menghindari race class D-035 sejak awal — bukan
+  bug baru), TAPI `SpeakingPromptWorkspace`'s `handleComplete` hanya
+  meng-update `submission.status` ke `COMPLETED` secara lokal tanpa ikut
+  meng-update `submission.fallbackText` — akibatnya tampilan "selesai"
+  tidak pernah menampilkan balik jawaban tertulis yang baru saja dikirim
+  (state lokal `submission.fallbackText` tetap string kosong dari saat
+  attempt dimulai). Ditemukan oleh `e2e/speaking-lab.spec.ts`'s test jalur
+  fallback-text, bukan verifikasi visual manual (yang kebetulan hanya
+  menguji jalur rekaman). Diperbaiki dengan menyertakan `fallbackText`
+  (state lokal yang sudah dikonfirmasi sinkron dengan server lewat
+  parameter yang sama) saat meng-update state `submission` pasca-complete.
+- **Mikrofon diuji sungguhan di E2E, bukan di-mock:** Chromium mendukung
+  flag `--use-fake-device-for-media-stream --use-fake-ui-for-media-stream`
+  yang memberi `getUserMedia`/`MediaRecorder` stream audio sintetis tanpa
+  mikrofon fisik ataupun dialog izin — dipasang di `playwright.config.ts`
+  bersama `permissions: ["microphone"]`. Ini berarti `e2e/speaking-lab.spec.ts`
+  menguji pipeline rekaman SUNGGUHAN end-to-end (rekam → upload → simpan
+  ke disk → putar ulang lewat route terproteksi), bukan di-skip atau
+  di-mock, konsisten dengan prinsip sesi ini untuk tidak memalsukan test.
