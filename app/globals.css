@@ -1,0 +1,160 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-sans);
+  --color-brand-navy: var(--brand-navy);
+  --color-brand-navy-foreground: var(--brand-navy-foreground);
+  --color-brand-teal: var(--brand-teal);
+  --color-brand-teal-foreground: var(--brand-teal-foreground);
+  --color-brand-amber: var(--brand-amber);
+  --color-brand-amber-foreground: var(--brand-amber-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  /* Success IELTS brand tokens — navy primary, teal + amber accents.
+     Change values here to re-theme the whole app; see docs/ARCHITECTURE.md. */
+  --background: #f8fafc;
+  --foreground: #12161f;
+  --card: #ffffff;
+  --card-foreground: #12161f;
+  --popover: #ffffff;
+  --popover-foreground: #12161f;
+  --primary: #1e3a6b;
+  --primary-foreground: #f8fafc;
+  --secondary: #eef1f5;
+  --secondary-foreground: #1e3a6b;
+  --muted: #eef1f5;
+  --muted-foreground: #475063;
+  --accent: #e1e9f7;
+  --accent-foreground: #1e3a6b;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: #dee3ea;
+  --input: #dee3ea;
+  --ring: #3e68ac;
+  --chart-1: #1e3a6b;
+  --chart-2: #14968c;
+  --chart-3: #d99a1f;
+  --chart-4: #6b7489;
+  --chart-5: #b4455b;
+  --radius: 0.5rem;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #12161f;
+  --sidebar-primary: #1e3a6b;
+  --sidebar-primary-foreground: #f8fafc;
+  --sidebar-accent: #e1e9f7;
+  --sidebar-accent-foreground: #1e3a6b;
+  --sidebar-border: #dee3ea;
+  --sidebar-ring: #3e68ac;
+
+  --brand-navy: #1e3a6b;
+  --brand-navy-foreground: #ffffff;
+  --brand-teal: #14968c;
+  --brand-teal-foreground: #ffffff;
+  --brand-amber: #d99a1f;
+  --brand-amber-foreground: #1a1203;
+  --success: #0f7a4d;
+  --success-foreground: #ffffff;
+}
+
+.dark {
+  --background: #0b0f18;
+  --foreground: #eef1f5;
+  --card: #121826;
+  --card-foreground: #eef1f5;
+  --popover: #121826;
+  --popover-foreground: #eef1f5;
+  --primary: #4c73c4;
+  --primary-foreground: #0b0f18;
+  --secondary: #1c2534;
+  --secondary-foreground: #eef1f5;
+  --muted: #1c2534;
+  --muted-foreground: #94a0b4;
+  --accent: #1b2c47;
+  --accent-foreground: #c3d2ec;
+  --destructive: #f2555f;
+  --destructive-foreground: #1a0a0a;
+  --border: color-mix(in srgb, white 10%, transparent);
+  --input: color-mix(in srgb, white 14%, transparent);
+  --ring: #6b93d6;
+  --chart-1: #6b93d6;
+  --chart-2: #2eb3a8;
+  --chart-3: #e8b54a;
+  --chart-4: #94a0b4;
+  --chart-5: #e08098;
+  --sidebar: #0f141f;
+  --sidebar-foreground: #eef1f5;
+  --sidebar-primary: #6b93d6;
+  --sidebar-primary-foreground: #0b0f18;
+  --sidebar-accent: #1b2c47;
+  --sidebar-accent-foreground: #c3d2ec;
+  --sidebar-border: color-mix(in srgb, white 10%, transparent);
+  --sidebar-ring: #6b93d6;
+
+  --brand-navy: #6b93d6;
+  --brand-navy-foreground: #0b0f18;
+  --brand-teal: #2eb3a8;
+  --brand-teal-foreground: #0b0f18;
+  --brand-amber: #e8b54a;
+  --brand-amber-foreground: #1a1203;
+  --success: #3ccb8a;
+  --success-foreground: #0b0f18;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}

@@ -1,0 +1,23 @@
+name: success-ielts-dev
+
+# Local development infrastructure only. Production compose (Fase 17) is separate.
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: success_ielts
+      POSTGRES_PASSWORD: success_ielts_dev
+      POSTGRES_DB: success_ielts
+    ports:
+      - "5432:5432"
+    volumes:
+      - success_ielts_pg_dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U success_ielts -d success_ielts"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  success_ielts_pg_dev:
