@@ -1,5 +1,8 @@
 // Success IELTS — Prisma schema
-// Fase 1: auth, RBAC, onboarding. Content/curriculum models land in Fase 2+.
+// Fase 1: auth, RBAC, onboarding.
+// Fase 2: content model (CoursePath/Module/Lesson/Topic/Question), CMS review
+// workflow. Skill-specific content (Passage/AudioAsset/WritingTask/
+// SpeakingPrompt) lands in Fase 7-10 when those labs are built.
 
 generator client {
   provider = "prisma-client-js"
@@ -32,6 +35,10 @@ model User {
   profile             Profile?
   preference          UserPreference?
   passwordResetTokens PasswordResetToken[]
+
+  reviewedLessons    Lesson[]   @relation("LessonReviewedBy")
+  createdQuestions   Question[] @relation("QuestionCreatedBy")
+  reviewedQuestions  Question[] @relation("QuestionReviewedBy")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -174,4 +181,230 @@ model UserPreference {
   updatedAt DateTime @updatedAt
 
   @@map("user_preferences")
+}
+
+// ---------- Content / curriculum (Fase 2) ----------
+
+/// draft -> in_review -> approved -> published; archived instead of deleted
+/// so attempt history referencing a question/lesson never dangles.
+enum ContentStatus {
+  DRAFT
+  IN_REVIEW
+  APPROVED
+  PUBLISHED
+  ARCHIVED
+}
+
+/// Broader than `SkillName` (onboarding's four IELTS test skills): content
+/// also covers Grammar/Vocabulary/Pronunciation/Test Strategy per Master
+/// Prompt §6, which are not IELTS sections themselves but are taught as part
+/// of the curriculum.
+enum SkillArea {
+  LISTENING
+  READING
+  WRITING
+  SPEAKING
+  GRAMMAR
+  VOCABULARY
+  PRONUNCIATION
+  TEST_STRATEGY
+}
+
+/// Pedagogical language level (Master Prompt §6) — distinct from IELTS band;
+/// never presented to users as an official CEFR<->band conversion.
+enum PedagogicalLevel {
+  STARTER
+  A1
+  A2
+  B1
+  B2
+  C1_ENRICHMENT
+}
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  GAP_FILL
+  MATCHING
+  ORDERING
+  SHORT_ANSWER
+  TRUE_FALSE_NOT_GIVEN
+  YES_NO_NOT_GIVEN
+  SENTENCE_TRANSFORMATION
+  ERROR_CORRECTION
+  SUMMARY_COMPLETION
+}
+
+/// Free-form tag spanning Lessons and Questions (e.g. "environment",
+/// "present-perfect") — orthogonal to the CoursePath > Module > Lesson
+/// sequencing, used for cross-cutting catalog/search filtering.
+model Topic {
+  id   String @id @default(cuid())
+  code String @unique
+  name String
+  skill SkillArea?
+
+  lessons   LessonTopic[]
+  questions QuestionTopic[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("topics")
+}
+
+model CoursePath {
+  id          String  @id @default(cuid())
+  code        String  @unique
+  title       String
+  description String?
+  order       Int
+
+  modules Module[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("course_paths")
+}
+
+model Module {
+  id           String @id @default(cuid())
+  code         String @unique
+  coursePathId String
+  coursePath   CoursePath @relation(fields: [coursePathId], references: [id], onDelete: Cascade)
+
+  title       String
+  description String?
+  level       PedagogicalLevel
+  skill       SkillArea
+  order       Int
+
+  lessons Lesson[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([coursePathId])
+  @@map("modules")
+}
+
+/// `content` holds the structured lesson body (explanation, examples, common
+/// mistakes, guided/independent practice, summary, checklist, references —
+/// see lib/content/schema.ts for the validated shape) as JSON rather than a
+/// fully normalized set of tables: the per-lesson shape varies enough by
+/// skill that forcing one rigid relational structure would mean constant
+/// migrations, while every field that other features must query (status,
+/// level, skill, order, prerequisites) stays a real column.
+model Lesson {
+  id       String @id @default(cuid())
+  code     String @unique
+  moduleId String
+  module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  title            String
+  level            PedagogicalLevel
+  skill            SkillArea
+  targetBandRange  String?
+  estimatedMinutes Int
+  order            Int
+
+  objectives Json
+  content    Json
+
+  topics         LessonTopic[]
+  requires       LessonPrerequisite[] @relation("LessonRequires")
+  requiredFor    LessonPrerequisite[] @relation("LessonRequiredFor")
+  questions      Question[]
+
+  contentVersion Int           @default(1)
+  reviewStatus   ContentStatus @default(DRAFT)
+  reviewedById   String?
+  reviewedBy     User?         @relation("LessonReviewedBy", fields: [reviewedById], references: [id])
+  reviewedAt     DateTime?
+  sourceNotes    String?
+
+  createdAt     DateTime @default(now())
+  lastUpdatedAt DateTime @updatedAt
+
+  @@index([moduleId])
+  @@index([reviewStatus])
+  @@map("lessons")
+}
+
+model LessonPrerequisite {
+  id                    String @id @default(cuid())
+  lessonId              String
+  lesson                Lesson @relation("LessonRequires", fields: [lessonId], references: [id], onDelete: Cascade)
+  prerequisiteLessonId  String
+  prerequisiteLesson    Lesson @relation("LessonRequiredFor", fields: [prerequisiteLessonId], references: [id], onDelete: Cascade)
+
+  @@unique([lessonId, prerequisiteLessonId])
+  @@map("lesson_prerequisites")
+}
+
+model LessonTopic {
+  lessonId String
+  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  topicId  String
+  topic    Topic  @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@id([lessonId, topicId])
+  @@map("lesson_topics")
+}
+
+/// Generic question model covering the practice-engine item types used by
+/// Grammar/Vocabulary/Listening/Reading mini-quizzes (Fase 6). Writing/
+/// Speaking tasks are free-response and get their own models in Fase 9-10
+/// rather than being forced through `options`/`answerKey`.
+model Question {
+  id       String  @id @default(cuid())
+  code     String  @unique
+  lessonId String?
+  lesson   Lesson? @relation(fields: [lessonId], references: [id], onDelete: SetNull)
+
+  type            QuestionType
+  skill           SkillArea
+  level           PedagogicalLevel
+  targetBandRange String?
+  difficulty      Int          @default(3)
+
+  /// { text, instructions?, context? } — structure left to the renderer per
+  /// `type` rather than forcing every question type into one shape.
+  prompt Json
+  /// Choice-based types only (e.g. multiple choice): [{ id, text }].
+  options Json?
+  /// Canonical correct answer(s); shape depends on `type`.
+  answerKey Json
+  /// Additional strings/values accepted as correct besides `answerKey`.
+  acceptedAnswers Json?
+  explanation     String
+
+  topics QuestionTopic[]
+
+  estimatedSeconds Int?
+
+  contentVersion Int           @default(1)
+  reviewStatus   ContentStatus @default(DRAFT)
+  sourceType     String        @default("original")
+  createdById    String?
+  createdBy      User?         @relation("QuestionCreatedBy", fields: [createdById], references: [id])
+  reviewedById   String?
+  reviewedBy     User?         @relation("QuestionReviewedBy", fields: [reviewedById], references: [id])
+
+  createdAt     DateTime @default(now())
+  lastUpdatedAt DateTime @updatedAt
+
+  @@index([lessonId])
+  @@index([reviewStatus])
+  @@map("questions")
+}
+
+model QuestionTopic {
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  topicId    String
+  topic      Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@id([questionId, topicId])
+  @@map("question_topics")
 }

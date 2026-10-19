@@ -1,0 +1,155 @@
+{
+  "code": "STARTER-GRAM-001",
+  "coursePathCode": "PATH-STARTER",
+  "moduleCode": "STARTER-FOUNDATIONS",
+  "title": "Alphabet dan Spelling: Mengeja Nama, Tempat, dan Email",
+  "level": "STARTER",
+  "skill": "GRAMMAR",
+  "estimatedMinutes": 15,
+  "order": 0,
+  "prerequisites": [],
+  "topics": ["personal-information"],
+  "objectives": [
+    "Mengenal 26 huruf alphabet bahasa Inggris dan cara menyebutnya",
+    "Dapat mengeja nama, alamat, dan email sendiri dengan benar",
+    "Memahami kapan diminta untuk 'spell' sesuatu dalam percakapan"
+  ],
+  "content": {
+    "explanationId": "Dalam bahasa Inggris, setiap huruf alfabet memiliki nama sendiri saat diucapkan satu per satu — ini disebut 'spelling' (mengeja). Kemampuan mengeja sangat penting di tahap awal belajar karena sering dipakai untuk menyebutkan nama, alamat email, atau kode referensi, baik dalam percakapan sehari-hari maupun pada bagian awal tes IELTS Listening.",
+    "coreConcept": "The English alphabet has 26 letters, from A to Z. Each letter has its own name, which is often different from how it looks in writing (for example, the letter 'W' is pronounced 'double-u', not 'wuh'). When we say a word letter-by-letter, we are 'spelling' it. Example: 'My name is Budi. That's B-U-D-I.'",
+    "examples": [
+      {
+        "correct": "Could you spell your surname, please? — Yes, it's T-A-N-A-K-A.",
+        "incorrect": "Could you spell your surname, please? — Tanaka.",
+        "reason": "Permintaan 'spell' berarti diminta mengeja huruf demi huruf, bukan mengucapkan kata secara utuh."
+      },
+      {
+        "correct": "My email is budi dot s at gmail dot com — B-U-D-I, DOT, S.",
+        "incorrect": "My email is budi.s@gmail.com (diucapkan cepat sebagai satu kata tanpa dieja).",
+        "reason": "Saat memberikan informasi lisan seperti alamat email, huruf dan simbol perlu disebut satu per satu agar jelas didengar, terutama lewat telepon atau rekaman audio."
+      }
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Melafalkan huruf 'E' seperti bunyi 'e' pada kata Indonesia 'elang'.",
+        "correction": "Dalam bahasa Inggris, huruf 'E' dilafalkan /iː/, seperti pada kata 'easy'.",
+        "note": "Perbedaan pelafalan ini sering membuat ejaan nama sulit dipahami oleh penutur asli."
+      },
+      {
+        "mistake": "Melafalkan huruf 'I' seperti huruf 'E' dalam bahasa Indonesia.",
+        "correction": "Huruf 'I' dalam bahasa Inggris dilafalkan /aɪ/, seperti pada kata 'eye'.",
+        "note": "Huruf I dan E paling sering tertukar oleh pemula."
+      }
+    ],
+    "strategy": "Saat listening meminta Anda mencatat nama atau kode, dengarkan baik-baik huruf yang bunyinya mirip dan sering tertukar (B/P, M/N, S/F), lalu tuliskan huruf besar persis seperti yang diucapkan tanpa menambah atau mengurangi.",
+    "guidedPractice": [
+      {
+        "prompt": "Ejakan nama depan Anda menggunakan nama huruf bahasa Inggris.",
+        "hint": "Contoh: 'Budi' = B-U-D-I"
+      },
+      {
+        "prompt": "Ejakan nama kota tempat tinggal Anda.",
+        "hint": "Ingat: huruf 'J' dibaca /dʒeɪ/, bukan seperti 'J' dalam bahasa Indonesia."
+      }
+    ],
+    "independentPractice": [
+      {
+        "prompt": "Tuliskan ejaan alamat email Anda dalam bahasa Inggris, termasuk kata 'dot' dan 'at'.",
+        "difficulty": "easy"
+      },
+      {
+        "prompt": "Tuliskan ejaan nama lengkap dan nomor rumah Anda seolah-olah sedang didiktekan lewat telepon.",
+        "difficulty": "medium"
+      }
+    ],
+    "summary": "Alphabet bahasa Inggris memiliki 26 huruf, masing-masing dengan pelafalan sendiri yang sering berbeda dari bahasa Indonesia. Spelling (mengeja) adalah keterampilan dasar yang penting untuk menyebutkan nama, alamat, dan email dengan jelas.",
+    "checklist": [
+      "Saya bisa menyebutkan 26 huruf alphabet dengan pelafalan yang benar",
+      "Saya bisa mengeja nama dan alamat email saya sendiri",
+      "Saya memahami kapan diminta untuk 'spell' sesuatu"
+    ],
+    "applicationTask": "Latih mengeja nama lengkap, alamat, dan email Anda sampai lancar tanpa ragu, lalu minta teman mendengarkan dan menuliskannya."
+  },
+  "sourceNotes": "Materi disusun orisinal oleh tim Success IELTS untuk level Starter/Pre-A1; tidak mengambil teks dari buku atau tes resmi manapun.",
+  "questions": [
+    {
+      "code": "STARTER-GRAM-001-Q1",
+      "type": "MULTIPLE_CHOICE",
+      "difficulty": 1,
+      "prompt": { "text": "Which letter is pronounced like the word 'eye'?" },
+      "options": [
+        { "id": "A", "text": "E" },
+        { "id": "B", "text": "I" },
+        { "id": "C", "text": "Y" },
+        { "id": "D", "text": "A" }
+      ],
+      "answerKey": "B",
+      "explanation": "Huruf 'I' dilafalkan /aɪ/, persis seperti kata 'eye'. Huruf 'E' dilafalkan /iː/, bukan /aɪ/.",
+      "topics": ["personal-information"],
+      "estimatedSeconds": 20
+    },
+    {
+      "code": "STARTER-GRAM-001-Q2",
+      "type": "MULTIPLE_CHOICE",
+      "difficulty": 1,
+      "prompt": { "text": "You hear: \"My surname is spelled S-M-I-T-H.\" What is the surname?" },
+      "options": [
+        { "id": "A", "text": "Smith" },
+        { "id": "B", "text": "Smyth" },
+        { "id": "C", "text": "Smitt" },
+        { "id": "D", "text": "Smithe" }
+      ],
+      "answerKey": "A",
+      "explanation": "S-M-I-T-H dieja huruf demi huruf menjadi 'Smith'.",
+      "topics": ["personal-information"],
+      "estimatedSeconds": 20
+    },
+    {
+      "code": "STARTER-GRAM-001-Q3",
+      "type": "SHORT_ANSWER",
+      "difficulty": 2,
+      "prompt": {
+        "text": "Spell the word \"CAT\" using English letter names.",
+        "instructions": "Tulis huruf dipisahkan tanda hubung, contoh: A-B-C"
+      },
+      "answerKey": "C-A-T",
+      "acceptedAnswers": ["c-a-t", "C A T", "c a t"],
+      "explanation": "Kata 'CAT' terdiri dari huruf C, A, T — dieja C-A-T.",
+      "topics": ["personal-information"],
+      "estimatedSeconds": 30
+    },
+    {
+      "code": "STARTER-GRAM-001-Q4",
+      "type": "GAP_FILL",
+      "difficulty": 2,
+      "prompt": {
+        "text": "Could you ____ your name, please?",
+        "instructions": "Lengkapi dengan satu kata yang berarti 'mengeja'."
+      },
+      "answerKey": "spell",
+      "acceptedAnswers": ["Spell"],
+      "explanation": "'Spell' adalah kata kerja yang berarti menyebutkan huruf satu per satu dari sebuah kata.",
+      "topics": ["personal-information"],
+      "estimatedSeconds": 20
+    },
+    {
+      "code": "STARTER-GRAM-001-Q5",
+      "type": "ORDERING",
+      "difficulty": 2,
+      "prompt": {
+        "text": "Put these letters into correct alphabetical order.",
+        "instructions": "Urutkan dari yang paling awal ke paling akhir dalam alfabet."
+      },
+      "options": [
+        { "id": "opt1", "text": "D" },
+        { "id": "opt2", "text": "B" },
+        { "id": "opt3", "text": "C" },
+        { "id": "opt4", "text": "A" }
+      ],
+      "answerKey": ["opt4", "opt2", "opt3", "opt1"],
+      "explanation": "Urutan alfabet dimulai dari A, B, C, D — sehingga urutan yang benar adalah A-B-C-D.",
+      "topics": ["personal-information"],
+      "estimatedSeconds": 25
+    }
+  ]
+}

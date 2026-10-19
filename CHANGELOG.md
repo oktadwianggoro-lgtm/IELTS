@@ -2,6 +2,51 @@
 
 Semua perubahan penting pada Success IELTS dicatat di sini, per fase pengembangan.
 
+## Fase 2 — Content model, CMS minimal, importer dan validator
+
+### Ditambahkan
+
+- Model konten di Prisma: `CoursePath`, `Module`, `Lesson` (+
+  `LessonPrerequisite`), `Topic` (+ `LessonTopic`/`QuestionTopic`), `Question`
+  generik multi-tipe (`QuestionType`: multiple choice, gap fill, matching,
+  ordering, short answer, true/false/not given, yes/no/not given, sentence
+  transformation, error correction, summary completion). Semua membawa
+  `reviewStatus` (`DRAFT→IN_REVIEW→APPROVED→PUBLISHED→ARCHIVED`),
+  `contentVersion`, `reviewedBy`/`reviewedAt`, `sourceNotes`,
+  `lastUpdatedAt` sesuai Master Prompt §7.
+- `lib/content/schema.ts`: schema Zod untuk file JSON lesson/question/module/
+  course-path/topic, termasuk validasi silang per tipe soal (mis. multiple
+  choice wajib ≥2 opsi dan `answerKey` harus cocok salah satu ID opsi).
+- `lib/content/loader.ts` + `npm run content:validate`: membaca seluruh
+  `content/**/*.json`, validasi per file DAN validasi lintas-file (kode
+  module/course-path/prerequisite/topic harus benar-benar ada, kode lesson/
+  question unik). Exit code 1 jika ada masalah — diuji benar-benar mendeteksi
+  12 jenis kesalahan berbeda dari fixture sengaja-rusak.
+- `npm run content:import`: importer idempotent (upsert by `code`) — diuji
+  dengan menjalankan dua kali berturut-turut dan memverifikasi tidak ada
+  baris duplikat di database.
+- Konten seed vertical-slice orisinal pertama: lesson "Alphabet dan Spelling"
+  (Starter/Pre-A1, Grammar) lengkap dengan 5 soal mini-quiz (3 tipe soal
+  berbeda), mengikuti format wajib 16-bagian Master Prompt §7.
+- CMS admin minimal: `/admin/content` (daftar lesson + status badge) dan
+  `/admin/content/[code]` (pratinjau siswa + tombol transisi status),
+  diakses TEACHER/ADMIN; hanya ADMIN yang bisa approve/publish/archive,
+  diberlakukan server-side (`app/(admin)/admin/content/[code]/actions.ts`).
+- `components/content/lesson-view.tsx`: komponen render lesson yang akan
+  dipakai ulang untuk halaman lesson siswa di Fase 3.
+- 18 unit test baru (schema Zod, loader lintas-file terhadap konten seed
+  sungguhan) dan E2E baru `e2e/content-cms.spec.ts` yang menjalankan seluruh
+  alur editorial (draft→review→approved→published) di browser asli, plus
+  verifikasi siswa biasa diblokir dari CMS.
+
+### Catatan
+
+- CMS Fase 2 adalah alat **review/publish**, bukan editor WYSIWYG — menulis
+  konten baru tetap lewat file JSON + importer (lihat `docs/DECISIONS.md`
+  D-020). Editor penuh menyusul Fase 13.
+- Baru 1 lesson yang di-seed (vertical slice); katalog publik penuh dan
+  lebih banyak konten menyusul Fase 3–4.
+
 ## Fase 1 — Database, autentikasi, role, dan onboarding
 
 ### Ditambahkan

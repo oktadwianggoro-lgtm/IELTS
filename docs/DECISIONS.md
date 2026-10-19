@@ -253,6 +253,38 @@ docker-compose.dev.yml up -d` untuk pengembangan lokal, sesuai stack Master
   belakang proxy yang tidak bisa dipercaya header-nya, pertimbangkan
   mengembalikan `AUTH_URL` eksplisit untuk environment tersebut saja.
 
+## Fase 2
+
+### D-019: Re-import tidak mereset `reviewStatus` konten yang sudah APPROVED/PUBLISHED
+
+- **Keputusan:** `scripts/content/import.ts` menaikkan `contentVersion` saat
+  meng-update lesson/question yang sudah ada, tapi TIDAK mengubah
+  `reviewStatus`-nya. Jadi mengedit file JSON sebuah lesson yang sudah
+  `PUBLISHED` lalu re-import akan membuat kontennya berubah di produksi
+  tanpa melalui review ulang.
+- **Alasan:** Untuk Fase 2 MVP, importer dirancang sederhana (idempotent
+  upsert) dulu; auto-reset ke `IN_REVIEW` saat konten published berubah
+  butuh logika diff (apa yang sebenarnya berubah?) yang belum penting
+  selama tim editorial masih kecil dan jumlah lesson published masih sedikit.
+- **Risiko:** Seiring jumlah lesson published bertambah (Fase 4/18), editor
+  bisa lupa bahwa edit pada file JSON langsung berdampak ke produksi.
+- **Tinjau ulang:** Sebelum Fase 4 (seed konten besar-besaran) atau Fase 18
+  (perluasan konten berkelanjutan) — tambahkan: (a) auto-turunkan status
+  published→in_review saat `content`/`questions` berubah, atau (b) importer
+  menolak meng-update lesson PUBLISHED tanpa flag eksplisit.
+
+### D-020: CMS Fase 2 hanya untuk review/publish, bukan authoring
+
+- **Keputusan:** `/admin/content` tidak punya form untuk menulis/mengedit
+  teks lesson. Satu-satunya cara membuat/mengubah konten adalah menulis file
+  JSON di `content/` lalu `npm run content:import`. UI admin hanya
+  menampilkan pratinjau dan tombol transisi status.
+- **Alasan:** Master Prompt Fase 2 secara eksplisit meminta "importer...
+  CMS dasar draft/review/published dan preview lesson" — bukan rich-text
+  editor. Editor WYSIWYG penuh (dengan version history, rollback) adalah
+  lingkup Fase 13 ("Panel Admin/Teacher lengkap").
+- **Tinjau ulang:** Fase 13.
+
 ### D-018: Hanya "Beranda" punya halaman nyata di Fase 0; 15 menu lain pakai stub "segera tersedia"
 
 - **Keputusan:** Semua item navigasi di `lib/nav-config.ts` punya route yang benar

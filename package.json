@@ -12,7 +12,9 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "content:validate": "tsx scripts/content/validate.ts",
+    "content:import": "tsx scripts/content/import.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.3",

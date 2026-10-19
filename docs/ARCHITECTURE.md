@@ -1,6 +1,7 @@
 # Arsitektur — Success IELTS
 
-Status: Fase 0 (fondasi). Dokumen ini akan diperluas pada setiap fase berikutnya.
+Status: Fase 2 (content model, CMS minimal, importer/validator). Dokumen ini
+akan diperluas pada setiap fase berikutnya.
 
 ## 1. Ringkasan
 
@@ -151,13 +152,49 @@ fase konten (Fase 3–4).
 
 Sesuai instruksi "satu fase pada satu waktu":
 
-- Tidak ada database/Prisma schema (Fase 1).
-- Tidak ada autentikasi/RBAC — halaman `(app)/*` belum dilindungi (Fase 1).
-- Tidak ada konten kurikulum nyata — semua memakai `<ComingSoon />` (Fase 2–4).
+- ~~Tidak ada database/Prisma schema~~ — selesai Fase 1.
+- ~~Tidak ada autentikasi/RBAC~~ — selesai Fase 1.
+- ~~Tidak ada model konten~~ — selesai Fase 2 (CoursePath/Module/Lesson/Topic/
+  Question + CMS review workflow); katalog publik lengkap menyusul Fase 3–4.
+  Hanya 1 lesson vertical-slice yang di-seed sejauh ini — `/materi` publik
+  masih memakai `<ComingSoon />` sampai Fase 3.
 - Tidak ada scoring/AI feedback (Fase 9–11).
 - Tidak ada Docker/deployment (Fase 17).
 
-## 8. Menjalankan proyek secara lokal
+## 8. Pipeline konten (Fase 2)
+
+Konten (CoursePath/Module/Lesson/Question) ditulis sebagai JSON di `content/`,
+bukan lewat UI admin — CMS di Fase 2 ini untuk **review dan publish**, bukan
+authoring. Lihat `lib/content/schema.ts` untuk bentuk file yang divalidasi.
+
+```
+content/
+  topics.json              # registry tag lintas lesson/question
+  course-paths/*.json
+  modules/*.json
+  lessons/<level>/*.json   # setiap file: 1 lesson + ≥5 soal mini-quiz-nya
+```
+
+- `npm run content:validate` — validasi Zod per file + cross-reference
+  (moduleCode/coursePathCode/prerequisite/topic harus benar-benar ada),
+  exit code 1 jika ada masalah (cocok untuk pre-commit/CI).
+- `npm run content:import` — idempotent: upsert by `code`, menaikkan
+  `contentVersion` saat ada perubahan, TIDAK mereset `reviewStatus` konten
+  yang sudah APPROVED/PUBLISHED (lihat `docs/DECISIONS.md` untuk batasan ini).
+  Konten baru selalu masuk sebagai `DRAFT`.
+- Alur editorial: `DRAFT → IN_REVIEW → APPROVED → PUBLISHED` (+ `ARCHIVED`),
+  diberlakukan server-side di `app/(admin)/admin/content/[code]/actions.ts`
+  terlepas dari apa yang dikirim client. TEACHER bisa draft→review (dan
+  kembali ke draft); hanya ADMIN yang bisa approve/publish/archive.
+- `/admin/content` (list) dan `/admin/content/[code]` (pratinjau + tombol
+  transisi status) di-gate `requireRole(["ADMIN","TEACHER"])` di layout,
+  dengan pengecualian lebih ketat per halaman (mis. dashboard admin dengan
+  statistik pengguna tetap ADMIN-only).
+- `components/content/lesson-view.tsx` me-render lesson dari data terstruktur
+  — dipakai untuk pratinjau admin sekarang, dan akan dipakai ulang untuk
+  halaman lesson siswa sungguhan di Fase 3.
+
+## 9. Menjalankan proyek secara lokal
 
 Lihat `README.md` untuk perintah lengkap. Ringkas:
 
