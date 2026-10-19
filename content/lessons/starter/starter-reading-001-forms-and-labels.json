@@ -1,0 +1,149 @@
+{
+  "code": "STARTER-READING-001",
+  "coursePathCode": "PATH-STARTER",
+  "moduleCode": "STARTER-READING",
+  "title": "Membaca Formulir, Label, dan Pengumuman Pendek",
+  "level": "STARTER",
+  "skill": "READING",
+  "estimatedMinutes": 15,
+  "order": 0,
+  "prerequisites": ["STARTER-GRAM-001"],
+  "topics": ["personal-information"],
+  "objectives": [
+    "Memahami kata-kata umum pada formulir (name, address, date of birth, signature)",
+    "Dapat menemukan informasi spesifik dari pengumuman pendek",
+    "Mengenali kata kunci penanda informasi penting (open, closed, free, required)"
+  ],
+  "content": {
+    "explanationId": "Membaca dalam bahasa Inggris tidak selalu berarti membaca teks panjang. Di kehidupan sehari-hari maupun di awal pembelajaran IELTS Reading, kemampuan membaca formulir, label, dan pengumuman pendek dengan cepat adalah keterampilan dasar yang sangat penting. Fokusnya adalah menemukan informasi spesifik, bukan memahami setiap kata.",
+    "coreConcept": "'Scanning' means looking quickly for specific information (like a name or date), not reading every word. Common form words: 'Full Name', 'Date of Birth' (DOB), 'Address', 'Signature'. Common sign/notice words: 'Open', 'Closed', 'Free Entry', 'Required', 'Please wait here'.",
+    "examples": [
+      {
+        "correct": "On a form, 'Date of Birth' means the day you were born, so you write a date like '12/05/2000'.",
+        "incorrect": "Writing your current age instead of a date for 'Date of Birth'.",
+        "reason": "'Date of Birth' meminta TANGGAL lahir, bukan umur sekarang — kesalahan umum pemula saat mengisi formulir."
+      },
+      {
+        "correct": "A sign says 'Closed on Sundays' — this means the shop does NOT open on Sunday.",
+        "incorrect": "Mengira 'Closed on Sundays' berarti toko buka setiap hari termasuk Minggu.",
+        "reason": "'Closed on [hari]' secara spesifik menyebutkan kapan TUTUP, bukan kapan buka."
+      }
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Membaca setiap kata pada formulir/pengumuman satu per satu dari awal, membuang banyak waktu.",
+        "correction": "Scan dulu untuk menemukan kata kunci yang relevan dengan pertanyaan, baru baca detailnya.",
+        "note": "Scanning adalah keterampilan yang akan terus dipakai di seluruh Reading Lab IELTS."
+      },
+      {
+        "mistake": "Mengabaikan kata negasi kecil seperti 'not', 'closed', 'except'.",
+        "correction": "Kata-kata kecil ini sering mengubah makna kalimat secara total.",
+        "note": "'Open except Sundays' sangat berbeda artinya dengan 'Open on Sundays'."
+      }
+    ],
+    "strategy": "Sebelum membaca detail, lihat dulu judul/konteks dokumen (formulir apa? pengumuman tentang apa?). Lalu cari kata kunci yang sesuai pertanyaan Anda, jangan baca semuanya dari awal sampai akhir.",
+    "guidedPractice": [
+      {
+        "prompt": "Sebuah formulir meminta 'Full Name' dan 'Contact Number'. Apa yang harus Anda isi di masing-masing kolom?",
+        "hint": "Full Name = nama lengkap, Contact Number = nomor telepon."
+      },
+      {
+        "prompt": "Tanda bertuliskan 'No entry after 9 PM'. Apa artinya?",
+        "hint": "Tidak boleh masuk setelah jam 9 malam."
+      }
+    ],
+    "independentPractice": [
+      {
+        "prompt": "Buat daftar 5 kata yang biasa muncul di formulir pendaftaran (dalam bahasa Inggris beserta artinya).",
+        "difficulty": "easy"
+      },
+      {
+        "prompt": "Tuliskan 3 contoh pengumuman pendek (sign) yang mungkin Anda temui di tempat umum, dalam bahasa Inggris.",
+        "difficulty": "medium"
+      }
+    ],
+    "summary": "Membaca formulir dan pengumuman pendek membutuhkan scanning (mencari informasi spesifik) bukan membaca kata per kata. Perhatikan kata kunci seperti 'closed', 'required', 'except' yang sering mengubah makna.",
+    "checklist": [
+      "Saya memahami kata-kata umum pada formulir (name, address, date of birth)",
+      "Saya bisa menemukan informasi spesifik dari pengumuman pendek dengan cepat",
+      "Saya memperhatikan kata negasi kecil yang mengubah makna kalimat"
+    ],
+    "applicationTask": "Cari satu formulir berbahasa Inggris (bisa dari internet) dan identifikasi arti setiap kolom yang ada."
+  },
+  "sourceNotes": "Materi dan contoh formulir/pengumuman orisinal tim Success IELTS; tidak mengambil dari dokumen resmi manapun.",
+  "questions": [
+    {
+      "code": "STARTER-READING-001-Q1",
+      "type": "MULTIPLE_CHOICE",
+      "difficulty": 1,
+      "prompt": { "text": "On a form, what should you write under 'Date of Birth'?" },
+      "options": [
+        { "id": "A", "text": "Your current age" },
+        { "id": "B", "text": "The date you were born" },
+        { "id": "C", "text": "Today's date" },
+        { "id": "D", "text": "Your address" }
+      ],
+      "answerKey": "B",
+      "explanation": "'Date of Birth' meminta tanggal lahir, bukan umur sekarang.",
+      "topics": ["personal-information"],
+      "estimatedSeconds": 15
+    },
+    {
+      "code": "STARTER-READING-001-Q2",
+      "type": "TRUE_FALSE_NOT_GIVEN",
+      "difficulty": 2,
+      "prompt": {
+        "text": "A shop sign says: \"Open Monday to Saturday, Closed on Sundays.\" Statement: The shop is open every day.",
+        "instructions": "Tentukan apakah pernyataan ini True, False, atau Not Given berdasarkan tanda tersebut."
+      },
+      "answerKey": "FALSE",
+      "explanation": "Tanda secara eksplisit menyatakan toko tutup pada hari Minggu, jadi pernyataan 'buka setiap hari' adalah False.",
+      "topics": ["personal-information"],
+      "estimatedSeconds": 25
+    },
+    {
+      "code": "STARTER-READING-001-Q3",
+      "type": "SHORT_ANSWER",
+      "difficulty": 2,
+      "prompt": {
+        "text": "A sign says: \"No entry after 9 PM.\" What time is the last time you can enter?",
+        "instructions": "Jawab dengan jam."
+      },
+      "answerKey": "9 PM",
+      "acceptedAnswers": ["9pm", "9:00 PM", "nine PM", "before 9 PM", "just before 9 PM"],
+      "explanation": "'No entry AFTER 9 PM' berarti Anda masih bisa masuk SAMPAI jam 9 malam.",
+      "topics": ["personal-information"],
+      "estimatedSeconds": 25
+    },
+    {
+      "code": "STARTER-READING-001-Q4",
+      "type": "MULTIPLE_CHOICE",
+      "difficulty": 1,
+      "prompt": { "text": "Which form field asks for your phone number?" },
+      "options": [
+        { "id": "A", "text": "Full Name" },
+        { "id": "B", "text": "Signature" },
+        { "id": "C", "text": "Contact Number" },
+        { "id": "D", "text": "Date of Birth" }
+      ],
+      "answerKey": "C",
+      "explanation": "'Contact Number' adalah kolom untuk nomor telepon yang bisa dihubungi.",
+      "topics": ["personal-information"],
+      "estimatedSeconds": 15
+    },
+    {
+      "code": "STARTER-READING-001-Q5",
+      "type": "GAP_FILL",
+      "difficulty": 2,
+      "prompt": {
+        "text": "\"Free entry for children ____ accompanied by an adult.\" Which word best completes this, meaning a condition?",
+        "instructions": "Isi dengan satu kata."
+      },
+      "answerKey": "if",
+      "acceptedAnswers": ["when"],
+      "explanation": "Kata 'if' (atau 'when') menandakan syarat: anak-anak masuk gratis JIKA/SAAT ditemani orang dewasa.",
+      "topics": ["personal-information"],
+      "estimatedSeconds": 20
+    }
+  ]
+}

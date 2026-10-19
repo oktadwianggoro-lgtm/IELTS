@@ -6,7 +6,11 @@ function normalize(s: string): string {
   return s.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
-function stringMatches(submitted: string, answerKey: string, acceptedAnswers?: string[] | null): boolean {
+function stringMatches(
+  submitted: string,
+  answerKey: string,
+  acceptedAnswers?: string[] | null,
+): boolean {
   const candidates = [answerKey, ...(acceptedAnswers ?? [])].map(normalize);
   return candidates.includes(normalize(submitted));
 }

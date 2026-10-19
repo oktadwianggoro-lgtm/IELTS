@@ -1,0 +1,154 @@
+{
+  "code": "STARTER-VOCAB-001",
+  "coursePathCode": "PATH-STARTER",
+  "moduleCode": "STARTER-VOCABULARY",
+  "title": "Kosakata Informasi Pribadi: Memperkenalkan Diri",
+  "level": "STARTER",
+  "skill": "VOCABULARY",
+  "estimatedMinutes": 15,
+  "order": 0,
+  "prerequisites": ["STARTER-GRAM-001"],
+  "topics": ["personal-information"],
+  "objectives": [
+    "Menguasai kosakata dasar untuk memperkenalkan diri: nama, umur, pekerjaan, asal",
+    "Dapat menyebutkan dan menulis informasi keluarga sederhana",
+    "Memahami perbedaan 'I am' untuk identitas dan 'I have' untuk kepemilikan/keluarga"
+  ],
+  "content": {
+    "explanationId": "Sebelum bisa bercakap-cakap panjang dalam bahasa Inggris, langkah pertama adalah menguasai kosakata untuk memperkenalkan diri: nama, umur, pekerjaan, asal kota/negara, dan keluarga. Kosakata ini akan terus dipakai di hampir semua bagian IELTS Speaking Part 1, jadi menguasainya sejak awal akan sangat membantu.",
+    "coreConcept": "To introduce yourself, you need key vocabulary: name, age, job/occupation, hometown, and family. Use 'I am' (I'm) for identity and jobs: 'I am a student.' Use 'I have' for family and possessions: 'I have two sisters.' Use 'I come from' or 'I am from' for origin: 'I come from Surabaya.'",
+    "examples": [
+      {
+        "correct": "I am a teacher. I am from Bandung. I have one brother.",
+        "incorrect": "I have a teacher. I am from Bandung. I am one brother.",
+        "reason": "'Teacher' adalah identitas/pekerjaan, jadi pakai 'I am', bukan 'I have'. 'Brother' adalah anggota keluarga, jadi pakai 'I have', bukan 'I am'."
+      },
+      {
+        "correct": "My name is Sari. I am twenty-five years old.",
+        "incorrect": "My name is Sari. I am twenty-five years.",
+        "reason": "Saat menyebutkan umur dalam bahasa Inggris, kata 'years old' harus lengkap, tidak boleh hanya 'years'."
+      }
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "I have 25 years old. (menerjemahkan langsung dari 'saya punya umur 25 tahun')",
+        "correction": "I am 25 years old.",
+        "note": "Bahasa Inggris memakai 'be' (am/is/are) untuk umur, bukan 'have', berbeda dengan pola bahasa Indonesia."
+      },
+      {
+        "mistake": "I am from my hometown is Jakarta.",
+        "correction": "I am from Jakarta. / My hometown is Jakarta.",
+        "note": "Pilih salah satu pola kalimat; menggabungkan keduanya membuat kalimat tidak gramatikal."
+      }
+    ],
+    "strategy": "Saat belajar kosakata baru, buat kalimat lengkap tentang diri Anda sendiri untuk setiap kata, bukan hanya menghafal daftar kata lepas. Ini membantu kosakata lebih mudah diingat dan langsung siap dipakai saat berbicara.",
+    "guidedPractice": [
+      {
+        "prompt": "Lengkapi: My name ___ Budi. I ___ from Yogyakarta.",
+        "hint": "Gunakan 'is' untuk 'name', 'am' untuk 'I'."
+      },
+      {
+        "prompt": "Buat satu kalimat tentang pekerjaan Anda menggunakan 'I am a/an...'.",
+        "hint": "Contoh: I am a student. / I am an engineer."
+      }
+    ],
+    "independentPractice": [
+      {
+        "prompt": "Tuliskan 4 kalimat memperkenalkan diri: nama, umur, asal, dan pekerjaan.",
+        "difficulty": "easy"
+      },
+      {
+        "prompt": "Tuliskan 2 kalimat tentang keluarga Anda menggunakan 'I have'.",
+        "difficulty": "medium"
+      }
+    ],
+    "summary": "Memperkenalkan diri dalam bahasa Inggris memakai 'I am' untuk identitas/pekerjaan/umur, 'I have' untuk keluarga/kepemilikan, dan 'I come from' / 'I am from' untuk asal.",
+    "checklist": [
+      "Saya bisa menyebutkan nama, umur, dan pekerjaan saya dalam bahasa Inggris",
+      "Saya tahu kapan memakai 'I am' dan kapan memakai 'I have'",
+      "Saya bisa menulis 2-3 kalimat sederhana tentang keluarga saya"
+    ],
+    "applicationTask": "Latih memperkenalkan diri secara lisan selama 30 detik: nama, umur, asal, pekerjaan, dan satu anggota keluarga."
+  },
+  "sourceNotes": "Materi orisinal tim Success IELTS; tidak mengambil dari buku atau tes resmi manapun.",
+  "questions": [
+    {
+      "code": "STARTER-VOCAB-001-Q1",
+      "type": "MULTIPLE_CHOICE",
+      "difficulty": 1,
+      "prompt": { "text": "Choose the correct sentence." },
+      "options": [
+        { "id": "A", "text": "I have 20 years old." },
+        { "id": "B", "text": "I am 20 years old." },
+        { "id": "C", "text": "I is 20 years old." },
+        { "id": "D", "text": "I am 20 year." }
+      ],
+      "answerKey": "B",
+      "explanation": "Umur dalam bahasa Inggris memakai 'am/is/are' + angka + 'years old', bukan 'have'.",
+      "topics": ["personal-information"],
+      "estimatedSeconds": 20
+    },
+    {
+      "code": "STARTER-VOCAB-001-Q2",
+      "type": "GAP_FILL",
+      "difficulty": 1,
+      "prompt": {
+        "text": "I ____ two brothers and one sister.",
+        "instructions": "Isi dengan 'am' atau 'have'."
+      },
+      "answerKey": "have",
+      "explanation": "Untuk menyebutkan anggota keluarga, gunakan 'have', bukan 'am'.",
+      "topics": ["personal-information"],
+      "estimatedSeconds": 15
+    },
+    {
+      "code": "STARTER-VOCAB-001-Q3",
+      "type": "MULTIPLE_CHOICE",
+      "difficulty": 2,
+      "prompt": { "text": "Which sentence correctly describes a job?" },
+      "options": [
+        { "id": "A", "text": "I have a nurse." },
+        { "id": "B", "text": "I am a nurse." },
+        { "id": "C", "text": "I from a nurse." },
+        { "id": "D", "text": "I nurse." }
+      ],
+      "answerKey": "B",
+      "explanation": "Pekerjaan adalah identitas, jadi memakai 'I am a/an + pekerjaan'.",
+      "topics": ["personal-information"],
+      "estimatedSeconds": 20
+    },
+    {
+      "code": "STARTER-VOCAB-001-Q4",
+      "type": "SHORT_ANSWER",
+      "difficulty": 2,
+      "prompt": {
+        "text": "Rewrite correctly: 'I from Bandung.'",
+        "instructions": "Tulis kalimat yang benar."
+      },
+      "answerKey": "I am from Bandung.",
+      "acceptedAnswers": ["I'm from Bandung.", "i am from bandung", "i'm from bandung"],
+      "explanation": "Kalimat butuh kata kerja 'am' sebelum 'from': 'I am from Bandung.'",
+      "topics": ["personal-information"],
+      "estimatedSeconds": 25
+    },
+    {
+      "code": "STARTER-VOCAB-001-Q5",
+      "type": "MATCHING",
+      "difficulty": 2,
+      "prompt": {
+        "text": "Match the sentence starter with its correct use.",
+        "instructions": "Pilih pasangan yang benar untuk 'I have two sisters.'"
+      },
+      "options": [
+        { "id": "A", "text": "Menyebutkan pekerjaan" },
+        { "id": "B", "text": "Menyebutkan keluarga" },
+        { "id": "C", "text": "Menyebutkan umur" },
+        { "id": "D", "text": "Menyebutkan asal kota" }
+      ],
+      "answerKey": "B",
+      "explanation": "'I have two sisters' digunakan untuk menyebutkan anggota keluarga.",
+      "topics": ["personal-information"],
+      "estimatedSeconds": 20
+    }
+  ]
+}

@@ -1,0 +1,149 @@
+{
+  "code": "A1-GRAM-001",
+  "coursePathCode": "PATH-A1",
+  "moduleCode": "A1-GRAMMAR",
+  "title": "Present Simple vs Present Continuous",
+  "level": "A1",
+  "skill": "GRAMMAR",
+  "estimatedMinutes": 20,
+  "order": 0,
+  "prerequisites": ["STARTER-GRAM-001"],
+  "topics": ["personal-information"],
+  "objectives": [
+    "Memahami perbedaan fungsi present simple (kebiasaan/fakta) dan present continuous (sedang terjadi)",
+    "Dapat membentuk kalimat present continuous dengan benar (be + verb-ing)",
+    "Dapat memilih tense yang tepat berdasarkan konteks waktu"
+  ],
+  "content": {
+    "explanationId": "Present simple dan present continuous sama-sama membicarakan 'sekarang', tapi maknanya berbeda. Present simple dipakai untuk kebiasaan rutin atau fakta umum ('I drink coffee every morning' - kebiasaan). Present continuous dipakai untuk sesuatu yang sedang terjadi SAAT INI JUGA ('I am drinking coffee right now' - sedang berlangsung). Memahami perbedaan ini penting karena sering muncul di IELTS Listening dan Speaking.",
+    "coreConcept": "Present Simple: I/You/We/They + verb (base form); He/She/It + verb+s. Used for habits, routines, facts: 'She works in a hospital.' Present Continuous: subject + am/is/are + verb-ing. Used for actions happening right now or temporary situations: 'She is working late this week.'",
+    "examples": [
+      {
+        "correct": "I usually walk to work, but today I am taking the bus.",
+        "incorrect": "I usually am walking to work, but today I take the bus.",
+        "reason": "'Usually' menandakan kebiasaan (present simple: 'walk'), sedangkan 'today' menandakan situasi khusus hari ini (present continuous: 'am taking')."
+      },
+      {
+        "correct": "She is studying for her exam right now.",
+        "incorrect": "She studies for her exam right now.",
+        "reason": "'Right now' adalah penanda waktu untuk present continuous, bukan present simple."
+      }
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "He is working in a bank. (untuk menyatakan pekerjaan tetap/permanen)",
+        "correction": "He works in a bank.",
+        "note": "Pekerjaan tetap adalah FAKTA, jadi memakai present simple, bukan present continuous — kesalahan umum penutur Indonesia karena ingin menekankan 'sedang' bekerja."
+      },
+      {
+        "mistake": "Lupa menambahkan 's' pada present simple untuk he/she/it: 'She work every day.'",
+        "correction": "She works every day.",
+        "note": "Subjek tunggal orang ketiga (he/she/it) wajib menambah 's' atau 'es' pada kata kerja present simple."
+      }
+    ],
+    "strategy": "Cari kata penanda waktu dalam kalimat untuk menentukan tense: 'always, usually, every day, often' → present simple. 'now, right now, at the moment, currently, today' → present continuous.",
+    "guidedPractice": [
+      {
+        "prompt": "Pilih tense yang benar: 'She (watch/is watching) TV every evening.'",
+        "hint": "'Every evening' = kebiasaan → present simple."
+      },
+      {
+        "prompt": "Pilih tense yang benar: 'Look! It (rains/is raining) outside.'",
+        "hint": "'Look!' menandakan sedang terjadi → present continuous."
+      }
+    ],
+    "independentPractice": [
+      {
+        "prompt": "Buat 2 kalimat present simple tentang kebiasaan harian Anda.",
+        "difficulty": "easy"
+      },
+      {
+        "prompt": "Buat 2 kalimat present continuous tentang apa yang sedang Anda lakukan saat ini.",
+        "difficulty": "medium"
+      }
+    ],
+    "summary": "Present simple untuk kebiasaan/fakta tetap, present continuous untuk hal yang sedang berlangsung atau situasi sementara. Perhatikan kata penanda waktu untuk menentukan tense yang tepat.",
+    "checklist": [
+      "Saya memahami kapan memakai present simple vs present continuous",
+      "Saya bisa membentuk present continuous dengan benar (be + verb-ing)",
+      "Saya bisa mengenali kata penanda waktu untuk memilih tense yang tepat"
+    ],
+    "applicationTask": "Tulis 4 kalimat: 2 tentang kebiasaan Anda (present simple) dan 2 tentang apa yang sedang terjadi di sekitar Anda sekarang (present continuous)."
+  },
+  "sourceNotes": "Materi dan contoh orisinal tim Success IELTS; tidak mengambil dari buku atau tes resmi manapun.",
+  "questions": [
+    {
+      "code": "A1-GRAM-001-Q1",
+      "type": "MULTIPLE_CHOICE",
+      "difficulty": 1,
+      "prompt": { "text": "Choose the correct sentence for a daily habit." },
+      "options": [
+        { "id": "A", "text": "I am drinking coffee every morning." },
+        { "id": "B", "text": "I drink coffee every morning." },
+        { "id": "C", "text": "I drinking coffee every morning." },
+        { "id": "D", "text": "I drinks coffee every morning." }
+      ],
+      "answerKey": "B",
+      "explanation": "Kebiasaan rutin ('every morning') memakai present simple: 'I drink'.",
+      "topics": ["personal-information"],
+      "estimatedSeconds": 20
+    },
+    {
+      "code": "A1-GRAM-001-Q2",
+      "type": "GAP_FILL",
+      "difficulty": 2,
+      "prompt": {
+        "text": "Look! The baby ____ (sleep).",
+        "instructions": "Ubah kata dalam kurung ke bentuk yang tepat."
+      },
+      "answerKey": "is sleeping",
+      "explanation": "'Look!' menandakan sesuatu sedang terjadi saat ini → present continuous: 'is sleeping'.",
+      "topics": ["personal-information"],
+      "estimatedSeconds": 25
+    },
+    {
+      "code": "A1-GRAM-001-Q3",
+      "type": "ERROR_CORRECTION",
+      "difficulty": 2,
+      "prompt": {
+        "text": "Find and fix the error: \"She work in a hospital.\"",
+        "instructions": "Tulis kalimat yang sudah diperbaiki."
+      },
+      "answerKey": "She works in a hospital.",
+      "acceptedAnswers": ["She works in a hospital"],
+      "explanation": "Subjek 'she' (orang ketiga tunggal) butuh akhiran '-s' pada kata kerja present simple: 'works'.",
+      "topics": ["personal-information"],
+      "estimatedSeconds": 25
+    },
+    {
+      "code": "A1-GRAM-001-Q4",
+      "type": "MULTIPLE_CHOICE",
+      "difficulty": 2,
+      "prompt": { "text": "Which sentence correctly describes a permanent job?" },
+      "options": [
+        { "id": "A", "text": "He is working in a bank." },
+        { "id": "B", "text": "He works in a bank." },
+        { "id": "C", "text": "He working in a bank." },
+        { "id": "D", "text": "He work in a bank." }
+      ],
+      "answerKey": "B",
+      "explanation": "Pekerjaan tetap adalah fakta, sehingga memakai present simple: 'He works'.",
+      "topics": ["personal-information"],
+      "estimatedSeconds": 20
+    },
+    {
+      "code": "A1-GRAM-001-Q5",
+      "type": "SHORT_ANSWER",
+      "difficulty": 2,
+      "prompt": {
+        "text": "Complete with the correct form of 'study': \"Right now, I ____ English.\"",
+        "instructions": "Tulis bentuk kata kerja yang benar."
+      },
+      "answerKey": "am studying",
+      "acceptedAnswers": ["'m studying"],
+      "explanation": "'Right now' menandakan present continuous: 'am studying'.",
+      "topics": ["personal-information"],
+      "estimatedSeconds": 25
+    }
+  ]
+}

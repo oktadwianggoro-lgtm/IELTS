@@ -1,0 +1,156 @@
+{
+  "code": "STARTER-LISTENING-001",
+  "coursePathCode": "PATH-STARTER",
+  "moduleCode": "STARTER-LISTENING",
+  "title": "Mendengarkan Angka, Tanggal, dan Waktu",
+  "level": "STARTER",
+  "skill": "LISTENING",
+  "estimatedMinutes": 15,
+  "order": 0,
+  "prerequisites": ["STARTER-GRAM-001"],
+  "topics": ["personal-information"],
+  "objectives": [
+    "Mengenali angka 1-100 saat diucapkan dalam bahasa Inggris",
+    "Memahami cara menyebutkan tanggal dan bulan",
+    "Memahami cara menyebutkan jam dalam bahasa Inggris"
+  ],
+  "content": {
+    "explanationId": "Di bagian awal IELTS Listening, informasi seperti angka, tanggal, dan waktu sangat sering muncul — misalnya nomor telepon, tanggal lahir, atau jam janji temu. Karena informasi ini biasanya hanya disebutkan SATU KALI, kemampuan mengenali angka dan waktu dengan cepat sangat penting dilatih sejak awal.",
+    "coreConcept": "Numbers: 13 (thirteen) vs 30 (thirty) sound similar — listen for the stress on the last syllable in '-teen' numbers. Dates are said as 'the first of May' or 'May first'. Time is said as 'half past three' (3:30) or 'quarter to four' (3:45) in everyday British-style English, or simply 'three thirty'.",
+    "examples": [
+      {
+        "correct": "The appointment is at half past nine. (9:30)",
+        "incorrect": "The appointment is at nine half. (menerjemahkan langsung dari 'setengah sepuluh')",
+        "reason": "Dalam bahasa Inggris, 'half past' + jam SEBELUMNYA dipakai untuk menit ke-30, berbeda dengan pola 'setengah' dalam bahasa Indonesia yang merujuk ke jam berikutnya."
+      },
+      {
+        "correct": "My birthday is on the fifth of July. / My birthday is on July fifth.",
+        "incorrect": "My birthday is on five July.",
+        "reason": "Tanggal dalam bahasa Inggris memakai angka urutan (fifth, bukan five) dan kata 'of' atau urutan terbalik, bukan ditulis apa adanya seperti angka biasa."
+      }
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Mendengar 'thirteen' (13) tapi menulis '30' karena bunyinya mirip 'thirty'.",
+        "correction": "Perhatikan tekanan suara: thirTEEN (tekanan di akhir) vs THIRty (tekanan di awal).",
+        "note": "Ini kesalahan paling umum pada listening angka bagi pemula."
+      },
+      {
+        "mistake": "Menulis '9.30' sebagai '10.00' setelah mendengar 'half past nine'.",
+        "correction": "'Half past nine' = 9:30, bukan 10:00.",
+        "note": "'Half past' selalu merujuk ke 30 menit SETELAH jam yang disebutkan."
+      }
+    ],
+    "strategy": "Saat berlatih listening untuk angka/tanggal/waktu, selalu tuliskan apa yang Anda dengar SEGERA, jangan menunggu sampai akhir kalimat karena informasi ini mudah terlupa. Latih juga membedakan pasangan angka yang mirip bunyi (13/30, 14/40, dst).",
+    "guidedPractice": [
+      {
+        "prompt": "Dengarkan (dalam hati) dan tuliskan angka: 'fourteen' vs 'forty'. Mana yang lebih besar?",
+        "hint": "'-teen' = belasan, '-ty' = puluhan."
+      },
+      {
+        "prompt": "Ucapkan jam 4:15 dalam bahasa Inggris dua cara berbeda.",
+        "hint": "'quarter past four' atau 'four fifteen'."
+      }
+    ],
+    "independentPractice": [
+      {
+        "prompt": "Tuliskan tanggal lahir Anda dalam bahasa Inggris menggunakan format 'the ... of ...'.",
+        "difficulty": "easy"
+      },
+      {
+        "prompt": "Tuliskan 3 jam berbeda (mis. 2:30, 6:45, 9:15) dalam bahasa Inggris.",
+        "difficulty": "medium"
+      }
+    ],
+    "summary": "Angka '-teen' dan '-ty' sering tertukar karena bunyi mirip — dengarkan tekanan suaranya. Tanggal memakai angka urutan (first, second, third). Waktu memakai 'half past', 'quarter past/to', atau angka langsung.",
+    "checklist": [
+      "Saya bisa membedakan angka '-teen' dan '-ty' saat mendengar",
+      "Saya bisa menyebutkan tanggal dengan format yang benar",
+      "Saya bisa menyebutkan jam dengan 'half past' dan 'quarter past/to'"
+    ],
+    "applicationTask": "Minta seseorang menyebutkan 5 angka acak antara 13-99 secara lisan, lalu tuliskan angka yang Anda dengar."
+  },
+  "sourceNotes": "Materi orisinal tim Success IELTS; tidak mengambil dari buku atau tes resmi manapun.",
+  "questions": [
+    {
+      "code": "STARTER-LISTENING-001-Q1",
+      "type": "MULTIPLE_CHOICE",
+      "difficulty": 1,
+      "prompt": {
+        "text": "You hear: \"There are fourteen students in the class.\" How many students?"
+      },
+      "options": [
+        { "id": "A", "text": "4" },
+        { "id": "B", "text": "14" },
+        { "id": "C", "text": "40" },
+        { "id": "D", "text": "44" }
+      ],
+      "answerKey": "B",
+      "explanation": "'Fourteen' = 14, dengan tekanan suara di suku kata terakhir.",
+      "topics": ["personal-information"],
+      "estimatedSeconds": 20
+    },
+    {
+      "code": "STARTER-LISTENING-001-Q2",
+      "type": "MULTIPLE_CHOICE",
+      "difficulty": 2,
+      "prompt": {
+        "text": "You hear: \"The meeting starts at half past two.\" What time does the meeting start?"
+      },
+      "options": [
+        { "id": "A", "text": "2:00" },
+        { "id": "B", "text": "2:15" },
+        { "id": "C", "text": "2:30" },
+        { "id": "D", "text": "3:00" }
+      ],
+      "answerKey": "C",
+      "explanation": "'Half past two' berarti pukul 2:30.",
+      "topics": ["personal-information"],
+      "estimatedSeconds": 20
+    },
+    {
+      "code": "STARTER-LISTENING-001-Q3",
+      "type": "SHORT_ANSWER",
+      "difficulty": 2,
+      "prompt": {
+        "text": "Write 3:45 the way it is usually said in spoken English using 'quarter'.",
+        "instructions": "Tulis dalam format 'quarter to/past...'."
+      },
+      "answerKey": "quarter to four",
+      "acceptedAnswers": ["a quarter to four", "Quarter to four"],
+      "explanation": "3:45 adalah 15 menit sebelum jam 4, jadi disebut 'quarter to four'.",
+      "topics": ["personal-information"],
+      "estimatedSeconds": 30
+    },
+    {
+      "code": "STARTER-LISTENING-001-Q4",
+      "type": "GAP_FILL",
+      "difficulty": 1,
+      "prompt": {
+        "text": "My birthday is on the ____ of May. (tanggal 3)",
+        "instructions": "Tulis angka urutan untuk tanggal 3."
+      },
+      "answerKey": "third",
+      "acceptedAnswers": ["Third"],
+      "explanation": "Tanggal 3 dalam bahasa Inggris adalah 'third', bukan 'three'.",
+      "topics": ["personal-information"],
+      "estimatedSeconds": 20
+    },
+    {
+      "code": "STARTER-LISTENING-001-Q5",
+      "type": "MULTIPLE_CHOICE",
+      "difficulty": 2,
+      "prompt": { "text": "Which pair of numbers is easiest to confuse when listening?" },
+      "options": [
+        { "id": "A", "text": "13 and 30" },
+        { "id": "B", "text": "13 and 14" },
+        { "id": "C", "text": "30 and 40" },
+        { "id": "D", "text": "1 and 10" }
+      ],
+      "answerKey": "A",
+      "explanation": "13 (thirteen) dan 30 (thirty) adalah pasangan paling sering tertukar karena bunyi akhirnya mirip.",
+      "topics": ["personal-information"],
+      "estimatedSeconds": 20
+    }
+  ]
+}

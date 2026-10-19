@@ -1,0 +1,152 @@
+{
+  "code": "STARTER-WRITING-001",
+  "coursePathCode": "PATH-STARTER",
+  "moduleCode": "STARTER-WRITING",
+  "title": "Menulis Kalimat dan Paragraf Pendek tentang Diri Sendiri",
+  "level": "STARTER",
+  "skill": "WRITING",
+  "estimatedMinutes": 20,
+  "order": 0,
+  "prerequisites": ["STARTER-GRAM-001", "STARTER-VOCAB-001"],
+  "topics": ["personal-information"],
+  "objectives": [
+    "Menulis kalimat lengkap dengan subject-verb-object yang benar",
+    "Menulis paragraf pendek (3-5 kalimat) yang runtut tentang diri sendiri",
+    "Menggunakan huruf kapital dan tanda baca dasar dengan benar"
+  ],
+  "content": {
+    "explanationId": "Sebelum bisa menulis esai panjang seperti pada IELTS Writing Task 2, Anda perlu menguasai dasar: menulis kalimat lengkap yang benar, lalu menggabungkannya menjadi paragraf pendek yang runtut. Setiap kalimat bahasa Inggris butuh subjek dan kata kerja — ini berbeda dengan bahasa Indonesia yang terkadang bisa melesapkan subjek.",
+    "coreConcept": "Every English sentence needs a subject and a verb: 'I study English.' (not just 'Study English.'). Start sentences with a capital letter and end with a period. A short paragraph about yourself can follow this order: name/basic info → where you live/work → one hobby or interest → one more detail.",
+    "examples": [
+      {
+        "correct": "My name is Rina. I live in Semarang. I work as a nurse. I like reading books.",
+        "incorrect": "my name rina. live in semarang. work as nurse. like reading books.",
+        "reason": "Kalimat yang benar butuh huruf kapital di awal, kata kerja 'is'/'am', dan subjek 'I' pada setiap kalimat baru."
+      },
+      {
+        "correct": "I have two hobbies: cooking and swimming.",
+        "incorrect": "I have two hobbies cooking and swimming",
+        "reason": "Tanda titik dua (:) dipakai sebelum daftar, dan kalimat harus diakhiri tanda baca (titik)."
+      }
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Menulis kalimat tanpa subjek: 'Live in Jakarta. Work as a teacher.'",
+        "correction": "I live in Jakarta. I work as a teacher.",
+        "note": "Dalam bahasa Inggris, subjek 'I' wajib ada di setiap kalimat, tidak boleh dilesapkan seperti kadang terjadi di bahasa Indonesia."
+      },
+      {
+        "mistake": "Tidak memakai huruf kapital di awal kalimat atau nama (mis. 'jakarta', 'budi').",
+        "correction": "Nama kota dan nama orang selalu diawali huruf kapital: Jakarta, Budi.",
+        "note": "Ini kesalahan kecil tapi sering muncul dan mudah diperbaiki dengan kebiasaan."
+      }
+    ],
+    "strategy": "Sebelum menulis paragraf, buat dulu daftar singkat poin-poin yang ingin disampaikan (nama, tempat tinggal, pekerjaan, hobi). Urutkan poin-poin itu secara logis, baru ubah masing-masing menjadi kalimat lengkap.",
+    "guidedPractice": [
+      {
+        "prompt": "Perbaiki kalimat ini: 'live in bandung and work as a teacher'",
+        "hint": "Tambahkan subjek 'I', huruf kapital, dan tanda baca."
+      },
+      {
+        "prompt": "Gabungkan dua kalimat pendek menjadi satu: 'I like coffee.' + 'I like tea.'",
+        "hint": "Gunakan 'and': 'I like coffee and tea.'"
+      }
+    ],
+    "independentPractice": [
+      {
+        "prompt": "Tulis 3 kalimat lengkap tentang diri Anda: nama, tempat tinggal, pekerjaan/status.",
+        "difficulty": "easy"
+      },
+      {
+        "prompt": "Tulis paragraf 4-5 kalimat tentang diri Anda, termasuk satu hobi dan alasan Anda menyukainya.",
+        "difficulty": "medium"
+      }
+    ],
+    "summary": "Kalimat bahasa Inggris selalu butuh subjek dan kata kerja. Paragraf pendek tentang diri sendiri bisa disusun dengan urutan: identitas → tempat tinggal/pekerjaan → hobi → detail tambahan. Perhatikan huruf kapital dan tanda baca.",
+    "checklist": [
+      "Saya bisa menulis kalimat lengkap dengan subjek dan kata kerja",
+      "Saya bisa menulis paragraf pendek (3-5 kalimat) yang runtut tentang diri saya",
+      "Saya memperhatikan huruf kapital dan tanda baca dengan benar"
+    ],
+    "applicationTask": "Tulis paragraf perkenalan diri (4-5 kalimat) dan periksa kembali: apakah setiap kalimat punya subjek, huruf kapital di awal, dan tanda baca di akhir?"
+  },
+  "sourceNotes": "Materi dan contoh orisinal tim Success IELTS; tidak mengambil dari buku atau tes resmi manapun.",
+  "questions": [
+    {
+      "code": "STARTER-WRITING-001-Q1",
+      "type": "ERROR_CORRECTION",
+      "difficulty": 2,
+      "prompt": {
+        "text": "Find and fix the error: \"live in jakarta and work as a doctor.\"",
+        "instructions": "Tulis ulang kalimat yang sudah diperbaiki."
+      },
+      "answerKey": "I live in Jakarta and work as a doctor.",
+      "acceptedAnswers": ["I live in Jakarta and work as a doctor"],
+      "explanation": "Kalimat butuh subjek 'I' di awal dan huruf kapital pada 'Jakarta'.",
+      "topics": ["personal-information"],
+      "estimatedSeconds": 30
+    },
+    {
+      "code": "STARTER-WRITING-001-Q2",
+      "type": "MULTIPLE_CHOICE",
+      "difficulty": 1,
+      "prompt": { "text": "Which sentence is correctly punctuated and capitalized?" },
+      "options": [
+        { "id": "A", "text": "my name is Dewi" },
+        { "id": "B", "text": "My name is dewi." },
+        { "id": "C", "text": "My name is Dewi." },
+        { "id": "D", "text": "my Name is Dewi" }
+      ],
+      "answerKey": "C",
+      "explanation": "Huruf pertama kalimat dan nama orang harus kapital, dan kalimat diakhiri titik.",
+      "topics": ["personal-information"],
+      "estimatedSeconds": 15
+    },
+    {
+      "code": "STARTER-WRITING-001-Q3",
+      "type": "GAP_FILL",
+      "difficulty": 1,
+      "prompt": {
+        "text": "____ work as an engineer in Surabaya.",
+        "instructions": "Isi dengan subjek yang tepat."
+      },
+      "answerKey": "I",
+      "explanation": "Setiap kalimat bahasa Inggris butuh subjek; di sini subjeknya adalah 'I'.",
+      "topics": ["personal-information"],
+      "estimatedSeconds": 15
+    },
+    {
+      "code": "STARTER-WRITING-001-Q4",
+      "type": "ORDERING",
+      "difficulty": 2,
+      "prompt": {
+        "text": "Put these sentences in the most logical order for a short self-introduction paragraph.",
+        "instructions": "Urutkan dari yang paling awal."
+      },
+      "options": [
+        { "id": "s1", "text": "I also enjoy playing badminton on weekends." },
+        { "id": "s2", "text": "My name is Andi." },
+        { "id": "s3", "text": "I work as a graphic designer." },
+        { "id": "s4", "text": "I live in Medan." }
+      ],
+      "answerKey": ["s2", "s4", "s3", "s1"],
+      "explanation": "Urutan logis: nama → tempat tinggal → pekerjaan → hobi, dari informasi paling umum ke detail tambahan.",
+      "topics": ["personal-information"],
+      "estimatedSeconds": 30
+    },
+    {
+      "code": "STARTER-WRITING-001-Q5",
+      "type": "SHORT_ANSWER",
+      "difficulty": 2,
+      "prompt": {
+        "text": "Combine these two sentences using 'and': \"I like reading. I like writing.\"",
+        "instructions": "Tulis satu kalimat gabungan."
+      },
+      "answerKey": "I like reading and writing.",
+      "acceptedAnswers": ["I like reading and writing", "i like reading and writing."],
+      "explanation": "Dua kalimat dengan subjek dan kata kerja sama bisa digabung dengan 'and' sebelum objek kedua.",
+      "topics": ["personal-information"],
+      "estimatedSeconds": 25
+    }
+  ]
+}

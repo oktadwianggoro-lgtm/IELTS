@@ -2,6 +2,46 @@
 
 Semua perubahan penting pada Success IELTS dicatat di sini, per fase pengembangan.
 
+## Fase 4 — Content seed tahap pertama
+
+### Ditambahkan
+
+- 6 lesson orisinal baru, masing-masing dengan format wajib 16-bagian
+  (Master Prompt §7) dan 5 soal mini-quiz asli: `STARTER-VOCAB-001`
+  (Vocabulary), `STARTER-LISTENING-001` (Listening), `STARTER-READING-001`
+  (Reading), `STARTER-WRITING-001` (Writing), `STARTER-SPEAKING-001`
+  (Speaking), dan `A1-GRAM-001` (Grammar, Present Simple vs Continuous) —
+  lesson vertical-slice pertama ke level A1.
+- Seluruh 6 skill di level Starter/Pre-A1 kini punya minimal 1 lesson
+  lengkap dan diterbitkan (sebelumnya hanya Grammar).
+- `A1-GRAM-001` membuktikan rantai prasyarat lintas-level bekerja end-to-end
+  (menampilkan 2 lesson Starter sebagai prasyarat di halaman lesson).
+- 35 soal baru tervalidasi (total 40 soal di seluruh konten saat ini),
+  mencakup 7 dari 10 tipe soal yang didukung schema (multiple choice, gap
+  fill, short answer, error correction, ordering, matching, true/false/not
+  given).
+
+### Catatan — cakupan konten sesungguhnya (tidak dilebih-lebihkan)
+
+- Master Prompt Fase 4 meminta "2-3 lesson lengkap per skill" untuk level
+  awal plus vertical slice di level lain. Menulis konten edukasi orisinal
+  dengan kualitas terjaga (bukan sekadar memenuhi kuota) untuk cakupan
+  sebesar itu adalah pekerjaan berkelanjutan, bukan sekali selesai — lihat
+  Master Prompt §10: "Prioritaskan kualitas pengajaran dan ketepatan
+  feedback dibanding kuantitas soal."
+- Fase ini **sengaja** memprioritaskan **kualitas dan keluasan** (1 lesson
+  solid per skill, menutupi seluruh level Starter) di atas **kedalaman**
+  (2-3 lesson per skill) untuk membuktikan pipeline bekerja lintas semua
+  tipe skill dan lintas-level, bukan menumpuk banyak lesson di satu area.
+- 40 dari 46 modul katalog (lihat Fase 3) masih "Segera tersedia" — ini
+  **bukan** utang teknis yang disembunyikan, melainkan cakupan yang memang
+  terbuka dan ditandai jujur di UI, untuk dilanjutkan di Fase 18
+  ("Perluasan konten berkelanjutan", yang menurut Master Prompt sendiri
+  memang bersifat iteratif/tidak pernah "selesai sekali jalan").
+- Semua lesson baru melalui alur review yang sama seperti Fase 2/3
+  (DRAFT → PUBLISHED, dicatat `reviewedBy`/`reviewedAt`) sebelum tampil di
+  katalog publik — tidak ada konten yang di-bypass dari proses review.
+
 ## Fase 3 — Kurikulum lengkap dan katalog Materi
 
 ### Ditambahkan

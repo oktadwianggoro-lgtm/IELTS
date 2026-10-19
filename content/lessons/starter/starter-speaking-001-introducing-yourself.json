@@ -1,0 +1,155 @@
+{
+  "code": "STARTER-SPEAKING-001",
+  "coursePathCode": "PATH-STARTER",
+  "moduleCode": "STARTER-SPEAKING",
+  "title": "Memperkenalkan Diri dengan Percaya Diri",
+  "level": "STARTER",
+  "skill": "SPEAKING",
+  "estimatedMinutes": 15,
+  "order": 0,
+  "prerequisites": ["STARTER-GRAM-001", "STARTER-VOCAB-001"],
+  "topics": ["personal-information"],
+  "objectives": [
+    "Dapat memperkenalkan diri secara lisan dalam 3-4 kalimat tanpa jeda panjang",
+    "Mengeja nama sendiri dengan jelas saat diminta",
+    "Menjawab pertanyaan personal dasar dengan kalimat lengkap, bukan hanya satu kata"
+  ],
+  "content": {
+    "explanationId": "IELTS Speaking Part 1 selalu dimulai dengan pertanyaan tentang diri Anda: nama, asal, pekerjaan/studi. Meskipun topiknya sederhana, banyak pemula menjawab terlalu singkat (hanya satu kata) sehingga terdengar kurang lancar. Kuncinya adalah menjawab dengan kalimat lengkap dan, jika memungkinkan, menambah sedikit detail.",
+    "coreConcept": "Answer with a full sentence, not just one word. Question: 'Where are you from?' Weak answer: 'Jakarta.' Better answer: 'I'm from Jakarta, the capital city of Indonesia.' Adding one small extra detail makes your answer sound more natural and complete.",
+    "examples": [
+      {
+        "correct": "Q: What's your name? A: My name is Fajar, and you can just call me Fajar.",
+        "incorrect": "Q: What's your name? A: Fajar.",
+        "reason": "Jawaban satu kata terdengar terlalu singkat; kalimat lengkap membuat Anda terdengar lebih lancar dan natural."
+      },
+      {
+        "correct": "Q: Are you a student? A: Yes, I am. I'm studying business at university.",
+        "incorrect": "Q: Are you a student? A: Yes.",
+        "reason": "Menambahkan sedikit informasi setelah 'Yes/No' membuat jawaban terasa lebih lengkap, bukan sekadar menjawab ya/tidak."
+      }
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Menjawab pertanyaan hanya dengan satu kata (mis. 'Jakarta', 'Student', 'Yes').",
+        "correction": "Selalu ubah jawaban satu kata menjadi kalimat lengkap: 'I'm from Jakarta.'",
+        "note": "Examiner menilai kelancaran (fluency) — jawaban terlalu pendek membuat sulit menilai kemampuan berbicara Anda."
+      },
+      {
+        "mistake": "Berhenti lama (jeda panjang) sebelum menjawab pertanyaan sederhana tentang diri sendiri.",
+        "correction": "Latih jawaban untuk pertanyaan umum (nama, asal, pekerjaan) sampai lancar tanpa perlu berpikir lama.",
+        "note": "Pertanyaan tentang diri sendiri seharusnya bisa dijawab cepat karena Anda paling tahu jawabannya."
+      }
+    ],
+    "strategy": "Latih menjawab 5 pertanyaan paling umum (nama, asal, pekerjaan/studi, tempat tinggal, hobi) sampai Anda bisa menjawab masing-masing dalam waktu kurang dari 5 detik tanpa jeda panjang.",
+    "guidedPractice": [
+      {
+        "prompt": "Jawab secara lisan: 'What's your name and where are you from?'",
+        "hint": "Gabungkan dua informasi dalam satu kalimat atau dua kalimat pendek."
+      },
+      {
+        "prompt": "Jawab secara lisan: 'Do you work or are you a student?'",
+        "hint": "Mulai dengan 'I work as...' atau 'I'm a student...' lalu tambah detail."
+      }
+    ],
+    "independentPractice": [
+      {
+        "prompt": "Rekam diri Anda (atau latih di depan cermin) menjawab 3 pertanyaan personal dasar dengan kalimat lengkap.",
+        "difficulty": "easy"
+      },
+      {
+        "prompt": "Latih menjawab 'Tell me about your hometown' dengan 2-3 kalimat.",
+        "difficulty": "medium"
+      }
+    ],
+    "summary": "Jawaban Speaking Part 1 sebaiknya berupa kalimat lengkap, bukan satu kata, dan idealnya ditambah sedikit detail. Latih pertanyaan umum sampai lancar tanpa jeda panjang.",
+    "checklist": [
+      "Saya bisa memperkenalkan diri dalam 3-4 kalimat tanpa jeda panjang",
+      "Saya bisa mengeja nama saya dengan jelas saat diminta",
+      "Saya menjawab pertanyaan personal dengan kalimat lengkap, bukan satu kata"
+    ],
+    "applicationTask": "Latih menjawab 5 pertanyaan dasar (nama, asal, pekerjaan, tempat tinggal, hobi) secara lisan berturut-turut tanpa jeda lebih dari 2 detik di antara jawaban."
+  },
+  "sourceNotes": "Materi dan contoh pertanyaan orisinal tim Success IELTS, terinspirasi dari format umum IELTS Speaking Part 1 (bukan kutipan soal resmi apa pun).",
+  "questions": [
+    {
+      "code": "STARTER-SPEAKING-001-Q1",
+      "type": "MULTIPLE_CHOICE",
+      "difficulty": 1,
+      "prompt": { "text": "Which is the better Speaking Part 1 answer to \"Where are you from?\"" },
+      "options": [
+        { "id": "A", "text": "Jakarta." },
+        { "id": "B", "text": "I'm from Jakarta, the capital city of Indonesia." },
+        { "id": "C", "text": "From Jakarta." },
+        { "id": "D", "text": "Yes, Jakarta." }
+      ],
+      "answerKey": "B",
+      "explanation": "Jawaban kalimat lengkap dengan sedikit detail tambahan terdengar lebih lancar dan natural.",
+      "topics": ["personal-information"],
+      "estimatedSeconds": 20
+    },
+    {
+      "code": "STARTER-SPEAKING-001-Q2",
+      "type": "SHORT_ANSWER",
+      "difficulty": 2,
+      "prompt": {
+        "text": "Turn this one-word answer into a full sentence: Question \"Are you a student?\" Answer: \"Yes.\"",
+        "instructions": "Tulis jawaban kalimat lengkap."
+      },
+      "answerKey": "Yes, I am a student.",
+      "acceptedAnswers": ["Yes, I am.", "Yes, I'm a student.", "yes, i am a student"],
+      "explanation": "Menambahkan subjek dan kata kerja setelah 'Yes' membuat jawaban menjadi kalimat lengkap.",
+      "topics": ["personal-information"],
+      "estimatedSeconds": 25
+    },
+    {
+      "code": "STARTER-SPEAKING-001-Q3",
+      "type": "MULTIPLE_CHOICE",
+      "difficulty": 1,
+      "prompt": {
+        "text": "What is the main weakness of answering IELTS Speaking Part 1 with only one word?"
+      },
+      "options": [
+        { "id": "A", "text": "It is grammatically wrong" },
+        { "id": "B", "text": "It makes fluency harder to assess" },
+        { "id": "C", "text": "It is too formal" },
+        { "id": "D", "text": "It is too long" }
+      ],
+      "answerKey": "B",
+      "explanation": "Jawaban satu kata membuat examiner kesulitan menilai kelancaran (fluency) Anda.",
+      "topics": ["personal-information"],
+      "estimatedSeconds": 20
+    },
+    {
+      "code": "STARTER-SPEAKING-001-Q4",
+      "type": "GAP_FILL",
+      "difficulty": 1,
+      "prompt": {
+        "text": "\"My name is Dina, and you can ____ call me Dina.\"",
+        "instructions": "Isi dengan satu kata."
+      },
+      "answerKey": "just",
+      "explanation": "Frasa umum 'you can just call me...' dipakai untuk memberi nama panggilan.",
+      "topics": ["personal-information"],
+      "estimatedSeconds": 15
+    },
+    {
+      "code": "STARTER-SPEAKING-001-Q5",
+      "type": "MULTIPLE_CHOICE",
+      "difficulty": 2,
+      "prompt": {
+        "text": "What should you do if you don't understand a Speaking Part 1 question?"
+      },
+      "options": [
+        { "id": "A", "text": "Stay silent until the examiner moves on" },
+        { "id": "B", "text": "Politely ask the examiner to repeat the question" },
+        { "id": "C", "text": "Answer a different question instead" },
+        { "id": "D", "text": "End the interview" }
+      ],
+      "answerKey": "B",
+      "explanation": "Meminta examiner mengulang pertanyaan dengan sopan adalah hal yang wajar dan diperbolehkan.",
+      "topics": ["personal-information"],
+      "estimatedSeconds": 20
+    }
+  ]
+}

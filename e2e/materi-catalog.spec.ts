@@ -41,8 +41,10 @@ test.describe("materi catalog and lesson page", () => {
     await expect(main.getByText("Grammar", { exact: true })).toBeVisible();
     await expect(main.getByText("Listening", { exact: true })).toBeVisible();
 
-    // A skill module with no published lessons says so honestly.
-    await page.goto("/materi/PATH-STARTER/STARTER-LISTENING");
+    // A module with no published lessons says so honestly. Uses a special
+    // track (not a main-level skill module) so this stays true regardless
+    // of how much main-path content gets seeded over time.
+    await page.goto("/materi/PATH-GRAMMAR-LAB/GRAMMAR-LAB");
     await expect(page.getByText(/segera tersedia/i)).toBeVisible();
 
     await page.goto("/materi/PATH-STARTER/STARTER-FOUNDATIONS");
