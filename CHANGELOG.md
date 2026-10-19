@@ -2,6 +2,48 @@
 
 Semua perubahan penting pada Success IELTS dicatat di sini, per fase pengembangan.
 
+## Fase 3 — Kurikulum lengkap dan katalog Materi
+
+### Ditambahkan
+
+- Katalog penuh sesuai taksonomi Master Prompt §6: 11 CoursePath (Starter,
+  A1, A2, B1, B2, C1, Enrichment Band 7.5-9, + 4 jalur khusus Grammar Lab/
+  Vocabulary Builder/Pronunciation & Fluency/Modul Strategi Tes) dan 46
+  Module (6 skill × 7 level + 4 jalur khusus), dibangkitkan dari
+  `scripts/content/generate-catalog-skeleton.ts` lalu diimpor lewat pipeline
+  Fase 2 yang sudah ada — tidak ada mekanisme baru, hanya lebih banyak data.
+- Model baru: `Bookmark`, `Note` (satu catatan per user per lesson), dan
+  `LessonProgress` (NOT_STARTED/IN_PROGRESS/COMPLETED).
+- Halaman publik `/materi` (katalog) → `/materi/[coursePathCode]` (modul per
+  skill) → `/materi/[coursePathCode]/[moduleCode]` (daftar lesson) →
+  `/materi/[...]/[lessonCode]` (lesson sungguhan). Modul/lesson yang belum
+  punya konten terbit menampilkan "Segera tersedia" secara jujur, bukan
+  disembunyikan atau dipalsukan.
+- Lesson page nyata pertama: breadcrumb, badge prasyarat, render konten
+  lengkap (`components/content/lesson-view.tsx`, dipakai ulang dari Fase 2),
+  mini-quiz interaktif, bookmark, catatan pribadi, tombol tandai selesai,
+  navigasi lesson sebelumnya/berikutnya.
+- `lib/content/grade-answer.ts`: fungsi penilaian jawaban pure/server-only,
+  dipakai oleh server action `checkQuizAnswerAction` — **jawaban benar tidak
+  pernah dikirim ke client**, hanya `{correct, explanation}` setelah submit
+  (Master Prompt §1 aturan 12 diterapkan sejak lesson quiz, bukan ditunda ke
+  Fase 6).
+- 5 unit test baru untuk `gradeAnswer` (termasuk test regresi untuk bug
+  ORDERING, lihat Catatan) dan 2 E2E spec baru (`materi-catalog.spec.ts`:
+  navigasi katalog end-to-end + ambil lesson + quiz + bookmark + note +
+  tandai selesai, dengan verifikasi persist setelah reload halaman).
+
+### Catatan
+
+- **Bug ditemukan lewat verifikasi visual manual, bukan oleh test otomatis:**
+  soal tipe ORDERING selalu dinilai salah walau jawaban pengguna benar,
+  karena `answerKey` menyimpan ID opsi sementara UI free-text mengumpulkan
+  teks opsi. 24 E2E test tetap hijau karena tak satupun men-assert kebenaran
+  spesifik ORDERING. Diperbaiki + ditambah test regresi — lihat
+  `docs/DECISIONS.md` D-022 untuk detail dan pelajarannya.
+- Baru 1 lesson (STARTER-GRAM-001) yang benar-benar punya konten; seluruh
+  katalog lain adalah skeleton navigasi "Segera tersedia" menunggu Fase 4/18.
+
 ## Fase 2 — Content model, CMS minimal, importer dan validator
 
 ### Ditambahkan

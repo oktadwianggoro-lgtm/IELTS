@@ -1,6 +1,6 @@
 # Arsitektur — Success IELTS
 
-Status: Fase 2 (content model, CMS minimal, importer/validator). Dokumen ini
+Status: Fase 3 (katalog kurikulum penuh + lesson page nyata). Dokumen ini
 akan diperluas pada setiap fase berikutnya.
 
 ## 1. Ringkasan

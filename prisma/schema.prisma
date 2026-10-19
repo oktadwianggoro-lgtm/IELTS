@@ -3,6 +3,8 @@
 // Fase 2: content model (CoursePath/Module/Lesson/Topic/Question), CMS review
 // workflow. Skill-specific content (Passage/AudioAsset/WritingTask/
 // SpeakingPrompt) lands in Fase 7-10 when those labs are built.
+// Fase 3: catalog browsing (Bookmark/Note/LessonProgress) and the real
+// student lesson page.
 
 generator client {
   provider = "prisma-client-js"
@@ -39,6 +41,9 @@ model User {
   reviewedLessons    Lesson[]   @relation("LessonReviewedBy")
   createdQuestions   Question[] @relation("QuestionCreatedBy")
   reviewedQuestions  Question[] @relation("QuestionReviewedBy")
+  bookmarks          Bookmark[]
+  notes              Note[]
+  lessonProgress     LessonProgress[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -315,6 +320,9 @@ model Lesson {
   requires       LessonPrerequisite[] @relation("LessonRequires")
   requiredFor    LessonPrerequisite[] @relation("LessonRequiredFor")
   questions      Question[]
+  bookmarks      Bookmark[]
+  notes          Note[]
+  progress       LessonProgress[]
 
   contentVersion Int           @default(1)
   reviewStatus   ContentStatus @default(DRAFT)
@@ -407,4 +415,61 @@ model QuestionTopic {
 
   @@id([questionId, topicId])
   @@map("question_topics")
+}
+
+// ---------- Catalog browsing (Fase 3) ----------
+
+enum LessonProgressStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
+model Bookmark {
+  id       String @id @default(cuid())
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId String
+  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, lessonId])
+  @@map("bookmarks")
+}
+
+/// One freeform note per user per lesson (not a list of notes) — kept to one
+/// row so "my notes for this lesson" has an obvious, simple UI: a single
+/// textarea, not a thread.
+model Note {
+  id       String @id @default(cuid())
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId String
+  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  body String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, lessonId])
+  @@map("notes")
+}
+
+model LessonProgress {
+  id       String @id @default(cuid())
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId String
+  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  status      LessonProgressStatus @default(NOT_STARTED)
+  completedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, lessonId])
+  @@map("lesson_progress")
 }

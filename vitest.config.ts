@@ -13,6 +13,10 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "."),
+      // server-only throws by design when evaluated outside Next.js's
+      // bundler (which statically strips it); under Vitest it's a no-op so
+      // server-only modules stay unit-testable.
+      "server-only": path.resolve(__dirname, "./tests/noop-server-only.ts"),
     },
   },
 });

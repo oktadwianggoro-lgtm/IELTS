@@ -285,6 +285,59 @@ docker-compose.dev.yml up -d` untuk pengembangan lokal, sesuai stack Master
   lingkup Fase 13 ("Panel Admin/Teacher lengkap").
 - **Tinjau ulang:** Fase 13.
 
+## Fase 3
+
+### D-021: Jawaban mini-quiz dinilai server-side lewat `lib/content/grade-answer.ts`, bukan di client
+
+- **Keputusan:** `app/(app)/materi/[...]/page.tsx` hanya mengirim
+  `{code, type, prompt, options}` ke client (TANPA `answerKey`/
+  `acceptedAnswers`/`explanation`). Pengecekan jawaban terjadi lewat server
+  action `checkQuizAnswerAction` yang mengambil `Question` lengkap dari DB,
+  memanggil `gradeAnswer()`, dan hanya mengembalikan `{correct, explanation}`.
+- **Alasan:** Master Prompt §1 aturan 12: "Jangan menaruh... kunci jawaban
+  ujian di client... penilaian ujian... dilakukan di server." Ini berlaku
+  juga untuk mini-quiz lesson, bukan hanya mode ujian/tryout — menunda
+  prinsip ini sampai Fase 6 (practice engine) akan berarti mengirim
+  `answerKey` ke browser untuk seluruh Fase 3–5.
+- **Tinjau ulang:** Fase 6 akan menggeneralisasi `gradeAnswer()` ini untuk
+  practice engine penuh (attempt tracking, Buku Kesalahan) — fungsi ini
+  sengaja ditulis pure/stateless agar mudah dipakai ulang.
+
+### D-022: Bug ditemukan lewat screenshot manual: ORDERING answerKey (ID opsi) vs UI free-text (teks opsi)
+
+- **Keputusan:** `gradeAnswer()` untuk tipe `ORDERING`/`MATCHING` sekarang
+  me-resolve setiap ID di `answerKey` ke teks opsinya (`options[].text`)
+  sebelum dibandingkan dengan input pengguna, bukan membandingkan ID mentah.
+- **Alasan:** UI mini-quiz untuk `ORDERING` memakai input teks bebas ("Tulis
+  urutan dipisah koma, mis: A, B, C, D") yang menghasilkan array TEKS opsi
+  (`["A","B","C","D"]`), sementara `answerKey` di schema konten menyimpan
+  array ID opsi (`["opt4","opt2","opt3","opt1"]`). Perbandingan array
+  mentah selalu gagal walau jawaban pengguna secara konseptual benar — bug
+  ini baru ketahuan lewat screenshot verifikasi visual manual (soal #5 pada
+  lesson seed selalu ditandai salah meski diisi "A, B, C, D" yang benar),
+  BUKAN dari 24 E2E test yang semuanya lulus (karena tidak satupun test
+  men-assert kebenaran ORDERING secara spesifik, hanya "quiz bisa diisi dan
+  diperiksa"). Ditambahkan test regresi di `tests/unit/grade-answer.test.ts`
+  setelah fix.
+- **Pelajaran:** E2E hijau tidak menjamin logika BENAR, hanya bahwa alur
+  TIDAK CRASH — verifikasi visual/manual pada fitur baru tetap perlu untuk
+  menangkap bug logika yang lolos dari assertion yang terlalu longgar.
+- **Tinjau ulang:** Saat Fase 6 membangun UI ordering yang sesungguhnya
+  (drag-and-drop/pilih-opsi, bukan free-text), pertimbangkan apakah
+  perbandingan berbasis teks ini masih relevan atau sebaiknya kembali ke ID.
+
+### D-023: `server-only` di-alias ke no-op untuk Vitest
+
+- **Keputusan:** `vitest.config.ts` meng-alias import `"server-only"` ke
+  modul kosong (`tests/noop-server-only.ts`).
+- **Alasan:** Paket `server-only` sengaja `throw` saat modul yang
+  meng-importnya dievaluasi di luar bundler Next.js (yang secara statis
+  menghapus guard ini) — perilaku ini benar untuk build Next.js tapi
+  membuat modul server-only (mis. `lib/content/grade-answer.ts`) tidak bisa
+  di-unit-test langsung oleh Vitest tanpa alias ini.
+- **Tinjau ulang:** Tidak perlu — ini pola umum yang didokumentasikan
+  komunitas Next.js+Vitest.
+
 ### D-018: Hanya "Beranda" punya halaman nyata di Fase 0; 15 menu lain pakai stub "segera tersedia"
 
 - **Keputusan:** Semua item navigasi di `lib/nav-config.ts` punya route yang benar
