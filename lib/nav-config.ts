@@ -74,7 +74,7 @@ export const navGroups: NavGroup[] = [
     key: "planning",
     items: [
       { href: "/rencana-belajar", key: "studyPlan", icon: CalendarClock },
-      { href: "/progress", key: "progress", icon: BarChart3, plannedPhase: "Fase 12" },
+      { href: "/progress", key: "progress", icon: BarChart3 },
     ],
   },
   {

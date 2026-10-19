@@ -924,3 +924,73 @@ docker-compose.dev.yml up -d` untuk pengembangan lokal, sesuai stack Master
   Begitu Writing/Speaking punya skor numerik (butuh AI scoring yang belum
   ada kredensialnya — lihat D-035/D-037), full mock 4-skill jadi masuk akal
   untuk dibangun memakai `calculateOverallBand()` yang sudah siap.
+
+## Fase 12
+
+### D-039: XP/streak dihitung live dari data asli (bukan counter tersimpan); achievement di-upsert bukan dihapus-buat-ulang; reminder email dipicu kunjungan dashboard (bukan background scheduler)
+
+- **Keputusan (XP & streak live, tanpa model baru):** Tidak ada model
+  `Streak` atau kolom `xp` yang tersimpan sebagai angka mutable. Keduanya
+  dihitung ULANG setiap kali dibutuhkan langsung dari tabel aktivitas asli
+  (`QuestionAttempt`, `LessonProgress`, `WritingSubmission`,
+  `SpeakingSubmission`, `Attempt`) lewat `lib/gamification/streak.ts`
+  (`computeStreak`, murni/pure) dan `lib/gamification/xp.ts`
+  (`computeXp`/`computeLevel`, murni/pure), dengan
+  `lib/gamification/data.ts` sebagai lapisan query server-only yang
+  memberi makan kedua fungsi murni itu.
+- **Alasan:** "XP, level, achievement dan streak boleh dipakai untuk
+  motivasi, bukan menggantikan kualitas belajar... tidak manipulatif"
+  (Master Prompt §8.3/§8.11). Counter mutable yang di-increment di banyak
+  tempat berbeda (setiap lab, setiap jenis submission) adalah SUMBER BUG
+  YANG SUDAH TERBUKTI BERULANG KALI di sesi ini (lihat D-028: antrean yang
+  tidak sinkron dengan data server). Menghitung live dari sumber asli
+  berarti angka yang ditampilkan SELALU benar per definisi — tidak ada
+  kelas bug "lupa update counter di satu tempat" yang mungkin terjadi.
+  Trade-off yang diterima: lebih banyak query per kunjungan dashboard,
+  yang pada skala aplikasi saat ini (early-stage, bukan high-traffic)
+  bukan masalah nyata.
+- **Bug ditemukan & diperbaiki sebelum commit:** Draft pertama
+  `getUserXp()` menghitung `labAttemptsCompleted` dari jumlah
+  `QuestionAttempt` ber-`source: LISTENING_PRACTICE/READING_PRACTICE`,
+  PADAHAL `correctPracticeAnswers` (dihitung terpisah) SUDAH mencakup
+  QuestionAttempt yang sama tanpa filter source — jawaban benar dari
+  Listening/Reading Lab akan terhitung XP-nya DUA KALI. Ditemukan lewat
+  tinjauan kode sendiri sebelum verifikasi visual (bukan oleh test),
+  diperbaiki dengan `labAttemptsCompleted` hanya menghitung Writing/
+  Speaking completions (free-response, tidak punya baris `QuestionAttempt`
+  sama sekali, jadi tidak mungkin dobel-hitung).
+- **Keputusan (Achievement tetap disimpan, upsert bukan hapus-buat-ulang):**
+  Berbeda dari XP/streak, `UserAchievement` ADALAH baris tersimpan permanen
+  — sebuah pencapaian yang sudah diraih tidak boleh hilang hanya karena
+  pengguna berhenti melakukan aktivitas itu (streak 7 hari yang sudah
+  pernah dicapai tetap jadi badge permanen walau streak saat ini sudah
+  turun ke 0). `evaluateAndAwardAchievements()` aman dipanggil di setiap
+  kunjungan dashboard (upsert, tidak pernah mencabut/menduplikasi).
+  `prisma/seed.ts` men-seed katalog `Achievement` dengan upsert-by-code
+  (BUKAN delete+recreate seperti `BandConversionTable` di D-037) karena
+  `UserAchievement` punya foreign key sungguhan ke `Achievement.id` —
+  delete+recreate akan men-cascade-hapus setiap badge yang sudah diraih
+  siapa pun.
+- **Keputusan (reminder email via kunjungan, bukan cron):** Tidak ada
+  job-queue/scheduler di aplikasi ini. `maybeSendDailyReminder()`
+  (`lib/gamification/reminders.ts`) memakai mailer yang sudah ada sejak
+  Fase 1 (D-014 — kirim sungguhan jika SMTP terkonfigurasi, log saja jika
+  tidak) tapi HANYA dipicu saat pengguna membuka `/dashboard`, dengan
+  dedupe `lastReminderSentAt` (~20 jam) supaya tidak terkirim berkali-kali
+  dalam sehari. Ini BUKAN notifikasi terjadwal sungguhan — pengguna yang
+  tidak pernah membuka dashboard tidak akan menerima apa pun, berbeda dari
+  cron job asli yang berjalan independen dari kunjungan. Didokumentasikan
+  jujur, bukan diklaim sebagai "scheduled reminder". Banner in-app
+  (`getDashboardNotifications()`) tidak punya keterbatasan ini karena
+  memang hanya relevan saat halaman benar-benar dibuka.
+- **Keputusan (leaderboard privasi-dulu):** `UserPreference.leaderboardOptIn`
+  default `false`; `leaderboardAlias` adalah satu-satunya identitas yang
+  pernah ditampilkan ke pengguna lain — nama asli dan email TIDAK PERNAH
+  masuk ke query/response leaderboard (`lib/gamification/progress.ts`'s
+  `getLeaderboard()` hanya men-select `preference.leaderboardAlias`, bukan
+  `name`/`email`). Diverifikasi lewat E2E yang eksplisit mengecek email
+  pengguna TIDAK muncul di halaman leaderboard.
+- **Tinjau ulang:** `getLeaderboard()` menghitung XP untuk setiap peserta
+  opt-in dengan query terpisah (N+1) — dapat diterima untuk jumlah
+  pengguna opt-in saat ini, tapi layak dioptimalkan (agregasi SQL
+  tunggal) jika basis pengguna bertambah signifikan.

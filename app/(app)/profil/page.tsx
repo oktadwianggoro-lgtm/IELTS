@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { NotificationSettingsForm } from "@/components/profil/notification-settings-form";
 import { requireUser } from "@/lib/auth/rbac";
 import { prisma } from "@/lib/db";
 import {
@@ -118,14 +119,27 @@ export default async function ProfilePage() {
             <span className="text-muted-foreground">Zona waktu</span>
             <span className="font-medium">{user.preference?.timezone ?? "—"}</span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Pengingat</span>
-            <span className="font-medium">
-              {user.preference?.reminderEnabled
-                ? `Aktif, ${user.preference.reminderTime ?? ""}`
-                : "Nonaktif"}
-            </span>
-          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Notifikasi & Privasi</CardTitle>
+          <CardDescription>
+            Atur pengingat belajar dan apakah nama samaran Anda tampil di leaderboard XP.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <NotificationSettingsForm
+            initial={{
+              reminderEnabled: user.preference?.reminderEnabled ?? false,
+              reminderTime: user.preference?.reminderTime ?? null,
+              reviewDueReminderEnabled: user.preference?.reviewDueReminderEnabled ?? true,
+              streakRiskReminderEnabled: user.preference?.streakRiskReminderEnabled ?? true,
+              leaderboardOptIn: user.preference?.leaderboardOptIn ?? false,
+              leaderboardAlias: user.preference?.leaderboardAlias ?? null,
+            }}
+          />
         </CardContent>
       </Card>
 

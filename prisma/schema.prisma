@@ -64,6 +64,7 @@ model User {
   studyPlans                StudyPlan[]
   questionAttempts          QuestionAttempt[]
   mistakeBookEntries        MistakeBookEntry[]
+  userAchievements          UserAchievement[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -195,17 +196,64 @@ model UserPreference {
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  dailyStudyMinutes DailyStudyMinutes @default(TWENTY)
-  timezone          String            @default("Asia/Jakarta")
-  interfaceLanguage InterfaceLanguage @default(ID)
-  reminderEnabled   Boolean           @default(false)
+  dailyStudyMinutes         DailyStudyMinutes @default(TWENTY)
+  timezone                  String            @default("Asia/Jakarta")
+  interfaceLanguage         InterfaceLanguage @default(ID)
+  reminderEnabled           Boolean           @default(false)
   /// 24h "HH:mm", local to `timezone`.
-  reminderTime      String?
+  reminderTime              String?
+  /// Wired up in Fase 12 — previously collected at onboarding but never
+  /// acted on anywhere (D-039).
+  reviewDueReminderEnabled  Boolean           @default(true)
+  streakRiskReminderEnabled Boolean           @default(true)
+  /// Dedupes the opportunistic reminder email sent on dashboard visits to
+  /// at most once/day — see D-039 for why this is visit-triggered, not a
+  /// background scheduler.
+  lastReminderSentAt        DateTime?
+
+  /// Master Prompt §8.11: "Leaderboard opsional dengan nama samaran dan
+  /// opt-out" — off by default, and even when on, only `leaderboardAlias`
+  /// (never name/email) is ever shown to other users.
+  leaderboardOptIn Boolean @default(false)
+  leaderboardAlias String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("user_preferences")
+}
+
+/// Catalog of earnable badges — criteria are evaluated in code
+/// (lib/gamification/achievements.ts) against real activity tables, never
+/// stored as a generic rule here, so every award is auditable and
+/// impossible to fake via data entry alone.
+model Achievement {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  title       String
+  description String
+  /// lucide-react icon name, e.g. "Flame", "BookOpen".
+  icon        String
+  createdAt   DateTime @default(now())
+
+  userAchievements UserAchievement[]
+
+  @@map("achievements")
+}
+
+/// One row per (user, achievement) the user has actually earned — a
+/// one-time event worth preserving permanently, unlike streak/XP which are
+/// cheap to recompute live from source tables and therefore not stored.
+model UserAchievement {
+  id            String      @id @default(cuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievementId String
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  earnedAt      DateTime    @default(now())
+
+  @@unique([userId, achievementId])
+  @@map("user_achievements")
 }
 
 // ---------- Content / curriculum (Fase 2) ----------

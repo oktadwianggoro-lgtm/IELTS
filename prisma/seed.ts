@@ -2,6 +2,7 @@ import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { hashPassword } from "../lib/auth/password";
+import { ACHIEVEMENT_CATALOG } from "../lib/gamification/catalog";
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
@@ -32,6 +33,22 @@ async function main() {
   }
 
   await seedBandConversionTable();
+  await seedAchievementCatalog();
+}
+
+/** Upsert by code, never delete+recreate — unlike BandConversionTable,
+ * `UserAchievement` rows hold a real foreign key to `Achievement.id`, so
+ * re-seeding must never orphan/cascade-delete a badge someone already
+ * earned. */
+async function seedAchievementCatalog() {
+  for (const a of ACHIEVEMENT_CATALOG) {
+    await prisma.achievement.upsert({
+      where: { code: a.code },
+      update: { title: a.title, description: a.description, icon: a.icon },
+      create: a,
+    });
+  }
+  console.log(`[seed] Achievement catalog ready: ${ACHIEVEMENT_CATALOG.length} badges.`);
 }
 
 /**

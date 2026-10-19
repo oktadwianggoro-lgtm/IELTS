@@ -58,3 +58,13 @@ export function passwordResetEmail(url: string) {
     html: `<p>Reset password Anda dengan membuka tautan berikut:</p><p><a href="${url}">${url}</a></p><p>Tautan berlaku 1 jam. Abaikan email ini jika Anda tidak meminta reset password.</p>`,
   };
 }
+
+/** Sent opportunistically on a dashboard visit (see D-039 — no background
+ * scheduler exists yet), at most once per ~20h per user. */
+export function dailyReminderEmail(dashboardUrl: string) {
+  return {
+    subject: "Waktunya belajar di Success IELTS",
+    text: `Jangan lupa luangkan waktu belajar hari ini. Buka dashboard Anda: ${dashboardUrl}\n\nAnda bisa mematikan pengingat ini kapan saja di Profil & Langganan.`,
+    html: `<p>Jangan lupa luangkan waktu belajar hari ini.</p><p><a href="${dashboardUrl}">Buka dashboard Anda</a></p><p>Anda bisa mematikan pengingat ini kapan saja di Profil &amp; Langganan.</p>`,
+  };
+}

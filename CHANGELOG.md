@@ -2,6 +2,71 @@
 
 Semua perubahan penting pada Success IELTS dicatat di sini, per fase pengembangan.
 
+## Fase 12 — Beranda, progress, gamifikasi, dan notifikasi
+
+### Ditambahkan
+
+- Dashboard (`/dashboard`) sekarang berbasis data pengguna aktual
+  sepenuhnya — kartu "Progress" dan "Aktivitas" yang sebelumnya placeholder
+  statis sejak Fase 1 kini menampilkan tren akurasi mingguan sungguhan
+  (grafik, dengan empty state jujur untuk pengguna baru) dan feed
+  aktivitas terakhir nyata (lesson selesai, submission Writing/Speaking,
+  tryout) — tidak ada statistik atau aktivitas fiktif.
+- `/progress` (sebelumnya "Segera tersedia"): ringkasan Level/XP/streak,
+  progress akurasi per skill (8 skill area, "Belum ada data" jujur untuk
+  yang belum disentuh), galeri pencapaian lengkap, tren akurasi 12 minggu,
+  dan leaderboard opsional.
+- XP dan level dihitung LIVE dari aktivitas asli (lesson selesai, jawaban
+  benar, submission Writing/Speaking, tryout selesai) — bukan counter
+  tersimpan yang bisa desync. Streak belajar dihitung LIVE dari tanggal
+  aktivitas asli di lima tabel berbeda, dengan currentStreak/longestStreak
+  terpisah. Lihat D-039 untuk alasan "live" dibanding "stored counter".
+- 7 pencapaian (badge) dengan kriteria nyata dan teraudit (Langkah
+  Pertama, Diagnostic Pertama, Seminggu Beruntun, 100 Soal Terjawab,
+  Penulis Pemula, Pembicara Pemula, Tryout Pertama) — diraih otomatis
+  lewat `evaluateAndAwardAchievements()`, disimpan permanen begitu diraih.
+- Leaderboard opsional dengan opt-in eksplisit dan nama samaran — nama
+  asli/email pengguna tidak pernah ditampilkan ke pengguna lain.
+- Banner notifikasi in-app di dashboard: soal Buku Kesalahan yang jatuh
+  tempo, dan peringatan streak akan putus — keduanya bisa dimatikan
+  individual lewat preferensi notifikasi baru di Profil & Langganan.
+- Preferensi `reminderEnabled`/`reminderTime` yang sudah dikumpulkan sejak
+  onboarding (Fase 1) tapi tidak pernah dipakai, kini benar-benar
+  mengirim email pengingat sungguhan (lewat mailer yang sudah ada sejak
+  Fase 1/D-014) saat pengguna membuka dashboard — lihat D-039 untuk kenapa
+  ini "dipicu kunjungan", bukan terjadwal independen.
+- `/profil` kini punya kartu "Notifikasi & Privasi" yang bisa diedit
+  (sebelumnya hanya menampilkan field read-only dari onboarding).
+- `lib/gamification/` — modul terpisah dan murni/testable:
+  `streak.ts`/`xp.ts` (pure functions), `data.ts`/`achievements.ts`/
+  `progress.ts`/`dashboard-data.ts`/`reminders.ts` (server-only, query
+  data asli).
+- Model baru: `Achievement` (katalog, seeded), `UserAchievement` (badge
+  yang sudah diraih, permanen). `UserPreference` diperluas dengan
+  `leaderboardOptIn`, `leaderboardAlias`, `reviewDueReminderEnabled`,
+  `streakRiskReminderEnabled`, `lastReminderSentAt`.
+- `e2e/dashboard-gamification.spec.ts`: empty state jujur untuk pengguna
+  baru, XP+achievement nyata setelah submission asli, banner review-due
+  yang menghormati toggle preferensi, dan leaderboard opt-in yang tidak
+  pernah membocorkan email.
+
+### Bug ditemukan & diperbaiki sebelum commit (lihat D-039 untuk detail)
+
+- **D-039:** Draft pertama perhitungan XP menghitung jawaban benar
+  Listening/Reading Lab dua kali (sekali lewat hitungan umum, sekali lagi
+  lewat hitungan "lab attempts" yang tidak difilter source) — ditemukan
+  lewat tinjauan kode sendiri sebelum verifikasi visual, diperbaiki
+  sebelum sempat ter-commit.
+
+### Catatan — lingkup yang sengaja dipersempit (lihat D-039 untuk detail)
+
+- Reminder email dipicu saat pengguna membuka dashboard, BUKAN oleh
+  background scheduler/cron — tidak ada infrastruktur job-queue di
+  aplikasi ini. Pengguna yang tidak pernah membuka dashboard tidak akan
+  menerima pengingat apa pun.
+- `getLeaderboard()` menghitung XP per peserta dengan query terpisah
+  (N+1) — dapat diterima untuk skala pengguna saat ini.
+
 ## Fase 11 — Tryout, mode ujian, estimasi band
 
 ### Ditambahkan

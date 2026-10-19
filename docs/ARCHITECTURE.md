@@ -1,6 +1,6 @@
 # Arsitektur — Success IELTS
 
-Status: Fase 11 (Tryout — mode ujian, auto-submit server-side, estimasi band).
+Status: Fase 12 (Dashboard, progress, gamifikasi, dan notifikasi berbasis data asli).
 Dokumen ini akan diperluas pada setiap fase berikutnya.
 
 ## 1. Ringkasan
@@ -178,6 +178,10 @@ Sesuai instruksi "satu fase pada satu waktu":
   (hanya mock test single-skill Listening/Reading, bukan full 4-skill
   mock; tabel konversi band adalah estimasi terverifikasi, bukan tabel
   resmi tunggal — IELTS sendiri tidak mempublikasikan itu; lihat D-038).
+- ~~Dashboard "Progress"/"Aktivitas" masih placeholder statis~~ — selesai
+  Fase 12, lihat §18 (XP/streak dihitung live dari data asli, bukan
+  counter tersimpan; reminder email dipicu kunjungan dashboard, bukan
+  background scheduler — lihat D-039).
 - Tidak ada scoring/AI feedback otomatis atas esai/speaking (butuh
   kredensial provider AI yang belum disediakan — lihat D-035/D-037).
 - Tidak ada Docker/deployment (Fase 17).
@@ -542,7 +546,48 @@ mode ujian). Model baru: `BandConversionTable`, `TestBlueprint`/
   `content/tryout/*.json` + pipeline import yang sama seperti tipe konten
   lain — UI admin untuk itu ada di cakupan Fase 13 (lihat D-038).
 
-## 17. Menjalankan proyek secara lokal
+## 18. Dashboard, progress, gamifikasi, dan notifikasi (Fase 12)
+
+`/dashboard` sekarang berbasis data pengguna aktual sepenuhnya (kartu
+"Progress"/"Aktivitas" sebelumnya placeholder statis sejak Fase 1); `/progress`
+adalah ringkasan lengkap. Modul baru di `lib/gamification/`:
+
+- **`streak.ts`/`xp.ts`** — fungsi MURNI (pure), tanpa akses DB, mudah
+  diuji dengan input yang dikonstruksi langsung
+  (`tests/unit/streak.test.ts`/`xp.test.ts`). `data.ts` adalah lapisan
+  server-only yang query tabel aktivitas ASLI (`QuestionAttempt`,
+  `LessonProgress`, `WritingSubmission`, `SpeakingSubmission`, `Attempt`)
+  dan memberi makan kedua fungsi murni itu.
+- **Tidak ada model `Streak` atau kolom `xp` tersimpan** — keduanya
+  dihitung ulang live setiap kunjungan, bukan counter mutable yang bisa
+  desync dari aktivitas sesungguhnya. Lihat D-039 untuk alasan lengkap
+  (termasuk satu bug double-counting yang ditemukan dan diperbaiki
+  sebelum commit, persis karena desain ini membuatnya mudah diaudit).
+- **`achievements.ts`** — katalog 7 badge dengan kriteria yang dievaluasi
+  di kode (bukan rule generik tersimpan), diraih lewat
+  `evaluateAndAwardAchievements()` yang aman dipanggil di setiap kunjungan
+  dashboard (upsert, tidak pernah mencabut). `UserAchievement` ADALAH
+  baris tersimpan permanen — berbeda dari XP/streak — karena "badge yang
+  sudah diraih" adalah event satu kali yang layak dipertahankan.
+- **`reminders.ts`** — `getDashboardNotifications()` untuk banner in-app
+  (review jatuh tempo, streak berisiko putus), dan
+  `maybeSendDailyReminder()` yang mengirim email sungguhan lewat mailer
+  Fase 1 (D-014) tapi HANYA dipicu oleh kunjungan ke `/dashboard`, bukan
+  cron/scheduler — aplikasi ini belum punya infrastruktur job-queue. Lihat
+  D-039 untuk keterbatasan jujur ini.
+- **Leaderboard privasi-dulu** (`progress.ts`'s `getLeaderboard()`) — opt-in
+  eksplisit (`UserPreference.leaderboardOptIn`, default `false`), hanya
+  `leaderboardAlias` yang pernah dikirim ke client, tidak pernah
+  nama/email asli.
+- **`components/ui/chart.tsx`** (shadcn recharts wrapper) dipakai untuk
+  tren akurasi mingguan di dashboard dan `/progress` — `minPointSize` pada
+  `<Bar>` memastikan minggu dengan akurasi 0% tetap tampak sebagai data
+  (bar tipis terlihat), bukan terlihat identik dengan "belum ada data".
+- **CMS:** tidak ada perubahan admin — achievement catalog dan band
+  conversion table (Fase 11) sama-sama seeded lewat `prisma/seed.ts`,
+  bukan lewat UI.
+
+## 19. Menjalankan proyek secara lokal
 
 Lihat `README.md` untuk perintah lengkap. Ringkas:
 

@@ -24,11 +24,12 @@ test("primary CTA leads to login, then the dashboard shows honest empty states",
 
 test("a not-yet-built section honestly says so instead of faking content", async ({ page }) => {
   await registerAndLandOnDashboard(page, "coming-soon");
-  // /tryout was built in Fase 11 — /progress is the next section still
-  // honestly showing "Segera tersedia" rather than faked content.
-  await page.goto("/progress");
+  // /tryout (Fase 11) and /progress (Fase 12) are both built now —
+  // /info-ielts is the next section still honestly showing "Segera
+  // tersedia" rather than faked content.
+  await page.goto("/info-ielts");
   await expect(page.getByText(/segera tersedia/i)).toBeVisible();
-  await expect(page.getByText(/fase 12/i)).toBeVisible();
+  await expect(page.getByText(/fase 14/i)).toBeVisible();
 });
 
 test("language toggle switches dashboard copy to English", async ({ page }) => {
