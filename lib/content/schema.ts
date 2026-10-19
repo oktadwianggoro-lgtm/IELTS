@@ -101,6 +101,13 @@ export const questionSchema = z
     answerKey: z.union([z.string().min(1), z.array(z.string().min(1)).min(1)]),
     acceptedAnswers: z.array(z.string().min(1)).optional(),
     explanation: z.string().min(10, "Penjelasan jawaban terlalu pendek"),
+    /** Evidence-based review (Reading Lab, Master Prompt §8.6) — a short
+     * excerpt/paragraph reference, e.g. "Paragraf C: '...'". Optional since
+     * only Reading questions currently populate it. */
+    evidence: z.string().min(1).optional(),
+    /** Soft word-limit hint for free-text answers (e.g. "NO MORE THAN TWO
+     * WORDS"), shown in the UI, not enforced as a hard submit block. */
+    wordLimit: z.number().int().positive().optional(),
     topics: z.array(z.string().min(1)).default([]),
     estimatedSeconds: z.number().int().positive().optional(),
     sourceType: z.string().default("original"),
@@ -221,3 +228,25 @@ export const listeningPassageFileSchema = z.object({
   questions: z.array(questionSchema).min(3, "Minimal 3 soal per listening passage"),
 });
 export type ListeningPassageFile = z.infer<typeof listeningPassageFileSchema>;
+
+export const readingExamTypes = ["ACADEMIC", "GENERAL_TRAINING"] as const;
+
+const readingParagraphSchema = z.object({
+  label: z.string().min(1),
+  text: z.string().min(1),
+});
+
+/** A reading question's `skill`/`level` always resolve from the passage,
+ * same rationale as listening questions (D-030-adjacent: a question only
+ * exists in the context of the one passage that produced it). */
+export const readingPassageFileSchema = z.object({
+  code: codeSchema,
+  title: z.string().min(3),
+  examType: z.enum(readingExamTypes),
+  level: z.enum(pedagogicalLevels),
+  topic: z.string().min(1),
+  paragraphs: z.array(readingParagraphSchema).min(1),
+  sourceNotes: z.string().optional(),
+  questions: z.array(questionSchema).min(5, "Minimal 5 soal per reading passage"),
+});
+export type ReadingPassageFile = z.infer<typeof readingPassageFileSchema>;

@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { lessonFileSchema, listeningPassageFileSchema, questionSchema } from "@/lib/content/schema";
+import {
+  lessonFileSchema,
+  listeningPassageFileSchema,
+  questionSchema,
+  readingPassageFileSchema,
+} from "@/lib/content/schema";
 
 const validQuestion = {
   code: "Q1-TEST",
@@ -197,5 +202,64 @@ describe("listeningPassageFileSchema", () => {
     const result = listeningPassageFileSchema.safeParse(minimalListeningPassage());
     expect(result.success).toBe(true);
     if (result.success) expect(result.data.difficulty).toBe(3);
+  });
+});
+
+function minimalReadingPassage(overrides: Record<string, unknown> = {}) {
+  return {
+    code: "TEST-READING-001",
+    title: "A valid test passage",
+    examType: "ACADEMIC" as const,
+    level: "B1" as const,
+    topic: "testing",
+    paragraphs: [
+      { label: "A", text: "First paragraph." },
+      { label: "B", text: "Second paragraph." },
+    ],
+    questions: Array.from({ length: 5 }, (_, i) => ({ ...validQuestion, code: `RQ${i + 1}-TEST` })),
+    ...overrides,
+  };
+}
+
+describe("readingPassageFileSchema", () => {
+  it("accepts a fully valid minimal reading passage", () => {
+    const result = readingPassageFileSchema.safeParse(minimalReadingPassage());
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects a passage with fewer than 5 questions", () => {
+    const passage = minimalReadingPassage();
+    passage.questions = passage.questions.slice(0, 4);
+    expect(readingPassageFileSchema.safeParse(passage).success).toBe(false);
+  });
+
+  it("rejects a passage with no paragraphs", () => {
+    const result = readingPassageFileSchema.safeParse(minimalReadingPassage({ paragraphs: [] }));
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects a paragraph missing a label or text", () => {
+    const result = readingPassageFileSchema.safeParse(
+      minimalReadingPassage({ paragraphs: [{ label: "A" }] }),
+    );
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects an invalid examType value", () => {
+    const result = readingPassageFileSchema.safeParse(
+      minimalReadingPassage({ examType: "IELTS_LIFE_SKILLS" }),
+    );
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts a question with evidence and wordLimit set", () => {
+    const passage = minimalReadingPassage({
+      questions: [
+        { ...validQuestion, code: "RQ1-TEST", evidence: "Paragraf A: '...'", wordLimit: 2 },
+        ...Array.from({ length: 4 }, (_, i) => ({ ...validQuestion, code: `RQ${i + 2}-TEST` })),
+      ],
+    });
+    const result = readingPassageFileSchema.safeParse(passage);
+    expect(result.success).toBe(true);
   });
 });

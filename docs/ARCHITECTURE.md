@@ -1,7 +1,7 @@
 # Arsitektur — Success IELTS
 
-Status: Fase 7 (Listening Lab — audio asli, mode latihan/ujian). Dokumen
-ini akan diperluas pada setiap fase berikutnya.
+Status: Fase 8 (Reading Lab — passage, navigator, evidence-based review).
+Dokumen ini akan diperluas pada setiap fase berikutnya.
 
 ## 1. Ringkasan
 
@@ -164,6 +164,9 @@ Sesuai instruksi "satu fase pada satu waktu":
 - ~~Tidak ada Listening Lab~~ — selesai Fase 7, lihat §11 (hanya Section 1 &
   3 yang sudah terisi konten; Section 2 & 4 kosong secara jujur, "Segera
   tersedia" — dan belum ada tipe soal plan/map/diagram labelling).
+- ~~Tidak ada Reading Lab~~ — selesai Fase 8, lihat §12 (hanya 1 passage
+  Academic & 1 passage General Training; highlight per-paragraf, bukan
+  rentang teks bebas; timer tampilan-saja, bukan auto-submit — lihat D-033).
 - Tidak ada scoring/AI feedback (Fase 9–11).
 - Tidak ada Docker/deployment (Fase 17).
 
@@ -346,7 +349,51 @@ soal listening tidak terikat lesson/module).
   D-024 secara eksplisit supaya tidak mengulang bug yang sama untuk tipe
   konten baru.
 
-## 12. Menjalankan proyek secara lokal
+## 12. Reading Lab (Fase 8)
+
+`/reading-lab` (katalog per Academic/General Training) →
+`/reading-lab/[passageCode]` (workspace split-view: passage + soal). Model
+baru: `ReadingPassage` (`paragraphs: [{label, text}]` terstruktur per
+paragraf), `Question.readingPassageId`, serta dua field baru di `Question`
+yang dipakai lintas semua tipe konten (nullable, jadi tidak mempengaruhi
+Lesson/Listening yang sudah ada): `evidence` (kutipan/rujukan paragraf
+untuk ulasan pasca-tes) dan `wordLimit` (hint batas kata untuk jawaban
+bebas).
+
+- **Reuse, bukan renderer baru:** sama seperti Fase 6/7, tidak ada
+  grader/renderer soal baru. Tipe soal Reading dari Master Prompt §8.6
+  ("matching headings", "matching information", dst.) semuanya dipetakan
+  ke tipe `MATCHING` yang sudah ada (opsi = huruf paragraf, mis. "Paragraf
+  C") — bukan enum `QuestionType` baru, konsisten dengan bagaimana
+  `MATCHING` sudah dipakai sebagai single-select generik sejak Fase 2.
+- **`ReadingPassageWorkspace`** (`components/reading/`): layout dua kolom
+  (passage kiri, soal kanan, sticky di desktop) dengan:
+  - Navigator — baris tombol bernomor di atas, warna berbeda untuk
+    terjawab/ditandai, klik untuk scroll ke soal terkait.
+  - Flag/review — tombol bendera per soal, status ikut ditampilkan di
+    navigator (lihat D-033 untuk scoping fitur ini).
+  - Highlight — klik paragraf untuk menandainya (per-paragraf, bukan
+    rentang teks bebas — lihat D-033 untuk alasan).
+  - Word-limit hint — hitungan kata live di bawah input bebas, berubah
+    merah saat melebihi `wordLimit` soal (tidak memblokir submit).
+  - Timer 20 menit tampilan-saja dan autosave lewat `localStorage` — lihat
+    D-033 untuk kenapa keduanya sengaja disederhanakan dibanding sistem
+    tryout penuh (Fase 11).
+- **Evidence-based review:** `checkReadingAnswersAction` mengembalikan
+  `explanation` DAN `evidence` untuk setiap soal setelah diperiksa — tidak
+  ada gating mode latihan/ujian seperti Listening Lab, karena passage-nya
+  sendiri selalu terlihat penuh di layar (tidak ada "konten yang hilang"
+  untuk dilindungi). Lihat D-034 untuk perbandingan lengkap dengan
+  pendekatan Listening Lab.
+- **Soal Reading dikecualikan dari pool Latihan Harian/diagnostic umum** —
+  sama seperti Listening (D-030), butuh konteks passage yang sedang
+  dibaca. Lihat D-034.
+- **CMS:** `/admin/content` dan `/admin/content/[code]` diperluas lagi
+  (pola yang sama seperti D-024/Fase 7) untuk me-review `ReadingPassage`
+  lewat alur editorial yang identik dengan Lesson dan Listening Passage,
+  termasuk cascade status ke soal miliknya saat publish/archive.
+
+## 13. Menjalankan proyek secara lokal
 
 Lihat `README.md` untuk perintah lengkap. Ringkas:
 

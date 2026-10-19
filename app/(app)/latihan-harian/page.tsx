@@ -22,9 +22,9 @@ export default async function LatihanHarianPage() {
 
   const [allQuestions, latestDiagnostic, recentProgress, dueMistakes] = await Promise.all([
     prisma.question.findMany({
-      // Listening questions need their passage's audio for context — see
-      // docs/DECISIONS.md D-030. They're scoped to the Listening Lab only.
-      where: { reviewStatus: "PUBLISHED", listeningPassageId: null },
+      // Listening/Reading questions need their passage for context — see
+      // docs/DECISIONS.md D-030/D-034. Scoped to their own labs only.
+      where: { reviewStatus: "PUBLISHED", listeningPassageId: null, readingPassageId: null },
       select: {
         id: true,
         code: true,

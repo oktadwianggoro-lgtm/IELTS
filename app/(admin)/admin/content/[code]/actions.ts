@@ -120,3 +120,49 @@ export async function transitionListeningPassageStatusAction(
   revalidatePath("/admin/content");
   return null;
 }
+
+export async function transitionReadingPassageStatusAction(
+  passageCode: string,
+  targetStatus: ContentStatus,
+): Promise<ContentActionState> {
+  const user = await requireRole(["ADMIN", "TEACHER"]);
+
+  const passage = await prisma.readingPassage.findUnique({ where: { code: passageCode } });
+  if (!passage) return { error: "Reading passage tidak ditemukan." };
+
+  const allowed = TRANSITIONS[passage.reviewStatus].find((t) => t.to === targetStatus);
+  if (!allowed) {
+    return { error: `Tidak bisa pindah dari ${passage.reviewStatus} ke ${targetStatus}.` };
+  }
+  if (!allowed.allowedRoles.includes(user.role)) {
+    return { error: "Anda tidak punya izin untuk tindakan ini." };
+  }
+
+  const isReviewDecision = targetStatus === "APPROVED" || targetStatus === "PUBLISHED";
+
+  // Same cascade rationale as transitionLessonStatusAction above (see
+  // D-024): a passage's questions must follow its PUBLISHED/ARCHIVED status
+  // or the Reading Lab silently shows "no questions" for a passage that
+  // looks published.
+  await prisma.$transaction([
+    prisma.readingPassage.update({
+      where: { code: passageCode },
+      data: {
+        reviewStatus: targetStatus,
+        ...(isReviewDecision ? { reviewedById: user.id, reviewedAt: new Date() } : {}),
+      },
+    }),
+    ...(targetStatus === "PUBLISHED" || targetStatus === "ARCHIVED"
+      ? [
+          prisma.question.updateMany({
+            where: { readingPassageId: passage.id },
+            data: { reviewStatus: targetStatus },
+          }),
+        ]
+      : []),
+  ]);
+
+  revalidatePath(`/admin/content/${passageCode}`);
+  revalidatePath("/admin/content");
+  return null;
+}

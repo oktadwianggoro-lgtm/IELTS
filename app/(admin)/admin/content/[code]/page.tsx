@@ -4,7 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { LessonView, type LessonViewData } from "@/components/content/lesson-view";
 import { StatusTransitionButtons } from "@/components/content/status-transition-buttons";
-import { transitionLessonStatusAction, transitionListeningPassageStatusAction } from "./actions";
+import {
+  transitionLessonStatusAction,
+  transitionListeningPassageStatusAction,
+  transitionReadingPassageStatusAction,
+} from "./actions";
 import { requireRole } from "@/lib/auth/rbac";
 import { prisma } from "@/lib/db";
 import { LISTENING_SECTION_LABEL, PEDAGOGICAL_LEVEL_LABEL } from "@/lib/content/labels";
@@ -26,6 +30,8 @@ function QuestionListPreview({
     options: unknown;
     answerKey: unknown;
     explanation: string;
+    evidence?: string | null;
+    wordLimit?: number | null;
   }[];
 }) {
   return (
@@ -37,6 +43,12 @@ function QuestionListPreview({
           <div key={q.id} className="border-border rounded-md border p-3 text-sm">
             <p className="font-medium">
               {i + 1}. {prompt.text}
+              {q.wordLimit ? (
+                <span className="text-muted-foreground font-normal">
+                  {" "}
+                  (maks. {q.wordLimit} kata)
+                </span>
+              ) : null}
             </p>
             {prompt.instructions ? (
               <p className="text-muted-foreground text-xs">{prompt.instructions}</p>
@@ -53,6 +65,9 @@ function QuestionListPreview({
             <p className="text-muted-foreground mt-2 text-xs">
               Jawaban: {JSON.stringify(q.answerKey)} — {q.explanation}
             </p>
+            {q.evidence ? (
+              <p className="text-muted-foreground mt-1 text-xs">Bukti: {q.evidence}</p>
+            ) : null}
           </div>
         );
       })}
@@ -151,68 +166,142 @@ export default async function AdminContentDetailPage({
     },
   });
 
-  if (!passage) notFound();
+  if (passage) {
+    const script = passage.script as { speaker: string; text: string }[];
 
-  const script = passage.script as { speaker: string; text: string }[];
+    return (
+      <div className="mx-auto max-w-3xl space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex flex-wrap items-center gap-2">
+              {passage.code}
+              <Badge>{STATUS_LABEL[passage.reviewStatus] ?? passage.reviewStatus}</Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <div className="text-muted-foreground grid grid-cols-2 gap-2">
+              <p>Section: {LISTENING_SECTION_LABEL[passage.section]}</p>
+              <p>Level: {PEDAGOGICAL_LEVEL_LABEL[passage.level]}</p>
+              <p>Aksen: {passage.accent}</p>
+              <p>Durasi: {Math.round(passage.durationSeconds / 60)} menit</p>
+              <p>Versi konten: {passage.contentVersion}</p>
+              <p>Terakhir diperbarui: {passage.lastUpdatedAt.toLocaleString("id-ID")}</p>
+              {passage.reviewedBy ? (
+                <p className="col-span-2">
+                  Ditinjau oleh: {passage.reviewedBy.name ?? passage.reviewedBy.email} pada{" "}
+                  {passage.reviewedAt?.toLocaleString("id-ID")}
+                </p>
+              ) : null}
+              {passage.sourceNotes ? (
+                <p className="col-span-2">Catatan sumber: {passage.sourceNotes}</p>
+              ) : null}
+            </div>
+            <Separator />
+            <StatusTransitionButtons
+              code={passage.code}
+              currentStatus={passage.reviewStatus}
+              onTransition={transitionListeningPassageStatusAction}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Audio & Transkrip</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <audio controls src={passage.audioUrl} className="w-full" />
+            <div className="space-y-1">
+              {script.map((turn, i) => (
+                <p key={i}>
+                  <span className="font-medium">{turn.speaker}:</span> {turn.text}
+                </p>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Soal ({passage.questions.length})</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <QuestionListPreview questions={passage.questions} />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const readingPassage = await prisma.readingPassage.findUnique({
+    where: { code },
+    include: {
+      questions: { orderBy: { code: "asc" } },
+      reviewedBy: { select: { name: true, email: true } },
+    },
+  });
+
+  if (!readingPassage) notFound();
+
+  const paragraphs = readingPassage.paragraphs as { label: string; text: string }[];
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex flex-wrap items-center gap-2">
-            {passage.code}
-            <Badge>{STATUS_LABEL[passage.reviewStatus] ?? passage.reviewStatus}</Badge>
+            {readingPassage.code}
+            <Badge>
+              {STATUS_LABEL[readingPassage.reviewStatus] ?? readingPassage.reviewStatus}
+            </Badge>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           <div className="text-muted-foreground grid grid-cols-2 gap-2">
-            <p>Section: {LISTENING_SECTION_LABEL[passage.section]}</p>
-            <p>Level: {PEDAGOGICAL_LEVEL_LABEL[passage.level]}</p>
-            <p>Aksen: {passage.accent}</p>
-            <p>Durasi: {Math.round(passage.durationSeconds / 60)} menit</p>
-            <p>Versi konten: {passage.contentVersion}</p>
-            <p>Terakhir diperbarui: {passage.lastUpdatedAt.toLocaleString("id-ID")}</p>
-            {passage.reviewedBy ? (
+            <p>Exam type: {readingPassage.examType}</p>
+            <p>Level: {PEDAGOGICAL_LEVEL_LABEL[readingPassage.level]}</p>
+            <p>Topik: {readingPassage.topic}</p>
+            <p>Jumlah kata: {readingPassage.wordCount}</p>
+            <p>Versi konten: {readingPassage.contentVersion}</p>
+            <p>Terakhir diperbarui: {readingPassage.lastUpdatedAt.toLocaleString("id-ID")}</p>
+            {readingPassage.reviewedBy ? (
               <p className="col-span-2">
-                Ditinjau oleh: {passage.reviewedBy.name ?? passage.reviewedBy.email} pada{" "}
-                {passage.reviewedAt?.toLocaleString("id-ID")}
+                Ditinjau oleh: {readingPassage.reviewedBy.name ?? readingPassage.reviewedBy.email}{" "}
+                pada {readingPassage.reviewedAt?.toLocaleString("id-ID")}
               </p>
             ) : null}
-            {passage.sourceNotes ? (
-              <p className="col-span-2">Catatan sumber: {passage.sourceNotes}</p>
+            {readingPassage.sourceNotes ? (
+              <p className="col-span-2">Catatan sumber: {readingPassage.sourceNotes}</p>
             ) : null}
           </div>
           <Separator />
           <StatusTransitionButtons
-            code={passage.code}
-            currentStatus={passage.reviewStatus}
-            onTransition={transitionListeningPassageStatusAction}
+            code={readingPassage.code}
+            currentStatus={readingPassage.reviewStatus}
+            onTransition={transitionReadingPassageStatusAction}
           />
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Audio & Transkrip</CardTitle>
+          <CardTitle className="text-base">Passage</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
-          <audio controls src={passage.audioUrl} className="w-full" />
-          <div className="space-y-1">
-            {script.map((turn, i) => (
-              <p key={i}>
-                <span className="font-medium">{turn.speaker}:</span> {turn.text}
-              </p>
-            ))}
-          </div>
+          {paragraphs.map((p) => (
+            <p key={p.label}>
+              <span className="font-medium">{p.label}.</span> {p.text}
+            </p>
+          ))}
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Soal ({passage.questions.length})</CardTitle>
+          <CardTitle className="text-base">Soal ({readingPassage.questions.length})</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <QuestionListPreview questions={passage.questions} />
+          <QuestionListPreview questions={readingPassage.questions} />
         </CardContent>
       </Card>
     </div>

@@ -32,6 +32,7 @@ async function main() {
   const lessonCounts: Counts = { created: 0, updated: 0 };
   const questionCounts: Counts = { created: 0, updated: 0 };
   const listeningPassageCounts: Counts = { created: 0, updated: 0 };
+  const readingPassageCounts: Counts = { created: 0, updated: 0 };
 
   // ---- topics ----
   const topicIdByCode = new Map<string, string>();
@@ -149,6 +150,8 @@ async function main() {
         answerKey: q.answerKey,
         acceptedAnswers: q.acceptedAnswers ?? undefined,
         explanation: q.explanation,
+        evidence: q.evidence,
+        wordLimit: q.wordLimit,
         estimatedSeconds: q.estimatedSeconds,
         sourceType: q.sourceType,
         lessonId,
@@ -205,9 +208,67 @@ async function main() {
         answerKey: q.answerKey,
         acceptedAnswers: q.acceptedAnswers ?? undefined,
         explanation: q.explanation,
+        evidence: q.evidence,
+        wordLimit: q.wordLimit,
         estimatedSeconds: q.estimatedSeconds,
         sourceType: q.sourceType,
         listeningPassageId: row.id,
+      };
+      const qRow = existingQ
+        ? await prisma.question.update({
+            where: { code: q.code },
+            data: { ...qData, contentVersion: { increment: 1 } },
+          })
+        : await prisma.question.create({ data: { ...qData, code: q.code } });
+      bump(questionCounts, !existingQ);
+
+      await prisma.questionTopic.deleteMany({ where: { questionId: qRow.id } });
+      for (const topicCode of q.topics) {
+        await prisma.questionTopic.create({
+          data: { questionId: qRow.id, topicId: topicIdByCode.get(topicCode)! },
+        });
+      }
+    }
+  }
+
+  // ---- reading passages (+ their own questions) ----
+  for (const p of result.readingPassages) {
+    const existing = await prisma.readingPassage.findUnique({ where: { code: p.code } });
+    const data = {
+      title: p.title,
+      examType: p.examType,
+      level: p.level,
+      topic: p.topic,
+      paragraphs: p.paragraphs,
+      wordCount: p.paragraphs.reduce((n, para) => n + para.text.split(/\s+/).length, 0),
+      sourceNotes: p.sourceNotes,
+    };
+    const row = existing
+      ? await prisma.readingPassage.update({
+          where: { code: p.code },
+          data: { ...data, contentVersion: { increment: 1 } },
+        })
+      : await prisma.readingPassage.create({ data: { ...data, code: p.code } });
+    bump(readingPassageCounts, !existing);
+
+    for (const q of p.questions) {
+      const existingQ = await prisma.question.findUnique({ where: { code: q.code } });
+      const qData = {
+        type: q.type,
+        skill: q.skill ?? ("READING" as const),
+        level: q.level ?? p.level,
+        targetBandRange: q.targetBandRange,
+        difficulty: q.difficulty,
+        prompt: q.prompt,
+        options: q.options ?? undefined,
+        answerKey: q.answerKey,
+        acceptedAnswers: q.acceptedAnswers ?? undefined,
+        explanation: q.explanation,
+        evidence: q.evidence,
+        wordLimit: q.wordLimit,
+        estimatedSeconds: q.estimatedSeconds,
+        sourceType: q.sourceType,
+        readingPassageId: row.id,
       };
       const qRow = existingQ
         ? await prisma.question.update({
@@ -235,6 +296,7 @@ async function main() {
   console.log(summary("Lessons", lessonCounts));
   console.log(summary("Questions", questionCounts));
   console.log(summary("Listening passages", listeningPassageCounts));
+  console.log(summary("Reading passages", readingPassageCounts));
   console.log(
     "\nSemua konten yang baru dibuat/diperbarui berstatus DRAFT. Gunakan CMS admin untuk meninjau dan menerbitkan.",
   );

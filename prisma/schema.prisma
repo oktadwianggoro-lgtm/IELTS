@@ -45,6 +45,8 @@ model User {
   reviewedQuestions         Question[]         @relation("QuestionReviewedBy")
   createdListeningPassages  ListeningPassage[] @relation("ListeningPassageCreatedBy")
   reviewedListeningPassages ListeningPassage[] @relation("ListeningPassageReviewedBy")
+  createdReadingPassages    ReadingPassage[]   @relation("ReadingPassageCreatedBy")
+  reviewedReadingPassages   ReadingPassage[]   @relation("ReadingPassageReviewedBy")
   bookmarks                 Bookmark[]
   notes                     Note[]
   lessonProgress            LessonProgress[]
@@ -380,6 +382,8 @@ model Question {
   lesson             Lesson?           @relation(fields: [lessonId], references: [id], onDelete: SetNull)
   listeningPassageId String?
   listeningPassage   ListeningPassage? @relation(fields: [listeningPassageId], references: [id], onDelete: SetNull)
+  readingPassageId   String?
+  readingPassage     ReadingPassage?   @relation(fields: [readingPassageId], references: [id], onDelete: SetNull)
 
   type            QuestionType
   skill           SkillArea
@@ -397,6 +401,14 @@ model Question {
   /// Additional strings/values accepted as correct besides `answerKey`.
   acceptedAnswers Json?
   explanation     String
+  /// Reading Lab evidence-based review (Master Prompt §8.6: "Ulasan
+  /// pasca-tes mencantumkan bukti dari passage") — a short excerpt/paragraph
+  /// reference, e.g. "Paragraf C: '...'". Nullable since only Reading
+  /// questions currently populate it.
+  evidence        String?
+  /// Soft word-limit hint for free-text answers (e.g. "NO MORE THAN TWO
+  /// WORDS"), shown in the UI, not enforced as a hard submit block.
+  wordLimit       Int?
 
   topics             QuestionTopic[]
   diagnosticAnswers  DiagnosticAnswer[]
@@ -418,6 +430,7 @@ model Question {
 
   @@index([lessonId])
   @@index([listeningPassageId])
+  @@index([readingPassageId])
   @@index([reviewStatus])
   @@map("questions")
 }
@@ -612,6 +625,7 @@ enum AttemptSource {
   ADAPTIVE_PRACTICE
   MISTAKE_REVIEW
   LISTENING_PRACTICE
+  READING_PRACTICE
 }
 
 /// Master Prompt §8.10: "Pengguna bisa menandai alasan error" — a fixed set
@@ -728,4 +742,46 @@ model ListeningPassage {
 
   @@index([reviewStatus])
   @@map("listening_passages")
+}
+
+// ---------- Reading Lab (Fase 8) ----------
+
+enum ReadingExamType {
+  ACADEMIC
+  GENERAL_TRAINING
+}
+
+/// One reading passage with its questions. `paragraphs` is structured
+/// (rather than one flat text blob) so the UI's paragraph navigator and
+/// "matching information" style questions ("which paragraph mentions...")
+/// both have a stable, labelled unit to reference.
+model ReadingPassage {
+  id       String           @id @default(cuid())
+  code     String           @unique
+  title    String
+  examType ReadingExamType
+  level    PedagogicalLevel
+  topic    String
+
+  /// [{ label: "A", text: "..." }, ...]
+  paragraphs Json
+  wordCount  Int
+
+  questions Question[]
+
+  contentVersion Int           @default(1)
+  reviewStatus   ContentStatus @default(DRAFT)
+  sourceType     String        @default("original")
+  sourceNotes    String?
+  createdById    String?
+  createdBy      User?         @relation("ReadingPassageCreatedBy", fields: [createdById], references: [id])
+  reviewedById   String?
+  reviewedBy     User?         @relation("ReadingPassageReviewedBy", fields: [reviewedById], references: [id])
+  reviewedAt     DateTime?
+
+  createdAt     DateTime @default(now())
+  lastUpdatedAt DateTime @updatedAt
+
+  @@index([reviewStatus])
+  @@map("reading_passages")
 }

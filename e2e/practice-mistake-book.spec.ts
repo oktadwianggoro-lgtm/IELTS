@@ -106,12 +106,18 @@ test.describe("Buku Kesalahan (mistake book) review", () => {
   test("reviewing every due card updates all of them — none are silently skipped", async ({
     page,
   }) => {
-    // Reviewing 10-15 cards back-to-back is slower than the default 30s
-    // budget — see docs/DECISIONS.md D-032 for the real bug this test
-    // caught (rating the last due card used to swap the whole review
-    // session out for the page's empty state, destroying the completion
-    // screen) and its fix.
-    test.setTimeout(60_000);
+    // Reviewing ~15 practice cards then ~15 review cards back-to-back
+    // (roughly 30 round trips) is slower than the default 30s budget, and
+    // slower still when this test happens to run during the webServer's
+    // cold-start build+boot window under concurrent workers — a timing
+    // characteristic shared with auth.spec.ts's "full happy path" flake,
+    // not specific to this test. See docs/DECISIONS.md D-032 for the real,
+    // deterministic bug this test caught and fixed (rating the last due
+    // card used to swap the whole review session out for the page's empty
+    // state, destroying the completion screen) — confirmed fully resolved
+    // across repeated isolated/warm-server runs; this timeout bump only
+    // covers the unrelated cold-start contention.
+    test.setTimeout(90_000);
     const email = await registerAndLandOnDashboard(page, "mistake-review-no-skip");
 
     await page.goto("/latihan-harian");

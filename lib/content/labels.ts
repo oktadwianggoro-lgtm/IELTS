@@ -1,4 +1,10 @@
-import type { ErrorReason, ListeningSection, PedagogicalLevel, SkillArea } from "@prisma/client";
+import type {
+  ErrorReason,
+  ListeningSection,
+  PedagogicalLevel,
+  ReadingExamType,
+  SkillArea,
+} from "@prisma/client";
 
 export const PEDAGOGICAL_LEVEL_LABEL: Record<PedagogicalLevel, string> = {
   STARTER: "Starter / Pre-A1",
@@ -25,6 +31,11 @@ export const LISTENING_SECTION_LABEL: Record<ListeningSection, string> = {
   SECTION_2: "Section 2 — Monolog sehari-hari",
   SECTION_3: "Section 3 — Diskusi akademik",
   SECTION_4: "Section 4 — Monolog akademik",
+};
+
+export const READING_EXAM_TYPE_LABEL: Record<ReadingExamType, string> = {
+  ACADEMIC: "Academic",
+  GENERAL_TRAINING: "General Training",
 };
 
 export const ERROR_REASON_LABEL: Record<ErrorReason, string> = {

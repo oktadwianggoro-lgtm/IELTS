@@ -622,3 +622,70 @@ docker-compose.dev.yml up -d` untuk pengembangan lokal, sesuai stack Master
   dibutuhkan, pertimbangkan `useOptimistic`/state lokal di
   `MistakeReviewSession` untuk counter itu sendiri (dihitung dari progres
   klien), bukan `revalidatePath` yang mengganti seluruh subtree server.
+- **Catatan tambahan (Fase 8):** bug deterministik di atas sudah
+  dikonfirmasi 100% hilang lewat banyak run berulang pada server yang
+  SUDAH jalan (isolated run maupun bagian dari full suite dengan server
+  reuse). Yang TERSISA adalah test ini kadang masih time-out (sudah
+  dinaikkan ke 90 detik) KHUSUS saat `npx playwright test` memulai
+  webServer dari nol (`npm run build && npm run start`) di bawah 4 worker
+  paralel sekaligus — test ini melakukan ~30 round-trip (sesi latihan +
+  sesi review), jadi paling sensitif terhadap kontensi cold-start. Ini pola
+  yang SAMA dengan flake `auth.spec.ts`'s "full happy path" yang sudah
+  lebih dulu diketahui di Fase 5/6 — karakteristik lingkungan test lokal,
+  bukan bug produk, dan tidak dikejar lebih jauh karena effort lanjutan
+  tidak proporsional terhadap manfaatnya.
+
+## Fase 8
+
+### D-033: Highlight per-paragraf (bukan rentang teks bebas); timer tampilan-saja (tidak auto-submit); autosave lewat localStorage (bukan model attempt baru)
+
+- **Keputusan:** Tiga penyederhanaan sadar untuk Reading Lab dibanding
+  deskripsi penuh Master Prompt §8.6/§8.9:
+  1. "Highlight" diimplementasikan sebagai klik-untuk-menandai PARAGRAF
+     utuh (`ReadingPassageWorkspace`'s `toggleHighlight`), bukan menandai
+     rentang teks bebas (mis. menyorot beberapa kata di tengah kalimat).
+  2. Timer 20 menit hanya tampilan (hitung mundur, berubah merah di bawah
+     2 menit) — tidak memaksa auto-submit saat habis.
+  3. Autosave jawaban memakai `localStorage` per `passageCode`
+     (`reading-draft:<code>`), bukan model attempt/sesi baru di database.
+- **Alasan:** Rentang-teks-bebas butuh serialisasi Range API dan re-render
+  tanpa merusak DOM React — kompleksitas yang tidak sepadan untuk MVP satu
+  fase. Auto-submit paksa butuh penanganan edge-case (apa yang dikirim jika
+  sebagian soal kosong, race dengan submit manual) yang lebih pas masuk ke
+  sistem tryout/blueprint Fase 11 yang memang dirancang untuk itu — Reading
+  Lab versi fase ini adalah alat LATIHAN, bukan ujian resmi bertimer ketat.
+  Autosave via `localStorage` memenuhi "autosave" secara jujur (jawaban
+  tidak hilang saat reload tidak sengaja) tanpa membangun model
+  attempt-tracking baru yang belum punya kebutuhan nyata di luar ini.
+- **Konsekuensi yang diterima:** Highlight tidak akan terlihat seperti
+  stabilo asli IELTS computer-delivered (yang bisa menyorot kata per kata).
+  Timer murni pengingat, bukan penegak waktu. Draft jawaban hanya
+  tersimpan di browser perangkat yang sama, tidak sinkron lintas perangkat.
+- **Tinjau ulang:** Fase 11 (tryout/exam mode) akan butuh timer yang BENAR
+  auto-submit dan attempt state tersimpan di server (bukan localStorage)
+  agar bisa dilanjutkan dari perangkat lain — itu sistem terpisah, bukan
+  perluasan dari `ReadingPassageWorkspace` ini.
+
+### D-034: Soal Reading dikecualikan dari pool Latihan Harian/diagnostic umum; evidence selalu dikembalikan setelah checking tanpa gating mode ujian
+
+- **Keputusan:** `sampleDiagnosticQuestions()` dan `/latihan-harian`'s
+  kandidat soal memfilter `readingPassageId: null` juga (selain
+  `listeningPassageId: null` dari D-030). `checkReadingAnswersAction` SELALU
+  mengembalikan `evidence`/`explanation` setelah soal diperiksa, TANPA
+  toggle mode latihan/ujian seperti Listening Lab.
+- **Alasan (exclusion):** Sama seperti D-030 — soal Reading butuh konteks
+  passage yang sedang dibaca, tidak masuk akal muncul di kartu latihan
+  generik tanpa passage-nya.
+- **Alasan (tidak ada mode-gating evidence):** Listening Lab menyembunyikan
+  transkrip di mode ujian karena audio HANYA diputar sekali lalu hilang —
+  transkrip adalah "kebocoran" konten yang sebelumnya tidak tersedia lagi
+  bagi pengguna. Reading TIDAK memiliki karakteristik ini: passage tetap
+  terlihat penuh di layar sepanjang waktu, di kedua mode manapun — tidak
+  ada "konten yang hilang" untuk dilindungi dengan menyembunyikan evidence.
+  Memaksakan toggle mode latihan/ujian yang sama seperti Listening Lab ke
+  sini hanya akan menambah kompleksitas tanpa manfaat keamanan konten yang
+  nyata.
+- **Tinjau ulang:** Jika Fase 11 mengimpor soal Reading ke blueprint tryout
+  resmi, filter exclusion TETAP relevan, tapi alur ujian sungguhan akan
+  punya sistemnya sendiri (timer tegas, auto-submit, larangan melihat
+  evidence sebelum submit seluruh section) terpisah dari toggle sederhana ini.

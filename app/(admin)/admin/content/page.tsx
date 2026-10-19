@@ -23,7 +23,7 @@ const STATUS_LABEL: Record<string, string> = {
 export default async function AdminContentListPage() {
   await requireRole(["ADMIN", "TEACHER"]);
 
-  const [lessons, listeningPassages] = await Promise.all([
+  const [lessons, listeningPassages, readingPassages] = await Promise.all([
     prisma.lesson.findMany({
       orderBy: [{ level: "asc" }, { order: "asc" }],
       include: {
@@ -33,6 +33,10 @@ export default async function AdminContentListPage() {
     }),
     prisma.listeningPassage.findMany({
       orderBy: [{ section: "asc" }, { title: "asc" }],
+      include: { _count: { select: { questions: true } } },
+    }),
+    prisma.readingPassage.findMany({
+      orderBy: [{ examType: "asc" }, { title: "asc" }],
       include: { _count: { select: { questions: true } } },
     }),
   ]);
@@ -90,6 +94,35 @@ export default async function AdminContentListPage() {
                   <p className="font-medium">{p.title}</p>
                   <p className="text-muted-foreground text-xs">
                     {p.code} · {p.section} · {p._count.questions} soal · v{p.contentVersion}
+                  </p>
+                </div>
+                <Badge variant={STATUS_VARIANT[p.reviewStatus] ?? "outline"}>
+                  {STATUS_LABEL[p.reviewStatus] ?? p.reviewStatus}
+                </Badge>
+              </Link>
+            ))
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Reading Passages</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-1">
+          {readingPassages.length === 0 ? (
+            <p className="text-muted-foreground text-sm">Belum ada reading passage.</p>
+          ) : (
+            readingPassages.map((p) => (
+              <Link
+                key={p.id}
+                href={`/admin/content/${p.code}`}
+                className="border-border hover:border-brand-navy flex flex-wrap items-center justify-between gap-2 rounded-md border p-3 text-sm"
+              >
+                <div>
+                  <p className="font-medium">{p.title}</p>
+                  <p className="text-muted-foreground text-xs">
+                    {p.code} · {p.examType} · {p._count.questions} soal · v{p.contentVersion}
                   </p>
                 </div>
                 <Badge variant={STATUS_VARIANT[p.reviewStatus] ?? "outline"}>

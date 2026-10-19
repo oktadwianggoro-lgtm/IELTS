@@ -2,6 +2,51 @@
 
 Semua perubahan penting pada Success IELTS dicatat di sini, per fase pengembangan.
 
+## Fase 8 — Reading Lab
+
+### Ditambahkan
+
+- `/reading-lab` (katalog per Academic/General Training) dan
+  `/reading-lab/[passageCode]` (workspace split-view: passage + soal)
+  dengan navigator soal, flag/review per soal, highlight per-paragraf,
+  hint batas kata live, timer 20 menit, autosave lewat `localStorage`, dan
+  ulasan pasca-tes berbasis bukti (evidence) dari passage untuk setiap soal.
+- Model baru: `ReadingPassage` (`paragraphs` terstruktur per paragraf
+  berlabel), `Question.readingPassageId`. Dua field baru di `Question`
+  yang berlaku lintas semua tipe konten: `evidence` dan `wordLimit`
+  (nullable, tidak memengaruhi konten Lesson/Listening yang sudah ada).
+- 2 reading passage orisinal: "The Rise of Urban Beekeeping" (Academic, 9
+  soal, campuran True/False/Not Given, matching paragraf, multiple choice,
+  gap-fill, short answer) dan "Greenfield Office — Recycling and Waste
+  Policy" (General Training, 7 soal, gaya notis kantor sehari-hari).
+- `content/reading/*.json` + skema Zod baru (`readingPassageFileSchema`),
+  termasuk validasi silang baru: opsi `MATCHING` berhuruf tunggal (mis.
+  "C") harus cocok dengan label paragraf yang benar-benar ada di passage.
+- Tipe soal Reading dari Master Prompt §8.6 (matching headings/information/
+  features/sentence endings) semuanya dipetakan ke tipe `MATCHING` yang
+  sudah ada (opsi = label paragraf) — tidak ada `QuestionType` enum baru.
+- `/admin/content` dan CMS review-nya diperluas lagi untuk Reading Passage
+  lewat alur editorial yang sama persis dengan Lesson dan Listening Passage.
+- Tidak ada renderer/grader soal baru — `gradeAnswer()` dan `QuestionInput`
+  dari fase-fase sebelumnya langsung dipakai ulang.
+- `e2e/reading-lab.spec.ts`: katalog, alur lengkap dengan verifikasi bahwa
+  evidence tidak pernah ada di HTML sebelum diperiksa, hint batas kata
+  live, flag/review, dan integrasi dengan Buku Kesalahan.
+
+### Catatan — penyederhanaan yang sengaja dipilih (lihat D-033)
+
+- Highlight menandai PARAGRAF utuh saat diklik, bukan rentang teks bebas
+  (butuh serialisasi Range API yang tidak sepadan untuk fase ini).
+- Timer 20 menit murni tampilan/pengingat, tidak memaksa auto-submit —
+  auto-submit yang benar masuk ke sistem tryout/blueprint Fase 11.
+- Autosave memakai `localStorage` per passage, bukan model attempt baru di
+  database — jawaban tidak hilang saat reload tidak sengaja, tapi tidak
+  sinkron lintas perangkat.
+- Belum ada tipe soal "plan/map/diagram labelling" — butuh UI berbasis
+  gambar/koordinat yang di luar cakupan fase ini.
+- Hanya 1 passage Academic dan 1 passage General Training; perluasan
+  konten lebih lanjut adalah pekerjaan berkelanjutan Fase 18.
+
 ## Fase 7 — Listening Lab
 
 ### Ditambahkan

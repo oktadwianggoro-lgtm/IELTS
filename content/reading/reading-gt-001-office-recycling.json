@@ -1,0 +1,132 @@
+{
+  "code": "READING-GT-001",
+  "title": "Greenfield Office — Recycling and Waste Policy",
+  "examType": "GENERAL_TRAINING",
+  "level": "A2",
+  "topic": "workplace",
+  "sourceNotes": "Naskah orisinal tim Success IELTS, tidak diambil dari buku atau tes resmi manapun.",
+  "paragraphs": [
+    {
+      "label": "A",
+      "text": "Starting this month, Greenfield Office is introducing a new recycling policy for all staff. The aim is to reduce the amount of waste sent to landfill by at least thirty percent by the end of the year."
+    },
+    {
+      "label": "B",
+      "text": "Each floor will have three separate bins: blue for paper and cardboard, green for plastic bottles and containers, and black for general waste that cannot be recycled. Please make sure food waste is placed in the black bin, not the green one, as food can contaminate recyclable plastic."
+    },
+    {
+      "label": "C",
+      "text": "Printer paper should be reused where possible before being recycled. A tray has been placed next to each printer for paper that has only been printed on one side. Staff are encouraged to use this paper for notes and draft documents."
+    },
+    {
+      "label": "D",
+      "text": "Electronic waste, such as old phones, cables, and batteries, must not be placed in any of the three bins. Instead, bring these items to the collection box in the main reception area, which is emptied every Friday by our recycling partner, Clearwaste Ltd."
+    },
+    {
+      "label": "E",
+      "text": "Staff who have questions about the new policy should contact the Office Manager, Priya Shah, at extension 204, or visit the information page on the staff noticeboard outside the kitchen."
+    }
+  ],
+  "questions": [
+    {
+      "code": "READING-GT-001-Q1",
+      "type": "YES_NO_NOT_GIVEN",
+      "difficulty": 1,
+      "prompt": {
+        "text": "The company's goal is to send at least 30% less waste to landfill by the end of the year."
+      },
+      "answerKey": "YES",
+      "explanation": "Paragraf A menyatakan tujuannya mengurangi sampah ke TPA sebesar minimal 30%.",
+      "evidence": "Paragraf A: \"to reduce the amount of waste sent to landfill by at least thirty percent by the end of the year.\"",
+      "topics": ["workplace"],
+      "estimatedSeconds": 30
+    },
+    {
+      "code": "READING-GT-001-Q2",
+      "type": "YES_NO_NOT_GIVEN",
+      "difficulty": 1,
+      "prompt": { "text": "Food waste should be placed in the green bin." },
+      "answerKey": "NO",
+      "explanation": "Paragraf B justru meminta sampah makanan dibuang ke tempat sampah HITAM, bukan hijau.",
+      "evidence": "Paragraf B: \"Please make sure food waste is placed in the black bin, not the green one.\"",
+      "topics": ["workplace"],
+      "estimatedSeconds": 30
+    },
+    {
+      "code": "READING-GT-001-Q3",
+      "type": "YES_NO_NOT_GIVEN",
+      "difficulty": 2,
+      "prompt": { "text": "Clearwaste Ltd. collects the electronic waste box every Monday." },
+      "answerKey": "NO",
+      "explanation": "Paragraf D menyebutkan kotak dikosongkan setiap hari Jumat, bukan Senin.",
+      "evidence": "Paragraf D: \"which is emptied every Friday by our recycling partner, Clearwaste Ltd.\"",
+      "topics": ["workplace"],
+      "estimatedSeconds": 30
+    },
+    {
+      "code": "READING-GT-001-Q4",
+      "type": "SHORT_ANSWER",
+      "difficulty": 1,
+      "wordLimit": 1,
+      "prompt": {
+        "text": "Which colour bin is used for paper and cardboard?",
+        "instructions": "Jawab TIDAK LEBIH DARI SATU KATA."
+      },
+      "answerKey": "blue",
+      "acceptedAnswers": ["Blue"],
+      "explanation": "Paragraf B: \"blue for paper and cardboard.\"",
+      "evidence": "Paragraf B: \"blue for paper and cardboard.\"",
+      "topics": ["workplace"],
+      "estimatedSeconds": 25
+    },
+    {
+      "code": "READING-GT-001-Q5",
+      "type": "SHORT_ANSWER",
+      "difficulty": 1,
+      "wordLimit": 3,
+      "prompt": {
+        "text": "Who should staff contact with questions about the policy?",
+        "instructions": "Jawab TIDAK LEBIH DARI TIGA KATA."
+      },
+      "answerKey": "Priya Shah",
+      "acceptedAnswers": ["the Office Manager", "Office Manager", "Priya Shah Office Manager"],
+      "explanation": "Paragraf E: \"contact the Office Manager, Priya Shah, at extension 204.\"",
+      "evidence": "Paragraf E: \"Staff who have questions about the new policy should contact the Office Manager, Priya Shah.\"",
+      "topics": ["workplace"],
+      "estimatedSeconds": 30
+    },
+    {
+      "code": "READING-GT-001-Q6",
+      "type": "GAP_FILL",
+      "difficulty": 2,
+      "wordLimit": 1,
+      "prompt": {
+        "text": "Paper that has been printed on only one side should be placed in the ____ next to each printer.",
+        "instructions": "Gunakan HANYA SATU KATA dari passage."
+      },
+      "answerKey": "tray",
+      "acceptedAnswers": ["Tray"],
+      "explanation": "Paragraf C: \"A tray has been placed next to each printer for paper that has only been printed on one side.\"",
+      "evidence": "Paragraf C: \"A tray has been placed next to each printer for paper that has only been printed on one side.\"",
+      "topics": ["workplace"],
+      "estimatedSeconds": 30
+    },
+    {
+      "code": "READING-GT-001-Q7",
+      "type": "MULTIPLE_CHOICE",
+      "difficulty": 2,
+      "prompt": { "text": "What should staff do with old batteries?" },
+      "options": [
+        { "id": "A", "text": "Put them in the black bin" },
+        { "id": "B", "text": "Put them in the green bin" },
+        { "id": "C", "text": "Bring them to the collection box in reception" },
+        { "id": "D", "text": "Give them directly to the Office Manager" }
+      ],
+      "answerKey": "C",
+      "explanation": "Paragraf D: barang elektronik termasuk baterai dibawa ke kotak koleksi di resepsionis, bukan ke tempat sampah manapun.",
+      "evidence": "Paragraf D: \"Electronic waste, such as old phones, cables, and batteries, must not be placed in any of the three bins. Instead, bring these items to the collection box in the main reception area.\"",
+      "topics": ["workplace"],
+      "estimatedSeconds": 35
+    }
+  ]
+}

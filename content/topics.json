@@ -1,5 +1,7 @@
 [
   { "code": "personal-information", "name": "Personal Information", "skill": null },
   { "code": "everyday-services", "name": "Everyday Services", "skill": null },
-  { "code": "academic-discussion", "name": "Academic Discussion", "skill": null }
+  { "code": "academic-discussion", "name": "Academic Discussion", "skill": null },
+  { "code": "environment", "name": "Environment", "skill": null },
+  { "code": "workplace", "name": "Workplace", "skill": null }
 ]

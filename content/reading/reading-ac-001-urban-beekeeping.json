@@ -1,0 +1,181 @@
+{
+  "code": "READING-AC-001",
+  "title": "The Rise of Urban Beekeeping",
+  "examType": "ACADEMIC",
+  "level": "B1",
+  "topic": "environment",
+  "sourceNotes": "Naskah orisinal tim Success IELTS, tidak diambil dari buku atau tes resmi manapun.",
+  "paragraphs": [
+    {
+      "label": "A",
+      "text": "Over the past two decades, a growing number of cities around the world have welcomed an unusual new resident: the honeybee. Hives can now be found on hotel rooftops, office balconies, school grounds, and even above busy shopping streets. This practice, known as urban beekeeping, began as a small hobby among enthusiasts but has since grown into an organised movement supported by local governments, businesses, and community groups."
+    },
+    {
+      "label": "B",
+      "text": "Supporters of urban beekeeping point to several benefits. Bees kept in cities help pollinate garden plants, street trees, and rooftop vegetable patches, which can improve yields for urban gardeners. The honey produced is often sold locally, giving small producers a new source of income. Perhaps most importantly, keeping bees in highly visible locations raises public awareness of a serious environmental issue: the decline of bee populations caused by habitat loss, pesticide use, and disease."
+    },
+    {
+      "label": "C",
+      "text": "The movement has attracted a wide range of participants. Several international hotel chains now keep hives on their roofs, using the honey in their restaurants. Schools have added beekeeping to science lessons, letting students observe hive activity through glass-walled observation hives. City halls in a number of major capitals have installed hives on their own rooftops as a visible symbol of environmental commitment, while community organisations run training courses that teach newcomers how to care for a hive safely."
+    },
+    {
+      "label": "D",
+      "text": "However, the rapid growth of urban beekeeping has also raised concerns among ecologists. In areas with limited green space, too many hives can mean there are simply not enough flowers to feed all the bees, forcing honeybees to compete with wild bee species for the same limited food supply. Some cities have introduced rules limiting the number of hives allowed per building, partly for this reason and partly for public safety, since untrained beekeepers can mishandle hives in ways that put neighbours at risk of stings."
+    },
+    {
+      "label": "E",
+      "text": "Researchers now argue that the success of urban beekeeping depends less on the number of hives installed and more on careful planning. A city that simply adds more hives without also increasing the amount of flowering plants available may do little to help bee populations overall, and could even harm wild species. For this reason, many experts now recommend that any new beekeeping project be paired with a plan to plant more flowers, shrubs, and trees, arguing that this step alone often does more for urban bee populations than the hives themselves."
+    }
+  ],
+  "questions": [
+    {
+      "code": "READING-AC-001-Q1",
+      "type": "TRUE_FALSE_NOT_GIVEN",
+      "difficulty": 2,
+      "prompt": {
+        "text": "Urban beekeeping began as a hobby before becoming a more widely organised activity."
+      },
+      "answerKey": "TRUE",
+      "explanation": "Paragraf A menyatakan \"began as a small hobby among enthusiasts but has since grown into an organised movement\" — sesuai pernyataan.",
+      "evidence": "Paragraf A: \"began as a small hobby among enthusiasts but has since grown into an organised movement supported by local governments, businesses, and community groups.\"",
+      "topics": ["environment"],
+      "estimatedSeconds": 40
+    },
+    {
+      "code": "READING-AC-001-Q2",
+      "type": "TRUE_FALSE_NOT_GIVEN",
+      "difficulty": 3,
+      "prompt": {
+        "text": "According to researchers, simply adding more hives is the most effective way to help bee populations in cities."
+      },
+      "answerKey": "FALSE",
+      "explanation": "Paragraf E justru menyatakan keberhasilan bergantung LEBIH SEDIKIT pada jumlah sarang dan lebih pada perencanaan serta penanaman bunga tambahan — bertentangan dengan pernyataan.",
+      "evidence": "Paragraf E: \"the success of urban beekeeping depends less on the number of hives installed and more on careful planning... this step alone often does more for urban bee populations than the hives themselves.\"",
+      "topics": ["environment"],
+      "estimatedSeconds": 40
+    },
+    {
+      "code": "READING-AC-001-Q3",
+      "type": "TRUE_FALSE_NOT_GIVEN",
+      "difficulty": 2,
+      "prompt": {
+        "text": "Every city that allows beekeeping requires hives to be registered with the local government."
+      },
+      "answerKey": "NOT GIVEN",
+      "explanation": "Teks tidak pernah menyebutkan kewajiban pendaftaran sarang ke pemerintah di semua kota — informasi ini tidak ada di passage.",
+      "evidence": "Tidak disebutkan di passage manapun — karena itu jawabannya Not Given, bukan False.",
+      "topics": ["environment"],
+      "estimatedSeconds": 40
+    },
+    {
+      "code": "READING-AC-001-Q4",
+      "type": "MATCHING",
+      "difficulty": 3,
+      "prompt": {
+        "text": "Which paragraph mentions a limit on the number of hives permitted at one site?",
+        "instructions": "Pilih huruf paragraf yang sesuai."
+      },
+      "options": [
+        { "id": "A", "text": "Paragraf A" },
+        { "id": "B", "text": "Paragraf B" },
+        { "id": "C", "text": "Paragraf C" },
+        { "id": "D", "text": "Paragraf D" },
+        { "id": "E", "text": "Paragraf E" }
+      ],
+      "answerKey": "D",
+      "explanation": "Paragraf D menyebutkan \"Some cities have introduced rules limiting the number of hives allowed per building.\"",
+      "evidence": "Paragraf D: \"Some cities have introduced rules limiting the number of hives allowed per building.\"",
+      "topics": ["environment"],
+      "estimatedSeconds": 45
+    },
+    {
+      "code": "READING-AC-001-Q5",
+      "type": "MATCHING",
+      "difficulty": 3,
+      "prompt": {
+        "text": "Which paragraph mentions bees being used as part of a subject taught to children?",
+        "instructions": "Pilih huruf paragraf yang sesuai."
+      },
+      "options": [
+        { "id": "A", "text": "Paragraf A" },
+        { "id": "B", "text": "Paragraf B" },
+        { "id": "C", "text": "Paragraf C" },
+        { "id": "D", "text": "Paragraf D" },
+        { "id": "E", "text": "Paragraf E" }
+      ],
+      "answerKey": "C",
+      "explanation": "Paragraf C menyebutkan \"Schools have added beekeeping to science lessons.\"",
+      "evidence": "Paragraf C: \"Schools have added beekeeping to science lessons, letting students observe hive activity through glass-walled observation hives.\"",
+      "topics": ["environment"],
+      "estimatedSeconds": 45
+    },
+    {
+      "code": "READING-AC-001-Q6",
+      "type": "MULTIPLE_CHOICE",
+      "difficulty": 3,
+      "prompt": {
+        "text": "According to the passage, why do ecologists worry about having too many hives in one area?"
+      },
+      "options": [
+        { "id": "A", "text": "Bees may run out of space to build their hives" },
+        { "id": "B", "text": "Honeybees may compete with wild bees for limited flowers" },
+        { "id": "C", "text": "Hives attract pests that damage buildings" },
+        { "id": "D", "text": "Local residents complain about the noise" }
+      ],
+      "answerKey": "B",
+      "explanation": "Paragraf D: terlalu banyak sarang membuat lebah madu bersaing dengan lebah liar untuk bunga yang terbatas.",
+      "evidence": "Paragraf D: \"forcing honeybees to compete with wild bee species for the same limited food supply.\"",
+      "topics": ["environment"],
+      "estimatedSeconds": 40
+    },
+    {
+      "code": "READING-AC-001-Q7",
+      "type": "MULTIPLE_CHOICE",
+      "difficulty": 2,
+      "prompt": { "text": "What do many experts now recommend alongside new beekeeping projects?" },
+      "options": [
+        { "id": "A", "text": "Reducing the number of hives allowed" },
+        { "id": "B", "text": "Testing honey for chemical contamination" },
+        { "id": "C", "text": "Planting more flowers, shrubs, and trees" },
+        { "id": "D", "text": "Moving all hives outside city limits" }
+      ],
+      "answerKey": "C",
+      "explanation": "Paragraf E: proyek sarang baru sebaiknya diikuti rencana menanam lebih banyak bunga, semak, dan pohon.",
+      "evidence": "Paragraf E: \"many experts now recommend that any new beekeeping project be paired with a plan to plant more flowers, shrubs, and trees.\"",
+      "topics": ["environment"],
+      "estimatedSeconds": 40
+    },
+    {
+      "code": "READING-AC-001-Q8",
+      "type": "GAP_FILL",
+      "difficulty": 2,
+      "wordLimit": 1,
+      "prompt": {
+        "text": "Urban beekeeping has grown from a small hobby into a movement supported by governments, businesses, and ____ groups.",
+        "instructions": "Gunakan HANYA SATU KATA dari passage."
+      },
+      "answerKey": "community",
+      "acceptedAnswers": ["Community"],
+      "explanation": "Paragraf A: \"an organised movement supported by local governments, businesses, and community groups.\"",
+      "evidence": "Paragraf A: \"supported by local governments, businesses, and community groups.\"",
+      "topics": ["environment"],
+      "estimatedSeconds": 35
+    },
+    {
+      "code": "READING-AC-001-Q9",
+      "type": "SHORT_ANSWER",
+      "difficulty": 3,
+      "wordLimit": 3,
+      "prompt": {
+        "text": "What safety risk to neighbours is mentioned in connection with untrained beekeepers?",
+        "instructions": "Jawab TIDAK LEBIH DARI TIGA KATA."
+      },
+      "answerKey": "risk of stings",
+      "acceptedAnswers": ["stings", "being stung", "risk of being stung"],
+      "explanation": "Paragraf D: pengelola sarang yang tidak terlatih bisa membuat tetangga berisiko disengat (\"at risk of stings\").",
+      "evidence": "Paragraf D: \"untrained beekeepers can mishandle hives in ways that put neighbours at risk of stings.\"",
+      "topics": ["environment"],
+      "estimatedSeconds": 40
+    }
+  ]
+}

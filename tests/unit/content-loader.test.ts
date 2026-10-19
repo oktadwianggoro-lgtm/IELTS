@@ -48,6 +48,30 @@ describe("loadContent (real content/ directory)", () => {
       expect(passage.script.length).toBeGreaterThan(0);
     }
   });
+
+  it("loads the seeded reading passages with their questions and paragraphs", () => {
+    const result = loadContent(contentRoot);
+    expect(result.readingPassages.length).toBeGreaterThanOrEqual(2);
+    for (const passage of result.readingPassages) {
+      expect(passage.questions.length).toBeGreaterThanOrEqual(5);
+      expect(passage.paragraphs.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("resolves every MATCHING question's single-letter options to a real paragraph label", () => {
+    const result = loadContent(contentRoot);
+    for (const passage of result.readingPassages) {
+      const labels = new Set(passage.paragraphs.map((p) => p.label));
+      for (const q of passage.questions) {
+        if (q.type !== "MATCHING" || !q.options) continue;
+        for (const opt of q.options) {
+          if (opt.id.length === 1 && /^[A-Z]$/.test(opt.id)) {
+            expect(labels.has(opt.id)).toBe(true);
+          }
+        }
+      }
+    }
+  });
 });
 
 describe("loadContent cross-content-type validation (synthetic fixtures)", () => {

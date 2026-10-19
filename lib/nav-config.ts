@@ -58,7 +58,7 @@ export const navGroups: NavGroup[] = [
     key: "lab",
     items: [
       { href: "/listening-lab", key: "listeningLab", icon: Headphones },
-      { href: "/reading-lab", key: "readingLab", icon: BookMarked, plannedPhase: "Fase 8" },
+      { href: "/reading-lab", key: "readingLab", icon: BookMarked },
       { href: "/writing-lab", key: "writingLab", icon: PenSquare, plannedPhase: "Fase 9" },
       { href: "/speaking-lab", key: "speakingLab", icon: Mic, plannedPhase: "Fase 10" },
     ],
