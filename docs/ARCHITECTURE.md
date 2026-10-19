@@ -1,6 +1,6 @@
 # Arsitektur — Success IELTS
 
-Status: Fase 12 (Dashboard, progress, gamifikasi, dan notifikasi berbasis data asli).
+Status: Fase 13 (Panel Admin/Teacher lengkap — test builder, audit log, manajemen pengguna, laporan soal).
 Dokumen ini akan diperluas pada setiap fase berikutnya.
 
 ## 1. Ringkasan
@@ -174,17 +174,21 @@ Sesuai instruksi "satu fase pada satu waktu":
   per part; satu rekaman per submission bukan per pertanyaan; tanpa
   transkripsi/skor AI — belum ada kredensial provider untuk itu, lihat
   D-037).
-- ~~Tidak ada Tryout/mode ujian/estimasi band~~ — selesai Fase 11, lihat §16
+- ~~Tidak ada Tryout/mode ujian/estimasi band~~ — selesai Fase 11, lihat §15
   (hanya mock test single-skill Listening/Reading, bukan full 4-skill
   mock; tabel konversi band adalah estimasi terverifikasi, bukan tabel
   resmi tunggal — IELTS sendiri tidak mempublikasikan itu; lihat D-038).
 - ~~Dashboard "Progress"/"Aktivitas" masih placeholder statis~~ — selesai
-  Fase 12, lihat §18 (XP/streak dihitung live dari data asli, bukan
+  Fase 12, lihat §16 (XP/streak dihitung live dari data asli, bukan
   counter tersimpan; reminder email dipicu kunjungan dashboard, bukan
   background scheduler — lihat D-039).
+- ~~Panel Admin/Teacher minim (hanya CMS konten dasar)~~ — selesai Fase 13,
+  lihat §17 (test builder, audit log, manajemen pengguna, laporan soal,
+  antrean review lintas-tipe; manajemen kelas/penugasan guru-siswa dan
+  discrimination index sengaja ditunda — lihat D-040).
 - Tidak ada scoring/AI feedback otomatis atas esai/speaking (butuh
   kredensial provider AI yang belum disediakan — lihat D-035/D-037).
-- Tidak ada Docker/deployment (Fase 17).
+- Tidak ada Docker/deployment (Fase 17 Master Prompt).
 
 ## 8. Pipeline konten (Fase 2)
 
@@ -501,7 +505,7 @@ self-assessment, alur editorial yang sama dengan tipe konten lain),
   sama seperti WritingTask — free-response, tidak ada baris `Question`
   anak).
 
-## 16. Tryout, mode ujian, dan estimasi band (Fase 11)
+## 15. Tryout, mode ujian, dan estimasi band (Fase 11)
 
 `/tryout` (katalog mock test) → `/tryout/[mockTestCode]` (attempt runner
 mode ujian). Model baru: `BandConversionTable`, `TestBlueprint`/
@@ -546,7 +550,7 @@ mode ujian). Model baru: `BandConversionTable`, `TestBlueprint`/
   `content/tryout/*.json` + pipeline import yang sama seperti tipe konten
   lain — UI admin untuk itu ada di cakupan Fase 13 (lihat D-038).
 
-## 18. Dashboard, progress, gamifikasi, dan notifikasi (Fase 12)
+## 16. Dashboard, progress, gamifikasi, dan notifikasi (Fase 12)
 
 `/dashboard` sekarang berbasis data pengguna aktual sepenuhnya (kartu
 "Progress"/"Aktivitas" sebelumnya placeholder statis sejak Fase 1); `/progress`
@@ -587,7 +591,45 @@ adalah ringkasan lengkap. Modul baru di `lib/gamification/`:
   conversion table (Fase 11) sama-sama seeded lewat `prisma/seed.ts`,
   bukan lewat UI.
 
-## 19. Menjalankan proyek secara lokal
+## 17. Panel Admin/Teacher lengkap (Fase 13)
+
+Menuntaskan apa yang D-038 sengaja tunda, plus fitur baru per Master
+Prompt §11:
+
+- **Test Builder** (`/admin/test-builder`) — admin membuat `TestBlueprint`/
+  `MockTest` dan menyusun `MockTestSection` dari passage Listening/Reading
+  yang sudah PUBLISHED, lewat UI (`app/(admin)/admin/test-builder/`).
+  Publikasi TETAP lewat alur editorial yang sama persis
+  (`/admin/content/[code]`) — test builder hanya menambah cara MEMBUAT
+  strukturnya, bukan jalur publikasi terpisah.
+- **`lib/audit/log.ts`** — `logAuditEvent()` dipanggil dari SEMUA 6 fungsi
+  `transition*StatusAction` (Lesson/Listening/Reading/Writing/Speaking/
+  MockTest), plus perubahan peran pengguna, perubahan section mock test,
+  dan penyelesaian laporan soal. Append-only (`AuditLog` model), dilihat
+  lewat `/admin/audit-log` (ADMIN-only).
+- **`/admin/users`** (ADMIN-only) — ubah peran STUDENT/TEACHER/ADMIN.
+  TEACHER sengaja TIDAK bisa mengakses ini maupun audit log — "guru tidak
+  boleh otomatis mendapat akses admin penuh" (Master Prompt §11),
+  diverifikasi lewat E2E.
+- **`QuestionReport`** — `lib/question-reports/actions.ts`'s
+  `reportQuestionAction()` dipakai bersama oleh Reading Lab dan Listening
+  Lab lewat satu komponen (`ReportQuestionButton`), bukan diduplikasi per
+  lab. Antrean penyelesaian di `/admin/question-reports` (ADMIN+TEACHER).
+- **`/admin/review-queue`** — satu daftar lintas-tipe konten yang sedang
+  IN_REVIEW, menghilangkan kebutuhan membuka 6 kartu terpisah di
+  `/admin/content`.
+- **`lib/analytics/question-stats.ts`** — facility (% benar), rata-rata
+  waktu menjawab, dan jumlah laporan terbuka per soal, dihitung langsung
+  dari `QuestionAttempt`/`QuestionReport` dan ditampilkan di preview soal
+  admin yang sudah ada (Lesson/Listening/Reading). Discrimination index
+  SENGAJA TIDAK dihitung — lihat D-040 untuk alasan (butuh volume data
+  attempt skala produksi untuk bermakna secara statistik).
+- **Manajemen kelas/penugasan guru-siswa TIDAK dibangun** — lihat D-040:
+  murni fitur institusional/B2B tanpa fondasi data apa pun di fase-fase
+  sebelumnya, ditunda utuh (bukan dibangun setengah) daripada dipaksakan
+  dangkal.
+
+## 18. Menjalankan proyek secara lokal
 
 Lihat `README.md` untuk perintah lengkap. Ringkas:
 

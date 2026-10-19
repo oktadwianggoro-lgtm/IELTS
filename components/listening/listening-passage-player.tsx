@@ -9,6 +9,7 @@ import {
   toSubmittedValue,
   type QuizQuestionPublic,
 } from "@/components/content/question-input";
+import { ReportQuestionButton } from "@/components/content/report-question-button";
 import {
   checkListeningAnswersAction,
   type ListeningScriptTurn,
@@ -140,7 +141,10 @@ export function ListeningPassagePlayer({
                   onChange={(v) => setAnswers((prev) => ({ ...prev, [q.code]: v }))}
                 />
                 {result ? (
-                  <p className="text-muted-foreground text-sm">{result.explanation}</p>
+                  <div className="space-y-1">
+                    <p className="text-muted-foreground text-sm">{result.explanation}</p>
+                    <ReportQuestionButton questionCode={q.code} />
+                  </div>
                 ) : null}
               </CardContent>
             </Card>

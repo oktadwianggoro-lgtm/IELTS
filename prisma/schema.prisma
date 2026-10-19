@@ -65,6 +65,9 @@ model User {
   questionAttempts          QuestionAttempt[]
   mistakeBookEntries        MistakeBookEntry[]
   userAchievements          UserAchievement[]
+  auditLogs                 AuditLog[]
+  reportedQuestions         QuestionReport[]     @relation("QuestionReportReportedBy")
+  resolvedQuestionReports   QuestionReport[]     @relation("QuestionReportResolvedBy")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -473,6 +476,7 @@ model Question {
   attempts           QuestionAttempt[]
   mistakeBookEntries MistakeBookEntry[]
   attemptAnswers     AttemptAnswer[]
+  reports            QuestionReport[]
 
   estimatedSeconds Int?
 
@@ -1219,4 +1223,57 @@ model AttemptEvent {
   createdAt DateTime @default(now())
 
   @@map("attempt_events")
+}
+
+// ---------- Admin/Teacher CMS (Fase 13) ----------
+
+/// A record of every sensitive admin mutation (content status transitions,
+/// role changes, test-builder edits, report resolutions) — "Audit log
+/// untuk tindakan sensitif admin" (Master Prompt §11). Append-only; never
+/// updated or deleted by application code.
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String
+  actor      User     @relation(fields: [actorId], references: [id], onDelete: Cascade)
+  action     String
+  entityType String
+  entityId   String
+  /// Extra context specific to the action, e.g. { from: "DRAFT", to:
+  /// "PUBLISHED" } for a status transition, or { oldRole, newRole } for a
+  /// role change.
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([actorId, createdAt])
+  @@index([entityType, entityId])
+  @@map("audit_logs")
+}
+
+enum QuestionReportStatus {
+  OPEN
+  RESOLVED
+  DISMISSED
+}
+
+/// "Laporan soal bermasalah" (Master Prompt §11) — a student-facing report
+/// that a question's answer key, wording, or content seems wrong.
+model QuestionReport {
+  id           String   @id @default(cuid())
+  questionId   String
+  question     Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  reportedById String
+  reportedBy   User     @relation("QuestionReportReportedBy", fields: [reportedById], references: [id], onDelete: Cascade)
+  reason       String
+  details      String?
+
+  status          QuestionReportStatus @default(OPEN)
+  resolvedById    String?
+  resolvedBy      User?                @relation("QuestionReportResolvedBy", fields: [resolvedById], references: [id])
+  resolvedAt      DateTime?
+  resolutionNotes String?
+
+  createdAt DateTime @default(now())
+
+  @@index([status, createdAt])
+  @@map("question_reports")
 }

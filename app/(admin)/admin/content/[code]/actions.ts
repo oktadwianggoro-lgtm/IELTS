@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth/rbac";
 import { prisma } from "@/lib/db";
+import { logAuditEvent } from "@/lib/audit/log";
 import type { ContentStatus, Role } from "@prisma/client";
 
 type Transition = { to: ContentStatus; allowedRoles: Role[] };
@@ -70,6 +71,12 @@ export async function transitionLessonStatusAction(
       : []),
   ]);
 
+  await logAuditEvent(user.id, "content_status_transition", "Lesson", lesson.id, {
+    code: lessonCode,
+    from: lesson.reviewStatus,
+    to: targetStatus,
+  });
+
   revalidatePath(`/admin/content/${lessonCode}`);
   revalidatePath("/admin/content");
   return null;
@@ -115,6 +122,12 @@ export async function transitionListeningPassageStatusAction(
         ]
       : []),
   ]);
+
+  await logAuditEvent(user.id, "content_status_transition", "ListeningPassage", passage.id, {
+    code: passageCode,
+    from: passage.reviewStatus,
+    to: targetStatus,
+  });
 
   revalidatePath(`/admin/content/${passageCode}`);
   revalidatePath("/admin/content");
@@ -162,6 +175,12 @@ export async function transitionReadingPassageStatusAction(
       : []),
   ]);
 
+  await logAuditEvent(user.id, "content_status_transition", "ReadingPassage", passage.id, {
+    code: passageCode,
+    from: passage.reviewStatus,
+    to: targetStatus,
+  });
+
   revalidatePath(`/admin/content/${passageCode}`);
   revalidatePath("/admin/content");
   return null;
@@ -194,6 +213,12 @@ export async function transitionWritingTaskStatusAction(
       reviewStatus: targetStatus,
       ...(isReviewDecision ? { reviewedById: user.id, reviewedAt: new Date() } : {}),
     },
+  });
+
+  await logAuditEvent(user.id, "content_status_transition", "WritingTask", task.id, {
+    code: taskCode,
+    from: task.reviewStatus,
+    to: targetStatus,
   });
 
   revalidatePath(`/admin/content/${taskCode}`);
@@ -230,6 +255,12 @@ export async function transitionSpeakingPromptStatusAction(
     },
   });
 
+  await logAuditEvent(user.id, "content_status_transition", "SpeakingPrompt", prompt.id, {
+    code: promptCode,
+    from: prompt.reviewStatus,
+    to: targetStatus,
+  });
+
   revalidatePath(`/admin/content/${promptCode}`);
   revalidatePath("/admin/content");
   return null;
@@ -263,6 +294,12 @@ export async function transitionMockTestStatusAction(
       reviewStatus: targetStatus,
       ...(isReviewDecision ? { reviewedById: user.id, reviewedAt: new Date() } : {}),
     },
+  });
+
+  await logAuditEvent(user.id, "content_status_transition", "MockTest", mockTest.id, {
+    code: mockTestCode,
+    from: mockTest.reviewStatus,
+    to: targetStatus,
   });
 
   revalidatePath(`/admin/content/${mockTestCode}`);

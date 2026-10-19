@@ -19,6 +19,7 @@ import {
   PEDAGOGICAL_LEVEL_LABEL,
   SPEAKING_PART_LABEL,
 } from "@/lib/content/labels";
+import { getQuestionStats, type QuestionStats } from "@/lib/analytics/question-stats";
 
 const STATUS_LABEL: Record<string, string> = {
   DRAFT: "Draft",
@@ -30,6 +31,7 @@ const STATUS_LABEL: Record<string, string> = {
 
 function QuestionListPreview({
   questions,
+  stats,
 }: {
   questions: {
     id: string;
@@ -40,12 +42,14 @@ function QuestionListPreview({
     evidence?: string | null;
     wordLimit?: number | null;
   }[];
+  stats: Map<string, QuestionStats>;
 }) {
   return (
     <>
       {questions.map((q, i) => {
         const prompt = q.prompt as { text: string; instructions?: string };
         const options = q.options as { id: string; text: string }[] | null;
+        const stat = stats.get(q.id);
         return (
           <div key={q.id} className="border-border rounded-md border p-3 text-sm">
             <p className="font-medium">
@@ -74,6 +78,19 @@ function QuestionListPreview({
             </p>
             {q.evidence ? (
               <p className="text-muted-foreground mt-1 text-xs">Bukti: {q.evidence}</p>
+            ) : null}
+            {stat ? (
+              <p className="text-muted-foreground mt-2 text-xs">
+                {stat.attempts === 0
+                  ? "Belum ada percobaan"
+                  : `${stat.correctPct}% benar dari ${stat.attempts} percobaan${stat.avgTimeSeconds !== null ? ` · rata-rata ${stat.avgTimeSeconds}s` : ""}`}
+                {stat.openReportCount > 0 ? (
+                  <span className="text-destructive">
+                    {" "}
+                    · {stat.openReportCount} laporan terbuka
+                  </span>
+                ) : null}
+              </p>
             ) : null}
           </div>
         );
@@ -109,6 +126,7 @@ export default async function AdminContentDetailPage({
       objectives: lesson.objectives as string[],
       content: lesson.content as LessonViewData["content"],
     };
+    const questionStats = await getQuestionStats(lesson.questions.map((q) => q.id));
 
     return (
       <div className="mx-auto max-w-3xl space-y-6">
@@ -158,7 +176,7 @@ export default async function AdminContentDetailPage({
             <CardTitle className="text-base">Mini-quiz ({lesson.questions.length} soal)</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <QuestionListPreview questions={lesson.questions} />
+            <QuestionListPreview questions={lesson.questions} stats={questionStats} />
           </CardContent>
         </Card>
       </div>
@@ -175,6 +193,7 @@ export default async function AdminContentDetailPage({
 
   if (passage) {
     const script = passage.script as { speaker: string; text: string }[];
+    const questionStats = await getQuestionStats(passage.questions.map((q) => q.id));
 
     return (
       <div className="mx-auto max-w-3xl space-y-6">
@@ -233,7 +252,7 @@ export default async function AdminContentDetailPage({
             <CardTitle className="text-base">Soal ({passage.questions.length})</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <QuestionListPreview questions={passage.questions} />
+            <QuestionListPreview questions={passage.questions} stats={questionStats} />
           </CardContent>
         </Card>
       </div>
@@ -250,6 +269,7 @@ export default async function AdminContentDetailPage({
 
   if (readingPassage) {
     const paragraphs = readingPassage.paragraphs as { label: string; text: string }[];
+    const questionStats = await getQuestionStats(readingPassage.questions.map((q) => q.id));
 
     return (
       <div className="mx-auto max-w-3xl space-y-6">
@@ -307,7 +327,7 @@ export default async function AdminContentDetailPage({
             <CardTitle className="text-base">Soal ({readingPassage.questions.length})</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <QuestionListPreview questions={readingPassage.questions} />
+            <QuestionListPreview questions={readingPassage.questions} stats={questionStats} />
           </CardContent>
         </Card>
       </div>

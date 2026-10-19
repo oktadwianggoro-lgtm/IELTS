@@ -2,6 +2,50 @@
 
 Semua perubahan penting pada Success IELTS dicatat di sini, per fase pengembangan.
 
+## Fase 13 — Panel Admin/Teacher lengkap
+
+### Ditambahkan
+
+- **Test Builder** (`/admin/test-builder`) — menuntaskan apa yang D-038
+  sengaja tunda: admin kini membuat `TestBlueprint`/`MockTest` dan
+  menyusun `MockTestSection` dari passage Listening/Reading yang sudah
+  PUBLISHED lewat UI, bukan hanya lewat `content/tryout/*.json`. Publikasi
+  tetap lewat alur editorial yang sama (`/admin/content/[code]`).
+- **Audit Log** (`/admin/audit-log`, ADMIN-only) — mencatat setiap
+  transisi status konten (semua 6 tipe), perubahan peran pengguna,
+  perubahan section mock test, dan penyelesaian laporan soal. Append-only.
+- **Manajemen Pengguna** (`/admin/users`, ADMIN-only) — ubah peran
+  STUDENT/TEACHER/ADMIN; TEACHER tidak bisa mengakses halaman ini maupun
+  audit log (RBAC least-privilege, Master Prompt §11).
+- **Laporan Soal Bermasalah** — tombol "Laporkan soal" di Reading Lab dan
+  Listening Lab (komponen bersama), antrean penyelesaian di
+  `/admin/question-reports` (ADMIN+TEACHER).
+- **Antrean Review** (`/admin/review-queue`) — satu daftar lintas-tipe
+  konten yang sedang IN_REVIEW, menghilangkan kebutuhan membuka 6 kartu
+  terpisah di `/admin/content` untuk tahu apa yang perlu ditinjau.
+- **Analitik Mutu Soal** — facility (% benar), rata-rata waktu menjawab,
+  dan jumlah laporan terbuka kini tampil langsung di preview soal admin
+  (Lesson/Listening/Reading), dihitung dari `QuestionAttempt`/
+  `QuestionReport` asli.
+- Model baru: `AuditLog`, `QuestionReport` (+ `QuestionReportStatus`).
+- `e2e/admin-cms.spec.ts`: alur test builder end-to-end (buat → tambah
+  section → publish → muncul di katalog siswa, dengan audit trail
+  terverifikasi), laporan soal siswa→admin, RBAC TEACHER diblokir dari
+  manajemen pengguna/audit log, dan antrean review lintas-tipe.
+
+### Catatan — lingkup yang sengaja dipersempit (lihat D-040 untuk detail)
+
+- **Manajemen kelas/penugasan guru-siswa TIDAK dibangun** — murni fitur
+  institusional/B2B tanpa fondasi data apa pun di 12 fase sebelumnya,
+  ditunda utuh (bukan dibangun setengah) sampai ada sinyal kebutuhan
+  nyata.
+- **Discrimination index TIDAK dihitung** — butuh volume data attempt
+  skala produksi untuk bermakna secara statistik; menghitungnya dari data
+  uji coba kecil saat ini akan menghasilkan angka yang terlihat presisi
+  tapi tidak berarti, bertentangan dengan prinsip "tidak ada estimasi
+  palsu" sejak Fase 1. Facility, waktu menjawab, dan report count (yang
+  TIDAK butuh volume besar) tetap dibangun penuh.
+
 ## Fase 12 — Beranda, progress, gamifikasi, dan notifikasi
 
 ### Ditambahkan

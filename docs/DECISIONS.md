@@ -994,3 +994,59 @@ docker-compose.dev.yml up -d` untuk pengembangan lokal, sesuai stack Master
   opt-in dengan query terpisah (N+1) — dapat diterima untuk jumlah
   pengguna opt-in saat ini, tapi layak dioptimalkan (agregasi SQL
   tunggal) jika basis pengguna bertambah signifikan.
+
+## Fase 13
+
+### D-040: Test builder, audit log, manajemen pengguna, dan laporan soal dibangun; manajemen kelas/penugasan dan discrimination index sengaja ditunda
+
+- **Keputusan (yang dibangun):** Test builder admin (`/admin/test-builder`)
+  — menuntaskan apa yang D-038 sengaja tunda: admin kini membuat
+  `TestBlueprint`/`MockTest` dan menyusun `MockTestSection` dari passage
+  Listening/Reading yang sudah PUBLISHED, lewat UI, bukan hanya lewat
+  `content/tryout/*.json`. Publikasi tetap lewat alur editorial yang sama
+  persis (`/admin/content/[code]`, DRAFT→IN_REVIEW→APPROVED→PUBLISHED) —
+  test builder hanya menambah CARA MEMBUAT strukturnya, bukan jalur
+  publikasi baru. `AuditLog` (append-only) mencatat setiap transisi status
+  konten di SEMUA 6 tipe konten plus perubahan peran pengguna, section
+  mock test, dan penyelesaian laporan soal — dilihat lewat
+  `/admin/audit-log` (ADMIN-only). `/admin/users` (ADMIN-only) mengelola
+  peran STUDENT/TEACHER/ADMIN — diverifikasi lewat E2E bahwa TEACHER
+  ditolak akses (RBAC "least privilege" per Master Prompt §11: "guru
+  tidak boleh otomatis mendapat akses admin penuh"). `QuestionReport` —
+  tombol "Laporkan soal" di Reading/Listening Lab (komponen bersama, bukan
+  diduplikasi), antrean di `/admin/question-reports` (ADMIN+TEACHER) untuk
+  menyelesaikan/mengabaikan. `/admin/review-queue` — satu daftar lintas-tipe
+  konten yang sedang IN_REVIEW, supaya reviewer tidak perlu membuka 6 kartu
+  terpisah untuk tahu apa yang perlu ditinjau.
+- **Keputusan (analitik soal, tanpa discrimination index):**
+  `lib/analytics/question-stats.ts` menghitung facility (% benar), rata-rata
+  waktu menjawab, dan jumlah laporan terbuka — langsung dari
+  `QuestionAttempt`/`QuestionReport` asli, tidak ada tabel analitik
+  terpisah. Discrimination index (korelasi performa soal dengan skor total
+  kelompok atas/bawah) SENGAJA TIDAK dihitung — butuh volume data attempt
+  skala produksi nyata untuk bermakna secara statistik; menghitungnya dari
+  data uji coba kecil saat ini akan menghasilkan angka yang terlihat
+  presisi tapi sebenarnya tidak berarti apa-apa, bertentangan dengan
+  prinsip "jangan menampilkan estimasi palsu" yang dipegang sejak Fase 1.
+  Master Prompt §11 sendiri mensyaratkan ini "bila volume data mencukupi"
+  — syarat itu belum terpenuhi.
+- **Keputusan (manajemen kelas/penugasan DITUNDA, bukan dibangun sebagian):**
+  "Assignment untuk kelas dan teacher review queue" dari Master Prompt
+  §11 punya DUA bagian berbeda: teacher review queue SUDAH dibangun
+  (`/admin/review-queue`, lihat di atas), tapi "kelas" (Class/Enrollment/
+  Assignment pengajar-ke-siswa) TIDAK dibangun sama sekali. Tidak ada
+  fondasi apa pun untuk konsep ini di 12 fase sebelumnya (tidak ada model
+  `Class`, tidak ada relasi guru-siswa, tidak ada UI pendaftaran) — ini
+  murni fitur institusional/B2B yang baru bermakna begitu ada sinyal
+  permintaan nyata dari pengguna guru sungguhan, berbeda dari fitur lain
+  di fase ini yang semuanya punya fondasi data nyata untuk langsung
+  dibangun dengan rigor penuh. Membangun separuh (misalnya hanya model
+  tanpa UI, atau UI tanpa alur penugasan yang benar-benar dipakai) akan
+  melanggar instruksi "no half-finished implementations" — lebih jujur
+  ditunda utuh dan didokumentasikan di sini daripada dipaksakan dangkal.
+- **Tinjau ulang:** Begitu ada kebutuhan guru mengelola kelas sungguhan,
+  fitur ini butuh fase tersendiri dengan model data yang dipikirkan dari
+  awal (Class, Enrollment, Assignment, mungkin ClassInvitation) — bukan
+  tempelan di fase ini. Discrimination index layak dihitung ulang begitu
+  volume `QuestionAttempt` per soal cukup besar (Master Prompt sendiri
+  tidak memberi angka pasti — perlu penilaian praktis saat datanya ada).

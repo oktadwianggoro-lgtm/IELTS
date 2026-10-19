@@ -9,6 +9,7 @@ import {
   toSubmittedValue,
   type QuizQuestionPublic,
 } from "@/components/content/question-input";
+import { ReportQuestionButton } from "@/components/content/report-question-button";
 import {
   checkReadingAnswersAction,
   type ReadingQuestionResult,
@@ -271,6 +272,7 @@ export function ReadingPassageWorkspace({
                           <span className="font-medium">Bukti:</span> {result.evidence}
                         </p>
                       ) : null}
+                      <ReportQuestionButton questionCode={q.code} />
                     </div>
                   ) : null}
                 </CardContent>
