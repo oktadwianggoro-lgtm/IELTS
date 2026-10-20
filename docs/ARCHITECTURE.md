@@ -1,6 +1,6 @@
 # Arsitektur — Success IELTS
 
-Status: Fase 15 (PWA installable, scan aksesibilitas, analitik first-party, Kebijakan Privasi + hapus akun).
+Status: Fase 16 (infrastruktur langganan — flag + model data; checkout sengaja belum dibangun).
 Dokumen ini akan diperluas pada setiap fase berikutnya.
 
 ## 1. Ringkasan
@@ -194,6 +194,10 @@ Sesuai instruksi "satu fase pada satu waktu":
   lihat §19 (PWA installable dengan lingkup offline sengaja dipersempit;
   axe-core WCAG 2 A/AA; analitik first-party anonim dengan opt-out;
   halaman Privasi + hapus akun mandiri — lihat D-042).
+- ~~Tidak ada model langganan/monetisasi sama sekali~~ — selesai Fase 16,
+  lihat §20 (flag `PAYMENTS_ENABLED` + model `Subscription` nyata; checkout
+  sungguhan dan feature-gating retroaktif sengaja ditunda sampai ada
+  kredensial payment gateway — lihat D-043).
 - Tidak ada scoring/AI feedback otomatis atas esai/speaking (butuh
   kredensial provider AI yang belum disediakan — lihat D-035/D-037).
 - Tidak ada Docker/deployment (Fase 17 Master Prompt).
@@ -733,7 +737,30 @@ login, dan dimaksudkan untuk diindeks mesin pencari (Master Prompt §16).
   ter-match proxy akan memicu `auth()` wrapper NextAuth pada setiap
   halaman tanpa perlu).
 
-## 20. Menjalankan proyek secara lokal
+## 20. Infrastruktur langganan (Fase 16)
+
+Lingkup sengaja dipersempit atas arahan eksplisit pengguna saat ditanya
+(lihat D-043) — hanya flag + model data, bukan checkout.
+
+- **`lib/config/features.ts`** — `PAYMENTS_ENABLED` (baca `process.env`,
+  default `false`). Sudah ada di `.env`/`.env.example` sejak Fase 0
+  (dengan `MIDTRANS_SERVER_KEY`/`MIDTRANS_CLIENT_KEY` kosong, mengisyaratkan
+  Midtrans sebagai gateway yang dituju), baru dibaca kode di fase ini.
+- **`Subscription`** (model baru, + enum `Plan`, `SubscriptionStatus`) —
+  pengguna TANPA baris dianggap implisit FREE; baris hanya dibuat saat
+  langganan sungguhan terjadi, menghindari backfill untuk basis pengguna
+  yang 100% FREE saat ini.
+- **`lib/subscription/get-plan.ts`**'s `getUserPlan()` — lookup asli ke DB,
+  dipakai di kartu "Langganan" `/profil` untuk menampilkan paket pengguna
+  yang sebenarnya.
+- **SENGAJA TIDAK dibangun:** checkout/pembayaran sungguhan (tidak ada
+  kredensial gateway di environment ini — UI yang tidak bisa benar-benar
+  memproses pembayaran akan menyesatkan) dan feature-gating retroaktif
+  pada fitur yang sudah ada (tidak ada manfaat selama `PAYMENTS_ENABLED`
+  tetap `false`, berisiko mengganggu alur yang sudah teruji di puluhan
+  E2E test).
+
+## 21. Menjalankan proyek secara lokal
 
 Lihat `README.md` untuk perintah lengkap. Ringkas:
 

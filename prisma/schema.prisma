@@ -69,6 +69,7 @@ model User {
   reportedQuestions         QuestionReport[]     @relation("QuestionReportReportedBy")
   resolvedQuestionReports   QuestionReport[]     @relation("QuestionReportResolvedBy")
   analyticsEvents           AnalyticsEvent[]
+  subscription              Subscription?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -253,6 +254,42 @@ model AnalyticsEvent {
   @@index([createdAt])
   @@index([path])
   @@map("analytics_events")
+}
+
+/// Fase 16 — monetization is feature-flagged off by default
+/// (PAYMENTS_ENABLED=false, see lib/config/features.ts) since no payment
+/// gateway credentials (Midtrans, per .env.example) are configured in this
+/// environment. This model and the flag are the real, usable data layer for
+/// that future integration; no checkout flow or feature-gating is built on
+/// top of it yet — see docs/DECISIONS.md D-043 for why.
+enum Plan {
+  FREE
+  PREMIUM
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  EXPIRED
+}
+
+/// A user with no row here is implicitly on the FREE plan — rows only exist
+/// once a real subscription happens, so this never needs a backfill for the
+/// (currently 100%) FREE user base.
+model Subscription {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  plan      Plan               @default(PREMIUM)
+  status    SubscriptionStatus @default(ACTIVE)
+  startedAt DateTime           @default(now())
+  expiresAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("subscriptions")
 }
 
 /// Catalog of earnable badges — criteria are evaluated in code

@@ -1215,3 +1215,57 @@ docker-compose.dev.yml up -d` untuk pengembangan lokal, sesuai stack Master
 - **Tinjau ulang:** Jika Fase 17 (keamanan/deployment) membangun
   token-revocation sisi server, race D-036 yang tersisa (~25%) baru benar-
   benar bisa dihilangkan, bukan hanya dikurangi.
+
+## Fase 16
+
+### D-043: Hanya flag + model data langganan yang dibangun; checkout dan feature-gating sengaja TIDAK dibangun
+
+- **Keputusan:** Sesuai arahan eksplisit pengguna saat ditanya lingkup fase
+  ini (tiga opsi ditawarkan: flag+model saja / plus desain feature-gating /
+  skip ke Fase 17 — pengguna memilih opsi pertama), Fase 16 membangun HANYA:
+  `lib/config/features.ts`'s `PAYMENTS_ENABLED` (baca `process.env`, default
+  false — sudah ada di `.env`/`.env.example` sejak Fase 0, belum pernah
+  dibaca kode mana pun sampai sekarang), model `Subscription` (+ enum
+  `Plan`, `SubscriptionStatus`), dan `lib/subscription/get-plan.ts`'s
+  `getUserPlan()` — query asli ke DB, bukan stub yang selalu mengembalikan
+  `"FREE"` secara hardcoded. Kartu "Langganan" di `/profil` diperbarui
+  untuk menampilkan paket ASLI pengguna (dibaca lewat `getUserPlan()`,
+  bukan teks statis "akan tersedia Fase 16" yang sekarang sudah basi karena
+  fase ini SEDANG berjalan).
+- **Keputusan (desain model data):** Pengguna TANPA baris `Subscription`
+  dianggap implisit FREE — baris hanya dibuat saat langganan sungguhan
+  terjadi. Ini menghindari migrasi backfill untuk seluruh basis pengguna
+  yang 100% FREE saat ini, konsisten dengan prinsip "live computed, jangan
+  simpan yang tidak perlu" dari D-039. `expiresAt`/`status` sudah
+  dirancang untuk siklus langganan nyata (aktif/batal/kedaluwarsa) walau
+  belum ada jalur yang benar-benar mengisinya.
+- **Keputusan (TIDAK membangun checkout):** Tidak ada kredensial payment
+  gateway (`.env.example` sudah mengisyaratkan Midtrans lewat
+  `MIDTRANS_SERVER_KEY`/`MIDTRANS_CLIENT_KEY`, keduanya kosong) di
+  environment ini. Membangun UI checkout/form pembayaran yang TIDAK bisa
+  benar-benar memproses pembayaran nyata akan menyesatkan pengguna —
+  secara prinsip sama dengan larangan "jangan menampilkan estimasi palsu"
+  yang dipegang sejak Fase 1, hanya kali ini risikonya lebih serius karena
+  menyangkut uang sungguhan, bukan sekadar skor latihan.
+- **Keputusan (TIDAK membangun feature-gating retroaktif):** 15 fase
+  sebelumnya membangun SEMUA fitur (Listening/Reading/Writing/Speaking
+  Lab, Tryout, dst.) tanpa asumsi gating sama sekali — setiap siswa yang
+  login mengakses semuanya. Menambahkan logika "fitur ini Premium-only"
+  secara retroaktif sekarang berisiko mengganggu alur yang sudah terbukti
+  benar di puluhan E2E test tanpa manfaat nyata (`PAYMENTS_ENABLED` masih
+  false, jadi gating itu tidak akan pernah aktif sampai ada integrasi
+  gateway sungguhan) — persis kasus "jangan membangun setengah-matang"
+  yang berulang kali dihindari sepanjang proyek ini (lihat juga D-040's
+  alasan serupa untuk manajemen kelas).
+- **Alternatif dipertimbangkan:** Mendesain SEKARANG fitur mana yang akan
+  jadi Premium (opsi kedua yang ditawarkan ke pengguna) — ditolak oleh
+  pengguna sendiri; alasannya konsisten dengan poin di atas: keputusan
+  bisnis semacam itu lebih baik dibuat sekali, berbarengan dengan memilih
+  payment gateway sungguhan, daripada ditebak dua kali (sekarang dan nanti
+  saat diimplementasi sungguhan).
+- **Tinjau ulang:** Begitu ada kredensial Midtrans (atau gateway lain) yang
+  sungguhan, fase lanjutan perlu: (1) desain feature-gating yang jelas
+  (fitur mana, tier mana), (2) checkout flow sungguhan yang menulis baris
+  `Subscription` asli lewat webhook gateway (bukan ditulis langsung dari
+  klien), (3) `PAYMENTS_ENABLED` baru dibalik ke `true` setelah (1) dan (2)
+  teruji end-to-end.

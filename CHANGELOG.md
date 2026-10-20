@@ -2,6 +2,31 @@
 
 Semua perubahan penting pada Success IELTS dicatat di sini, per fase pengembangan.
 
+## Fase 16 — Infrastruktur langganan (flag + model data, bukan checkout)
+
+### Ditambahkan
+
+- **`PAYMENTS_ENABLED`** (`lib/config/features.ts`) — flag yang sudah ada di
+  `.env`/`.env.example` sejak Fase 0, sekarang benar-benar dibaca kode untuk
+  pertama kalinya. Default `false`.
+- Model baru `Subscription` (+ enum `Plan`: FREE/PREMIUM, `SubscriptionStatus`:
+  ACTIVE/CANCELED/EXPIRED) — pengguna tanpa baris dianggap implisit FREE,
+  tidak perlu migrasi backfill.
+- `lib/subscription/get-plan.ts`'s `getUserPlan()` — lookup paket pengguna
+  yang nyata dari DB.
+- Kartu "Langganan" di `/profil` menampilkan paket asli pengguna, bukan lagi
+  teks statis "akan tersedia Fase 16" yang sudah basi.
+
+### Catatan — lingkup sengaja dipersempit (lihat D-043 untuk detail)
+
+- **Checkout/pembayaran sungguhan TIDAK dibangun** — tidak ada kredensial
+  payment gateway (Midtrans) di environment ini; UI pembayaran yang tidak
+  bisa benar-benar memproses transaksi akan menyesatkan pengguna.
+- **Feature-gating retroaktif TIDAK dibangun** — 15 fase sebelumnya
+  membangun semua fitur tanpa asumsi gating; menambahkannya sekarang,
+  sementara `PAYMENTS_ENABLED` tetap false, tidak ada manfaat nyata dan
+  berisiko mengganggu alur yang sudah teruji.
+
 ## Fase 15 — PWA, aksesibilitas, analitik, dan privasi
 
 ### Ditambahkan

@@ -6,6 +6,8 @@ import { DeleteAccountButton } from "@/components/profil/delete-account-button";
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth/rbac";
 import { prisma } from "@/lib/db";
+import { getUserPlan } from "@/lib/subscription/get-plan";
+import { PAYMENTS_ENABLED } from "@/lib/config/features";
 import {
   DAILY_STUDY_MINUTES_LABEL,
   LEARNING_GOAL_LABEL,
@@ -23,9 +25,8 @@ const ROLE_LABEL: Record<string, string> = {
 export default async function ProfilePage() {
   const sessionUser = await requireUser();
   // Not findUniqueOrThrow — a still-valid session whose user row is already
-  // gone is a real, reachable state (e.g. Next re-renders this route as part
-  // of completing deleteAccountAction, using the request's original session,
-  // right after that same action deleted the row), not an error to crash on.
+  // gone is a real, reachable state (e.g. a stale tab open to /profil after
+  // the account was deleted from elsewhere), not an error to crash on.
   const user = await prisma.user.findUnique({
     where: { id: sessionUser.id },
     include: { profile: true, preference: true },
@@ -35,6 +36,7 @@ export default async function ProfilePage() {
   }
 
   const onboardingDone = Boolean(user.profile?.onboardingCompletedAt);
+  const plan = await getUserPlan(user.id);
 
   return (
     <div className="mx-auto w-full max-w-2xl space-y-6 p-4 sm:p-6">
@@ -174,10 +176,20 @@ export default async function ProfilePage() {
         <CardHeader>
           <CardTitle>Langganan</CardTitle>
           <CardDescription>
-            Fitur premium dan pembayaran belum diaktifkan. Akan tersedia pada Fase 16 sesuai Master
-            Prompt, dengan status default nonaktif (PAYMENTS_ENABLED=false).
+            Paket Anda saat ini:{" "}
+            <Badge variant="secondary">{plan === "PREMIUM" ? "Premium" : "Gratis"}</Badge>
           </CardDescription>
         </CardHeader>
+        <CardContent className="text-muted-foreground text-sm">
+          {PAYMENTS_ENABLED ? (
+            <p>Semua fitur belajar saat ini gratis. Pembelian paket belum tersedia di platform ini.</p>
+          ) : (
+            <p>
+              Semua fitur belajar saat ini gratis untuk semua pengguna. Paket Premium (opsional)
+              belum diaktifkan di platform ini.
+            </p>
+          )}
+        </CardContent>
       </Card>
     </div>
   );
